@@ -6,21 +6,23 @@ import { WelcomeScreen } from "../WelcomeScreen";
 
 describe("WelcomeScreen", () => {
   it("shows the ISKCON Chicago spiritual welcome and auth choices", async () => {
-    const { getByText, queryByText } = await render(
+    const { getByRole, getByText, queryByText } = await render(
       <WelcomeScreen onAuthenticated={jest.fn()} />,
     );
 
     expect(getByText("Home of Śrī Śrī Kiśora-Kiśorī")).toBeTruthy();
-    expect(
-      getByText("Come as you are. Grow closer to Kṛṣṇa, together."),
-    ).toBeTruthy();
+    expect(getByText("Come as you are")).toBeTruthy();
+    expect(getByText("Grow closer to Kṛṣṇa together")).toBeTruthy();
     expect(
       getByText(
         "A loving community connected through seva, sādhana, and kīrtana.",
       ),
     ).toBeTruthy();
-    expect(getByText("Create account")).toBeTruthy();
+    expect(getByRole("button", { name: "Create an account" })).toBeTruthy();
     expect(getByText("Continue with Google")).toBeTruthy();
+    expect(
+      getByText("By continuing, you agree to our Terms & Privacy Policy."),
+    ).toBeTruthy();
     expect(queryByText("Preview the app")).toBeNull();
     expect(queryByText(/visual prototype/i)).toBeNull();
   });
@@ -35,34 +37,28 @@ describe("WelcomeScreen", () => {
     expect(getByText("Enter a valid email address.")).toBeTruthy();
 
     await fireEvent.changeText(
-      getByPlaceholderText("you@example.com"),
+      getByPlaceholderText("Email address"),
       "devotee@example.com",
     );
-    await fireEvent.changeText(
-      getByPlaceholderText("At least 6 characters"),
-      "haribol",
-    );
+    await fireEvent.changeText(getByPlaceholderText("Password"), "haribol");
     await fireEvent.press(getByRole("button", { name: "Sign in" }));
 
     expect(onAuthenticated).toHaveBeenCalledTimes(1);
   });
 
   it("switches to account creation and password reset", async () => {
-    const { getByPlaceholderText, getByRole, getByText } = await render(
-      <WelcomeScreen onAuthenticated={jest.fn()} />,
-    );
+    const { getByPlaceholderText, getByRole, getByText, queryByText } =
+      await render(<WelcomeScreen onAuthenticated={jest.fn()} />);
 
-    await fireEvent.press(
-      getByRole("button", { name: "Show Create account" }),
-    );
-    expect(getByText("Join the community")).toBeTruthy();
-    expect(getByText("Full name")).toBeTruthy();
-    expect(getByText("Email address")).toBeTruthy();
-    expect(getByText("Create password")).toBeTruthy();
-    expect(getByText("Phone number")).toBeTruthy();
-    expect(getByPlaceholderText("(312) 555-0123")).toBeTruthy();
+    await fireEvent.press(getByRole("button", { name: "Create an account" }));
+    expect(getByText("Create your account")).toBeTruthy();
+    expect(getByPlaceholderText("Full name")).toBeTruthy();
+    expect(getByPlaceholderText("Email address")).toBeTruthy();
+    expect(getByPlaceholderText("Create password")).toBeTruthy();
+    expect(getByPlaceholderText("Phone number")).toBeTruthy();
+    expect(queryByText("Continue with Google")).toBeNull();
 
-    await fireEvent.press(getByRole("button", { name: "Show Sign in" }));
+    await fireEvent.press(getByRole("button", { name: "Return to sign in" }));
     await fireEvent.press(getByRole("button", { name: "Forgot password?" }));
     expect(getByText("Reset your password")).toBeTruthy();
     expect(getByText("Send reset link")).toBeTruthy();
@@ -72,32 +68,30 @@ describe("WelcomeScreen", () => {
     const { getByPlaceholderText, getByRole, getByText, queryByText } =
       await render(<WelcomeScreen onAuthenticated={jest.fn()} />);
 
-    await fireEvent.press(
-      getByRole("button", { name: "Show Create account" }),
-    );
+    await fireEvent.press(getByRole("button", { name: "Create an account" }));
 
     await fireEvent.changeText(
-      getByPlaceholderText("Your name"),
+      getByPlaceholderText("Full name"),
       "Gauranga Sharma",
     );
     await fireEvent.changeText(
-      getByPlaceholderText("you@example.com"),
+      getByPlaceholderText("Email address"),
       "devotee@example.com",
     );
     await fireEvent.changeText(
-      getByPlaceholderText("At least 6 characters"),
+      getByPlaceholderText("Create password"),
       "haribol",
     );
     await fireEvent.changeText(
-      getByPlaceholderText("(312) 555-0123"),
+      getByPlaceholderText("Phone number"),
       "3125550123",
     );
     await fireEvent.press(
       getByRole("button", { name: "Send phone verification" }),
     );
 
-    expect(getByText("Verification code")).toBeTruthy();
-    expect(getByPlaceholderText("6-digit code")).toBeTruthy();
+    expect(getByPlaceholderText("6-digit verification code")).toBeTruthy();
+    expect(getByRole("button", { name: "Change phone number" })).toBeTruthy();
     expect(queryByText("Continue with Google")).toBeNull();
   });
 });
