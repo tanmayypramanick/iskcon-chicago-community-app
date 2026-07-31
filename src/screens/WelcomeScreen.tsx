@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Image,
   Keyboard,
@@ -17,6 +18,15 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import tokens from "../../design-tokens.json";
+import {
+  getAuthProviderAvailability,
+  requestPasswordReset,
+  requestPhoneVerification,
+  signInWithEmail,
+  signUpWithEmail,
+  verifyPhoneChange,
+  type AuthProviderAvailability,
+} from "../services/auth";
 
 type AuthView = "signIn" | "createAccount" | "resetPassword";
 
@@ -207,28 +217,41 @@ function ActionButton({
   children,
   icon,
   variant = "primary",
+  loading = false,
+  disabled = false,
   onPress,
 }: {
   children: string;
   icon: keyof typeof Ionicons.glyphMap;
   variant?: "primary" | "secondary";
+  loading?: boolean;
+  disabled?: boolean;
   onPress: () => void;
 }) {
   const primary = variant === "primary";
+  const unavailable = disabled || loading;
 
   return (
     <Pressable
       className={`h-11 flex-row items-center justify-center rounded-pill ${
         primary ? "bg-marigold" : "border border-border bg-white"
-      }`}
+      } ${unavailable ? "opacity-60" : ""}`}
       accessibilityRole="button"
       accessibilityLabel={children}
+      accessibilityState={{ disabled: unavailable, busy: loading }}
+      disabled={unavailable}
       onPress={onPress}
     >
-      <Ionicons name={icon} size={20} color={tokens.colors.indigo} />
-      <Text className="ml-2 font-sans-bold text-base text-indigo">
-        {children}
-      </Text>
+      {loading ? (
+        <ActivityIndicator color={tokens.colors.indigo} />
+      ) : (
+        <>
+          <Ionicons name={icon} size={20} color={tokens.colors.indigo} />
+          <Text className="ml-2 font-sans-bold text-base text-indigo">
+            {children}
+          </Text>
+        </>
+      )}
     </Pressable>
   );
 }
@@ -257,6 +280,10 @@ export function WelcomeScreen({
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [providers, setProviders] = useState<AuthProviderAvailability | null>(
+    null,
+  );
 
   useEffect(() => {
     const showEvent =
@@ -273,6 +300,22 @@ export function WelcomeScreen({
     return () => {
       showSubscription.remove();
       hideSubscription.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    getAuthProviderAvailability()
+      .then((availability) => {
+        if (active) setProviders(availability);
+      })
+      .catch(() => {
+        if (active) setProviders(null);
+      });
+
+    return () => {
+      active = false;
     };
   }, []);
 
@@ -299,17 +342,40 @@ export function WelcomeScreen({
     return true;
   };
 
-  const submitSignIn = () => {
+  const getErrorMessage = (error: unknown) =>
+    error instanceof Error
+      ? error.message
+      : "Something went wrong. Please try again.";
+
+  const normalizedPhone = () => {
+    const digits = phone.replace(/\D/g, "");
+    return digits.length === 10 ? `+1${digits}` : `+${digits}`;
+  };
+
+  const submitSignIn = async () => {
     setMessage("");
     if (!validateEmail()) return;
     if (password.length < 6) {
       setMessage("Password must be at least 6 characters.");
       return;
     }
-    onAuthenticated();
+
+    setSubmitting(true);
+    try {
+      const session = await signInWithEmail(email, password);
+      if (!session) {
+        setMessage("Sign-in did not return a session. Please try again.");
+        return;
+      }
+      onAuthenticated();
+    } catch (error) {
+      setMessage(getErrorMessage(error));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const submitCreateAccount = () => {
+  const submitCreateAccount = async () => {
     setMessage("");
     if (name.trim().length < 2) {
       setMessage("Enter the name you would like shown.");
@@ -321,30 +387,82 @@ export function WelcomeScreen({
       return;
     }
     if (!validatePhone()) return;
-    if (!otpSent) {
-      setOtpSent(true);
-      setMessage("Enter the 6-digit code sent to your phone.");
-      return;
+
+    setSubmitting(true);
+    try {
+      if (otpSent) {
+        if (otp.replace(/\D/g, "").length !== 6) {
+          setMessage("Enter the 6-digit verification code.");
+          return;
+        }
+
+        await verifyPhoneChange(normalizedPhone(), otp);
+        onAuthenticated();
+        return;
+      }
+
+      const session = await signUpWithEmail({
+        name,
+        email,
+        password,
+        phone: normalizedPhone(),
+      });
+
+      if (!session) {
+        setView("signIn");
+        setPassword("");
+        setMessage(
+          "Account created. Check your email to confirm it, then sign in.",
+        );
+        return;
+      }
+
+      if (providers?.phone) {
+        await requestPhoneVerification(normalizedPhone());
+        setOtpSent(true);
+        setMessage("Enter the 6-digit code sent to your phone.");
+        return;
+      }
+
+      Alert.alert(
+        "Account created",
+        "Your account is signed in. Phone OTP will become available after the Phone provider is enabled in Supabase.",
+      );
+      onAuthenticated();
+    } catch (error) {
+      setMessage(getErrorMessage(error));
+    } finally {
+      setSubmitting(false);
     }
-    if (otp.replace(/\D/g, "").length !== 6) {
-      setMessage("Enter the 6-digit verification code.");
-      return;
-    }
-    onAuthenticated();
   };
 
-  const submitReset = () => {
+  const submitReset = async () => {
     setMessage("");
     if (!validateEmail()) return;
-    setMessage(
-      "Reset request prepared. Delivery begins when Supabase is connected.",
-    );
+
+    setSubmitting(true);
+    try {
+      await requestPasswordReset(email);
+      setMessage("Password reset email sent. Check your inbox.");
+    } catch (error) {
+      setMessage(getErrorMessage(error));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const showGoogleSetup = () => {
+    if (providers?.google) {
+      Alert.alert(
+        "Google provider enabled",
+        "The Supabase provider is ready. The native OAuth callback still needs its Google Cloud client IDs before sign-in can open securely.",
+      );
+      return;
+    }
+
     Alert.alert(
-      "Google sign-in setup needed",
-      "Connect Supabase and configure Google OAuth to securely activate this option.",
+      "Enable Google in Supabase",
+      "Open Authentication → Providers → Google, then add the Google Cloud client ID and secret.",
     );
   };
 
@@ -410,7 +528,11 @@ export function WelcomeScreen({
                 </Text>
               ) : null}
 
-              <ActionButton icon="arrow-forward" onPress={submitSignIn}>
+              <ActionButton
+                icon="arrow-forward"
+                loading={submitting}
+                onPress={submitSignIn}
+              >
                 Sign in
               </ActionButton>
 
@@ -567,11 +689,14 @@ export function WelcomeScreen({
                       icon={
                         otpSent ? "checkmark-circle-outline" : "call-outline"
                       }
+                      loading={submitting}
                       onPress={submitCreateAccount}
                     >
                       {otpSent
                         ? "Verify and create account"
-                        : "Send phone verification"}
+                        : providers?.phone
+                          ? "Create account & send OTP"
+                          : "Create account"}
                     </ActionButton>
 
                     {!keyboardVisible ? (
@@ -624,6 +749,7 @@ export function WelcomeScreen({
                     ) : null}
                     <ActionButton
                       icon="mail-unread-outline"
+                      loading={submitting}
                       onPress={submitReset}
                     >
                       Send reset link

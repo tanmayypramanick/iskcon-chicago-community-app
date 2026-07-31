@@ -1,10 +1,42 @@
 /// <reference types="jest" />
 
-import { fireEvent, render } from "@testing-library/react-native";
+import { fireEvent, render, waitFor } from "@testing-library/react-native";
 
+import {
+  getAuthProviderAvailability,
+  signInWithEmail,
+  signUpWithEmail,
+} from "../../services/auth";
 import { WelcomeScreen } from "../WelcomeScreen";
 
+jest.mock("../../services/auth", () => ({
+  getAuthProviderAvailability: jest.fn(),
+  requestPasswordReset: jest.fn(),
+  requestPhoneVerification: jest.fn(),
+  signInWithEmail: jest.fn(),
+  signUpWithEmail: jest.fn(),
+  verifyPhoneChange: jest.fn(),
+}));
+
+const mockGetAuthProviderAvailability = jest.mocked(
+  getAuthProviderAvailability,
+);
+const mockSignInWithEmail = jest.mocked(signInWithEmail);
+const mockSignUpWithEmail = jest.mocked(signUpWithEmail);
+
 describe("WelcomeScreen", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetAuthProviderAvailability.mockResolvedValue({
+      email: true,
+      phone: true,
+      google: false,
+      emailConfirmationRequired: true,
+    });
+    mockSignInWithEmail.mockResolvedValue({} as never);
+    mockSignUpWithEmail.mockResolvedValue({} as never);
+  });
+
   it("shows the ISKCON Chicago spiritual welcome and auth choices", async () => {
     const { getByRole, getByText, queryByText } = await render(
       <WelcomeScreen onAuthenticated={jest.fn()} />,
@@ -43,7 +75,13 @@ describe("WelcomeScreen", () => {
     await fireEvent.changeText(getByPlaceholderText("Password"), "haribol");
     await fireEvent.press(getByRole("button", { name: "Sign in" }));
 
-    expect(onAuthenticated).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(mockSignInWithEmail).toHaveBeenCalledWith(
+        "devotee@example.com",
+        "haribol",
+      );
+      expect(onAuthenticated).toHaveBeenCalledTimes(1);
+    });
   });
 
   it("switches to account creation and password reset", async () => {
@@ -51,6 +89,9 @@ describe("WelcomeScreen", () => {
       await render(<WelcomeScreen onAuthenticated={jest.fn()} />);
 
     await fireEvent.press(getByRole("button", { name: "Create an account" }));
+    await waitFor(() =>
+      expect(mockGetAuthProviderAvailability).toHaveBeenCalled(),
+    );
     expect(getByText("Create your account")).toBeTruthy();
     expect(getByPlaceholderText("Full name")).toBeTruthy();
     expect(getByPlaceholderText("Email address")).toBeTruthy();
@@ -87,11 +128,49 @@ describe("WelcomeScreen", () => {
       "3125550123",
     );
     await fireEvent.press(
-      getByRole("button", { name: "Send phone verification" }),
+      getByRole("button", { name: "Create account & send OTP" }),
     );
 
-    expect(getByPlaceholderText("6-digit verification code")).toBeTruthy();
-    expect(getByRole("button", { name: "Change phone number" })).toBeTruthy();
+    await waitFor(() => {
+      expect(getByPlaceholderText("6-digit verification code")).toBeTruthy();
+      expect(getByRole("button", { name: "Change phone number" })).toBeTruthy();
+    });
     expect(queryByText("Continue with Google")).toBeNull();
+  });
+
+  it("asks an email-confirmation signup to confirm before signing in", async () => {
+    mockSignUpWithEmail.mockResolvedValueOnce(null);
+    const { getByPlaceholderText, getByRole, getByText } = await render(
+      <WelcomeScreen onAuthenticated={jest.fn()} />,
+    );
+
+    await fireEvent.press(getByRole("button", { name: "Create an account" }));
+    await fireEvent.changeText(
+      getByPlaceholderText("Full name"),
+      "Gauranga Sharma",
+    );
+    await fireEvent.changeText(
+      getByPlaceholderText("Email address"),
+      "devotee@example.com",
+    );
+    await fireEvent.changeText(
+      getByPlaceholderText("Create password"),
+      "haribol",
+    );
+    await fireEvent.changeText(
+      getByPlaceholderText("Phone number"),
+      "3125550123",
+    );
+    await fireEvent.press(
+      getByRole("button", { name: "Create account & send OTP" }),
+    );
+
+    await waitFor(() => {
+      expect(
+        getByText(
+          "Account created. Check your email to confirm it, then sign in.",
+        ),
+      ).toBeTruthy();
+    });
   });
 });

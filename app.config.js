@@ -11,11 +11,11 @@ module.exports = {
     splash: {
       image: "./assets/splash-icon.png",
       resizeMode: "contain",
-      backgroundColor: tokens.colors.ivory
+      backgroundColor: tokens.colors.ivory,
     },
     ios: {
       supportsTablet: true,
-      bundleIdentifier: "org.iskconchicago.community"
+      bundleIdentifier: "org.iskconchicago.community",
     },
     android: {
       package: "org.iskconchicago.community",
@@ -23,14 +23,14 @@ module.exports = {
         backgroundColor: tokens.colors.ivory,
         foregroundImage: "./assets/android-icon-foreground.png",
         backgroundImage: "./assets/android-icon-background.png",
-        monochromeImage: "./assets/android-icon-monochrome.png"
+        monochromeImage: "./assets/android-icon-monochrome.png",
       },
-      predictiveBackGestureEnabled: true
+      predictiveBackGestureEnabled: true,
     },
     web: {
       bundler: "metro",
-      favicon: "./assets/favicon.png"
+      favicon: "./assets/favicon.png",
     },
-    plugins: ["expo-asset", "expo-font", "expo-splash-screen"]
-  }
+    plugins: ["expo-asset", "expo-font", "expo-splash-screen", "expo-sqlite"],
+  },
 };
