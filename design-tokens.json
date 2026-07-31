@@ -1,0 +1,28 @@
+{
+  "colors": {
+    "marigold": "#E8971C",
+    "marigoldSoft": "#F8D791",
+    "indigo": "#2B3A67",
+    "indigoSoft": "#E7EAF3",
+    "vermilion": "#C1440E",
+    "ivory": "#FBF7EF",
+    "stone": "#3A342B",
+    "stoneMuted": "#766D61",
+    "sandalwood": "#F0E4D0",
+    "peacock": "#1F6F67",
+    "peacockSoft": "#DCECE8",
+    "border": "#DED2BF",
+    "white": "#FFFFFF"
+  },
+  "spacing": {
+    "screen": "20px",
+    "section": "24px",
+    "card": "18px",
+    "touch": "48px"
+  },
+  "radii": {
+    "card": "24px",
+    "button": "18px",
+    "pill": "999px"
+  }
+}
