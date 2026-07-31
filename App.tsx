@@ -10,7 +10,6 @@ import { NavigationContainer, type Theme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -19,6 +18,7 @@ import { MainTabs } from "./src/navigation/MainTabs";
 import type { RootStackParamList } from "./src/navigation/types";
 import { FeatureScreen } from "./src/screens/FeatureScreen";
 import { WelcomeScreen } from "./src/screens/WelcomeScreen";
+import { usePrototypeSession } from "./src/store/usePrototypeSession";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -53,7 +53,8 @@ const navigationTheme: Theme = {
 };
 
 export default function App() {
-  const [hasEnteredPreview, setHasEnteredPreview] = useState(false);
+  const authenticate = usePrototypeSession((state) => state.authenticate);
+  const signOut = usePrototypeSession((state) => state.signOut);
   const [fontsLoaded] = useFonts({
     AtkinsonHyperlegible_400Regular,
     AtkinsonHyperlegible_700Bold,
@@ -70,7 +71,7 @@ export default function App() {
         <NavigationContainer theme={navigationTheme}>
           <StatusBar style="dark" />
           <Stack.Navigator
-            initialRouteName={hasEnteredPreview ? "MainTabs" : "Welcome"}
+            initialRouteName="Welcome"
             screenOptions={{
               headerShadowVisible: false,
               headerBackButtonDisplayMode: "minimal",
@@ -85,8 +86,8 @@ export default function App() {
             <Stack.Screen name="Welcome" options={{ headerShown: false }}>
               {({ navigation }) => (
                 <WelcomeScreen
-                  onEnter={() => {
-                    setHasEnteredPreview(true);
+                  onAuthenticated={() => {
+                    authenticate();
                     navigation.replace("MainTabs");
                   }}
                 />
@@ -94,9 +95,17 @@ export default function App() {
             </Stack.Screen>
             <Stack.Screen
               name="MainTabs"
-              component={MainTabs}
               options={{ headerShown: false }}
-            />
+            >
+              {({ navigation }) => (
+                <MainTabs
+                  onSignOut={() => {
+                    signOut();
+                    navigation.replace("Welcome");
+                  }}
+                />
+              )}
+            </Stack.Screen>
             <Stack.Screen
               name="Feature"
               component={FeatureScreen}

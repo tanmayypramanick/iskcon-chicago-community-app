@@ -20,7 +20,7 @@ const icons: Record<
   Profile: { active: "person", inactive: "person-outline" },
 };
 
-export function MainTabs() {
+export function MainTabs({ onSignOut }: { onSignOut: () => void }) {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -50,7 +50,9 @@ export function MainTabs() {
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Services" component={ServicesScreen} />
       <Tab.Screen name="Directory" component={DirectoryScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="Profile">
+        {() => <ProfileScreen onSignOut={onSignOut} />}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 }
