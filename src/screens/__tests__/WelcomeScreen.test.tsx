@@ -10,9 +10,9 @@ describe("WelcomeScreen", () => {
       <WelcomeScreen onAuthenticated={jest.fn()} />,
     );
 
-    expect(getByText("Sri Sri Kisora-Kisori")).toBeTruthy();
+    expect(getByText("Home of Sri Sri Kisora-Kisori")).toBeTruthy();
     expect(
-      getByText("Rooted in devotion, united in seva"),
+      getByText("One community. Many ways to serve Krishna."),
     ).toBeTruthy();
     expect(getByText("Create account")).toBeTruthy();
     expect(getByText("Continue with Google")).toBeTruthy();
@@ -48,12 +48,12 @@ describe("WelcomeScreen", () => {
     );
 
     await fireEvent.press(
-      getByRole("button", { name: "Show create account form" }),
+      getByRole("button", { name: "Show Create account" }),
     );
     expect(getByText("Join the community")).toBeTruthy();
     expect(getByText("Full name")).toBeTruthy();
 
-    await fireEvent.press(getByRole("button", { name: "Show sign in form" }));
+    await fireEvent.press(getByRole("button", { name: "Show Sign in" }));
     await fireEvent.press(getByRole("button", { name: "Forgot password?" }));
     expect(getByText("Reset your password")).toBeTruthy();
     expect(getByText("Send reset link")).toBeTruthy();

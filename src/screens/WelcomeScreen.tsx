@@ -1,40 +1,148 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  ScrollView,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
   type TextInputProps,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import tokens from "../../design-tokens.json";
-import { Button, GarlandDivider } from "../components/ui";
+import { Button } from "../components/ui";
 
 type AuthView = "signIn" | "createAccount" | "resetPassword";
 type SignInMethod = "email" | "phone";
 
+function SpiritualHero({
+  keyboardVisible,
+  compactHeight,
+}: {
+  keyboardVisible: boolean;
+  compactHeight: boolean;
+}) {
+  if (keyboardVisible) {
+    return (
+      <View className="h-14 flex-row items-center justify-center bg-indigo px-screen">
+        <Image
+          source={require("../../assets/iskcon-chicago-logo.png")}
+          className="h-11 w-12"
+          resizeMode="contain"
+          accessibilityLabel="ISKCON Chicago logo"
+        />
+        <View className="ml-3">
+          <Text className="font-sans-bold text-sm uppercase tracking-[2px] text-marigoldSoft">
+            ISKCON Chicago
+          </Text>
+          <Text className="font-sans text-xs text-white">
+            Home of Sri Sri Kisora-Kisori
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View
+      className={`overflow-hidden bg-indigo px-screen ${
+        compactHeight ? "h-[196px] pt-1" : "h-[220px] pt-2"
+      }`}
+    >
+      <View className="absolute -left-8 top-2 opacity-10">
+        <Ionicons
+          name="flower-outline"
+          size={124}
+          color={tokens.colors.white}
+        />
+      </View>
+      <View className="absolute -right-10 bottom-0 opacity-10">
+        <Ionicons
+          name="flower-outline"
+          size={142}
+          color={tokens.colors.marigoldSoft}
+        />
+      </View>
+      <View className="absolute right-7 top-7 opacity-20">
+        <Ionicons
+          name="sparkles-outline"
+          size={24}
+          color={tokens.colors.marigoldSoft}
+        />
+      </View>
+
+      <View className="items-center">
+        <Image
+          source={require("../../assets/iskcon-chicago-logo.png")}
+          className={compactHeight ? "h-14 w-16" : "h-[68px] w-20"}
+          resizeMode="contain"
+          accessibilityLabel="ISKCON Chicago logo"
+        />
+        <Text className="font-sans-bold text-sm text-white">
+          Home of Sri Sri Kisora-Kisori
+        </Text>
+      </View>
+
+      <View className={`flex-row items-center ${compactHeight ? "mt-2" : "mt-3"}`}>
+        <View className="rounded-pill border-2 border-marigold bg-white p-1">
+          <Image
+            source={require("../../assets/sri-sri-kisora-kisori.jpg")}
+            className={
+              compactHeight
+                ? "h-[78px] w-[78px] rounded-pill"
+                : "h-[92px] w-[92px] rounded-pill"
+            }
+            resizeMode="cover"
+            accessibilityLabel="Sri Sri Kisora-Kisori at ISKCON Chicago"
+          />
+        </View>
+        <View className="ml-4 flex-1">
+          <Text
+            className={`font-display text-white ${
+              compactHeight
+                ? "text-[17px] leading-[21px]"
+                : "text-[19px] leading-6"
+            }`}
+            accessibilityRole="header"
+          >
+            One community. Many ways to serve Krishna.
+          </Text>
+          <Text className="mt-1 font-sans text-xs leading-4 text-marigoldSoft">
+            Find seva, deepen your practice, and grow with devotees who care.
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
 function Field({
   label,
   icon,
+  compact,
   ...inputProps
 }: TextInputProps & {
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
+  compact?: boolean;
 }) {
   return (
-    <View className="gap-2">
-      <Text className="font-sans-bold text-sm text-stone">{label}</Text>
-      <View className="min-h-touch flex-row items-center rounded-button border border-border bg-ivory px-4">
-        <Ionicons name={icon} size={20} color={tokens.colors.indigo} />
+    <View>
+      <Text className="mb-1 font-sans-bold text-xs text-stone">{label}</Text>
+      <View
+        className={`flex-row items-center rounded-[14px] border border-border bg-ivory px-3 ${
+          compact ? "h-10" : "h-11"
+        }`}
+      >
+        <Ionicons name={icon} size={18} color={tokens.colors.indigo} />
         <TextInput
-          className="ml-3 flex-1 py-3 font-sans text-base text-stone"
+          className="ml-2 flex-1 py-2 font-sans text-[15px] text-stone"
           placeholderTextColor={tokens.colors.stoneMuted}
           {...inputProps}
         />
@@ -43,35 +151,39 @@ function Field({
   );
 }
 
-function MethodSwitch({
+function ChoiceSwitch<T extends string>({
+  choices,
   value,
   onChange,
+  accessibilityPrefix,
 }: {
-  value: SignInMethod;
-  onChange: (method: SignInMethod) => void;
+  choices: ReadonlyArray<{ value: T; label: string }>;
+  value: T;
+  onChange: (value: T) => void;
+  accessibilityPrefix: string;
 }) {
   return (
-    <View className="flex-row rounded-button bg-sandalwood p-1">
-      {(["email", "phone"] as const).map((method) => {
-        const selected = value === method;
+    <View className="h-10 flex-row rounded-[14px] bg-sandalwood p-1">
+      {choices.map((choice) => {
+        const selected = choice.value === value;
 
         return (
           <Pressable
-            key={method}
-            className={`min-h-touch flex-1 items-center justify-center rounded-[14px] ${
+            key={choice.value}
+            className={`flex-1 items-center justify-center rounded-[11px] ${
               selected ? "bg-white" : ""
             }`}
             accessibilityRole="button"
             accessibilityState={{ selected }}
-            accessibilityLabel={`Use ${method}`}
-            onPress={() => onChange(method)}
+            accessibilityLabel={`${accessibilityPrefix} ${choice.label}`}
+            onPress={() => onChange(choice.value)}
           >
             <Text
-              className={`font-sans-bold text-base capitalize ${
+              className={`font-sans-bold text-sm ${
                 selected ? "text-indigo" : "text-stoneMuted"
               }`}
             >
-              {method}
+              {choice.label}
             </Text>
           </Pressable>
         );
@@ -85,6 +197,9 @@ export function WelcomeScreen({
 }: {
   onAuthenticated: () => void;
 }) {
+  const { height } = useWindowDimensions();
+  const compactHeight = height < 760;
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [view, setView] = useState<AuthView>("signIn");
   const [method, setMethod] = useState<SignInMethod>("email");
   const [name, setName] = useState("");
@@ -94,6 +209,24 @@ export function WelcomeScreen({
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const showSubscription = Keyboard.addListener(showEvent, () =>
+      setKeyboardVisible(true),
+    );
+    const hideSubscription = Keyboard.addListener(hideEvent, () =>
+      setKeyboardVisible(false),
+    );
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   const changeView = (nextView: AuthView) => {
     setView(nextView);
@@ -114,7 +247,6 @@ export function WelcomeScreen({
       setMessage("Enter a valid email address.");
       return false;
     }
-
     return true;
   };
 
@@ -123,7 +255,6 @@ export function WelcomeScreen({
       setMessage("Enter a valid phone number, including area code.");
       return false;
     }
-
     return true;
   };
 
@@ -143,7 +274,7 @@ export function WelcomeScreen({
     if (!validatePhone()) return;
     if (!otpSent) {
       setOtpSent(true);
-      setMessage("Verification step ready. Enter the 6-digit code.");
+      setMessage("Enter the 6-digit verification code.");
       return;
     }
     if (otp.replace(/\D/g, "").length !== 6) {
@@ -156,7 +287,7 @@ export function WelcomeScreen({
   const submitCreateAccount = () => {
     setMessage("");
     if (name.trim().length < 2) {
-      setMessage("Tell us the name you would like shown in the community.");
+      setMessage("Enter the name you would like shown.");
       return;
     }
     if (method === "email" && !validateEmail()) return;
@@ -172,123 +303,80 @@ export function WelcomeScreen({
     setMessage("");
     if (!validateEmail()) return;
     setMessage(
-      "Reset request prepared. Email delivery will activate when Supabase is connected.",
+      "Reset request prepared. Delivery begins when Supabase is connected.",
     );
   };
 
   const showGoogleSetup = () => {
     Alert.alert(
       "Google sign-in setup needed",
-      "Connect Supabase and add the Google OAuth credentials to securely activate this option.",
+      "Connect Supabase and configure Google OAuth to securely activate this option.",
     );
   };
 
   const isSignIn = view === "signIn";
   const isCreateAccount = view === "createAccount";
+  const fieldIsCompact = compactHeight || isCreateAccount || keyboardVisible;
+  const showSocialSignIn = !keyboardVisible;
 
   return (
-    <SafeAreaView className="flex-1 bg-ivory" edges={["top", "bottom"]}>
+    <SafeAreaView className="flex-1 bg-indigo" edges={["top", "bottom"]}>
       <KeyboardAvoidingView
-        className="flex-1"
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        className="flex-1 bg-ivory"
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
-        <ScrollView
-          className="flex-1"
-          contentContainerClassName="px-screen pb-8 pt-3"
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          <View className="items-center">
-            <Image
-              source={require("../../assets/iskcon-chicago-logo.png")}
-              className="h-24 w-28"
-              resizeMode="contain"
-              accessibilityLabel="ISKCON Chicago logo"
-            />
-            <Text className="mt-1 text-center font-sans text-base text-stoneMuted">
-              Home of{" "}
-              <Text className="font-sans-bold text-indigo">
-                Sri Sri Kisora-Kisori
-              </Text>
-            </Text>
+        <SpiritualHero
+          keyboardVisible={keyboardVisible}
+          compactHeight={compactHeight}
+        />
 
-            <View className="mb-4 mt-5 rounded-pill border-2 border-marigold bg-white p-1.5">
-              <Image
-                source={require("../../assets/sri-sri-kisora-kisori.jpg")}
-                className="h-40 w-40 rounded-pill"
-                resizeMode="cover"
-                accessibilityLabel="Sri Sri Kisora-Kisori at ISKCON Chicago"
-              />
-            </View>
-
-            <Text
-              className="max-w-sm text-center font-display text-[28px] leading-[35px] text-stone"
-              accessibilityRole="header"
-            >
-              Rooted in devotion, united in seva
-            </Text>
-            <Text className="mt-2 max-w-sm text-center font-sans text-base leading-6 text-stoneMuted">
-              Stay connected, grow in Krishna consciousness, and support a
-              caring spiritual community.
-            </Text>
-          </View>
-
-          <GarlandDivider />
-
-          <View className="rounded-card border border-border bg-white p-card">
+        <View className="-mt-3 flex-1 px-3 pb-2">
+          <View
+            className={`flex-1 justify-center rounded-card border border-border bg-white ${
+              fieldIsCompact ? "p-3" : "p-4"
+            }`}
+          >
             {view !== "resetPassword" ? (
               <>
-                <View className="mb-5 flex-row rounded-button bg-indigoSoft p-1">
-                  <Pressable
-                    className={`min-h-touch flex-1 items-center justify-center rounded-[14px] ${
-                      isSignIn ? "bg-white" : ""
-                    }`}
-                    accessibilityRole="button"
-                    accessibilityLabel="Show sign in form"
-                    accessibilityState={{ selected: isSignIn }}
-                    onPress={() => changeView("signIn")}
-                  >
-                    <Text
-                      className={`font-sans-bold text-base ${
-                        isSignIn ? "text-indigo" : "text-stoneMuted"
-                      }`}
-                    >
-                      Sign in
+                <ChoiceSwitch
+                  choices={[
+                    { value: "signIn", label: "Sign in" },
+                    { value: "createAccount", label: "Create account" },
+                  ]}
+                  value={isSignIn ? "signIn" : "createAccount"}
+                  onChange={(nextView) => changeView(nextView)}
+                  accessibilityPrefix="Show"
+                />
+
+                {!keyboardVisible ? (
+                  <View className="my-2">
+                    <Text className="font-display text-xl text-stone">
+                      {isSignIn ? "Welcome back" : "Join the community"}
                     </Text>
-                  </Pressable>
-                  <Pressable
-                    className={`min-h-touch flex-1 items-center justify-center rounded-[14px] ${
-                      isCreateAccount ? "bg-white" : ""
-                    }`}
-                    accessibilityRole="button"
-                    accessibilityLabel="Show create account form"
-                    accessibilityState={{ selected: isCreateAccount }}
-                    onPress={() => changeView("createAccount")}
-                  >
-                    <Text
-                      className={`font-sans-bold text-base ${
-                        isCreateAccount ? "text-indigo" : "text-stoneMuted"
-                      }`}
-                    >
-                      Create account
+                    <Text className="font-sans text-sm text-stoneMuted">
+                      {isSignIn
+                        ? "Continue your journey of devotion and seva."
+                        : "Begin with one simple community account."}
                     </Text>
-                  </Pressable>
-                </View>
+                  </View>
+                ) : (
+                  <View className="h-2" />
+                )}
 
-                <Text className="font-display text-2xl text-stone">
-                  {isSignIn ? "Welcome back" : "Join the community"}
-                </Text>
-                <Text className="mb-5 mt-1 font-sans text-base leading-6 text-stoneMuted">
-                  {isSignIn
-                    ? "Sign in with email or phone to continue."
-                    : "Create one simple account for seva and community life."}
-                </Text>
+                <ChoiceSwitch
+                  choices={[
+                    { value: "email", label: "Email" },
+                    { value: "phone", label: "Phone" },
+                  ]}
+                  value={method}
+                  onChange={changeMethod}
+                  accessibilityPrefix="Use"
+                />
 
-                <MethodSwitch value={method} onChange={changeMethod} />
-
-                <View className="mt-5 gap-4">
+                <View className={`gap-2 ${keyboardVisible ? "mt-2" : "mt-3"}`}>
                   {isCreateAccount ? (
                     <Field
+                      compact={fieldIsCompact}
                       label="Full name"
                       icon="person-outline"
                       value={name}
@@ -301,6 +389,7 @@ export function WelcomeScreen({
 
                   {method === "email" ? (
                     <Field
+                      compact={fieldIsCompact}
                       label="Email address"
                       icon="mail-outline"
                       value={email}
@@ -312,6 +401,7 @@ export function WelcomeScreen({
                     />
                   ) : (
                     <Field
+                      compact={fieldIsCompact}
                       label="Phone number"
                       icon="call-outline"
                       value={phone}
@@ -324,6 +414,7 @@ export function WelcomeScreen({
 
                   {method === "email" || isCreateAccount ? (
                     <Field
+                      compact={fieldIsCompact}
                       label={isCreateAccount ? "Create password" : "Password"}
                       icon="lock-closed-outline"
                       value={password}
@@ -336,6 +427,7 @@ export function WelcomeScreen({
 
                   {otpSent && isSignIn ? (
                     <Field
+                      compact={fieldIsCompact}
                       label="Verification code"
                       icon="keypad-outline"
                       value={otp}
@@ -350,25 +442,25 @@ export function WelcomeScreen({
 
                 {isSignIn && method === "email" ? (
                   <Pressable
-                    className="min-h-touch self-end justify-center"
+                    className="h-8 self-end justify-center"
                     accessibilityRole="button"
                     onPress={() => changeView("resetPassword")}
                   >
-                    <Text className="font-sans-bold text-base text-indigo">
+                    <Text className="font-sans-bold text-sm text-indigo">
                       Forgot password?
                     </Text>
                   </Pressable>
-                ) : null}
+                ) : (
+                  <View className="h-2" />
+                )}
 
                 {message ? (
-                  <View
-                    className="mb-4 rounded-button bg-indigoSoft px-4 py-3"
+                  <Text
+                    className="mb-1 text-center font-sans text-xs leading-4 text-vermilion"
                     accessibilityLiveRegion="polite"
                   >
-                    <Text className="font-sans text-sm leading-5 text-indigo">
-                      {message}
-                    </Text>
-                  </View>
+                    {message}
+                  </Text>
                 ) : null}
 
                 <Button
@@ -390,43 +482,49 @@ export function WelcomeScreen({
                         : "Sign in"}
                 </Button>
 
-                <View className="my-5 flex-row items-center">
-                  <View className="h-px flex-1 bg-border" />
-                  <Text className="mx-3 font-sans text-sm text-stoneMuted">or</Text>
-                  <View className="h-px flex-1 bg-border" />
-                </View>
-
-                <Button
-                  variant="secondary"
-                  icon="logo-google"
-                  onPress={showGoogleSetup}
-                >
-                  Continue with Google
-                </Button>
+                {showSocialSignIn ? (
+                  <>
+                    <View className="my-2 flex-row items-center">
+                      <View className="h-px flex-1 bg-border" />
+                      <Text className="mx-3 font-sans text-xs text-stoneMuted">
+                        or
+                      </Text>
+                      <View className="h-px flex-1 bg-border" />
+                    </View>
+                    <Button
+                      variant="secondary"
+                      icon="logo-google"
+                      onPress={showGoogleSetup}
+                    >
+                      Continue with Google
+                    </Button>
+                  </>
+                ) : null}
               </>
             ) : (
-              <>
+              <View>
                 <Pressable
-                  className="mb-4 min-h-touch flex-row items-center self-start"
+                  className="mb-2 h-10 flex-row items-center self-start"
                   accessibilityRole="button"
                   onPress={() => changeView("signIn")}
                 >
                   <Ionicons
                     name="arrow-back"
-                    size={20}
+                    size={19}
                     color={tokens.colors.indigo}
                   />
-                  <Text className="ml-2 font-sans-bold text-base text-indigo">
+                  <Text className="ml-2 font-sans-bold text-sm text-indigo">
                     Back to sign in
                   </Text>
                 </Pressable>
-                <Text className="font-display text-2xl text-stone">
+                <Text className="font-display text-xl text-stone">
                   Reset your password
                 </Text>
-                <Text className="mb-5 mt-2 font-sans text-base leading-6 text-stoneMuted">
+                <Text className="mb-4 mt-1 font-sans text-sm leading-5 text-stoneMuted">
                   Enter your email and we will send a secure reset link.
                 </Text>
                 <Field
+                  compact={fieldIsCompact}
                   label="Email address"
                   icon="mail-outline"
                   value={email}
@@ -437,28 +535,22 @@ export function WelcomeScreen({
                   textContentType="emailAddress"
                 />
                 {message ? (
-                  <View
-                    className="my-4 rounded-button bg-indigoSoft px-4 py-3"
+                  <Text
+                    className="my-2 text-center font-sans text-xs leading-4 text-vermilion"
                     accessibilityLiveRegion="polite"
                   >
-                    <Text className="font-sans text-sm leading-5 text-indigo">
-                      {message}
-                    </Text>
-                  </View>
+                    {message}
+                  </Text>
                 ) : (
-                  <View className="h-5" />
+                  <View className="h-3" />
                 )}
                 <Button icon="mail-unread-outline" onPress={submitReset}>
                   Send reset link
                 </Button>
-              </>
+              </View>
             )}
           </View>
-
-          <Text className="mt-6 text-center font-sans text-sm leading-5 text-stoneMuted">
-            Stay connected. Serve with heart. Deepen your Krishna consciousness.
-          </Text>
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
