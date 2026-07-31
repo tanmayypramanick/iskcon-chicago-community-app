@@ -12,7 +12,10 @@ describe("WelcomeScreen", () => {
 
     expect(getByText("Home of Sri Sri Kisora-Kisori")).toBeTruthy();
     expect(
-      getByText("One community. Many ways to serve Krishna."),
+      getByText("One community, growing closer to Krishna."),
+    ).toBeTruthy();
+    expect(
+      getByText("Connecting devotees through seva, sadhana, and kirtana."),
     ).toBeTruthy();
     expect(getByText("Create account")).toBeTruthy();
     expect(getByText("Continue with Google")).toBeTruthy();

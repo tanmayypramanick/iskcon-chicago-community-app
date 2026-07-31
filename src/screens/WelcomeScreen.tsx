@@ -41,7 +41,7 @@ function SpiritualHero({
           <Text className="font-sans-bold text-sm uppercase tracking-[2px] text-marigoldSoft">
             ISKCON Chicago
           </Text>
-          <Text className="font-sans text-xs text-white">
+          <Text className="font-sans text-xs text-marigoldSoft">
             Home of Sri Sri Kisora-Kisori
           </Text>
         </View>
@@ -52,7 +52,7 @@ function SpiritualHero({
   return (
     <View
       className={`overflow-hidden bg-indigo px-screen ${
-        compactHeight ? "h-[196px] pt-1" : "h-[220px] pt-2"
+        compactHeight ? "h-[232px] pt-1" : "h-[278px] pt-2"
       }`}
     >
       <View className="absolute -left-8 top-2 opacity-10">
@@ -80,43 +80,49 @@ function SpiritualHero({
       <View className="items-center">
         <Image
           source={require("../../assets/iskcon-chicago-logo.png")}
-          className={compactHeight ? "h-14 w-16" : "h-[68px] w-20"}
+          className={compactHeight ? "h-12 w-14" : "h-[62px] w-[72px]"}
           resizeMode="contain"
           accessibilityLabel="ISKCON Chicago logo"
         />
-        <Text className="font-sans-bold text-sm text-white">
+        <Text className="font-display text-[11px] tracking-[0.7px] text-marigoldSoft">
           Home of Sri Sri Kisora-Kisori
         </Text>
       </View>
 
-      <View className={`flex-row items-center ${compactHeight ? "mt-2" : "mt-3"}`}>
-        <View className="rounded-pill border-2 border-marigold bg-white p-1">
-          <Image
-            source={require("../../assets/sri-sri-kisora-kisori.jpg")}
-            className={
-              compactHeight
-                ? "h-[78px] w-[78px] rounded-pill"
-                : "h-[92px] w-[92px] rounded-pill"
-            }
-            resizeMode="cover"
-            accessibilityLabel="Sri Sri Kisora-Kisori at ISKCON Chicago"
-          />
+      <View className={`items-center ${compactHeight ? "mt-1" : "mt-2"}`}>
+        <View className="rounded-pill border border-marigoldSoft p-1">
+          <View className="rounded-pill border-2 border-marigold bg-white p-1">
+            <Image
+              source={require("../../assets/sri-sri-kisora-kisori.jpg")}
+              className={
+                compactHeight
+                  ? "h-[64px] w-[64px] rounded-pill"
+                  : "h-[82px] w-[82px] rounded-pill"
+              }
+              resizeMode="cover"
+              accessibilityLabel="Sri Sri Kisora-Kisori at ISKCON Chicago"
+            />
+          </View>
         </View>
-        <View className="ml-4 flex-1">
-          <Text
-            className={`font-display text-white ${
-              compactHeight
-                ? "text-[17px] leading-[21px]"
-                : "text-[19px] leading-6"
-            }`}
-            accessibilityRole="header"
-          >
-            One community. Many ways to serve Krishna.
-          </Text>
-          <Text className="mt-1 font-sans text-xs leading-4 text-marigoldSoft">
-            Find seva, deepen your practice, and grow with devotees who care.
-          </Text>
-        </View>
+        <Text
+          className={`mt-2 max-w-[310px] text-center font-display text-white ${
+            compactHeight
+              ? "text-[16px] leading-5"
+              : "text-[18px] leading-[22px]"
+          }`}
+          accessibilityRole="header"
+        >
+          One community, growing closer to Krishna.
+        </Text>
+        <Text
+          className={`mt-1 max-w-[320px] text-center font-sans text-marigoldSoft ${
+            compactHeight
+              ? "text-[11px] leading-[15px]"
+              : "text-xs leading-4"
+          }`}
+        >
+          Connecting devotees through seva, sadhana, and kirtana.
+        </Text>
       </View>
     </View>
   );
