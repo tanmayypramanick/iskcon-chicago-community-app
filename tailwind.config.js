@@ -14,6 +14,7 @@ module.exports = {
       borderRadius: tokens.radii,
       fontFamily: {
         display: ["Lora_600SemiBold"],
+        "display-italic": ["Lora_500Medium_Italic"],
         sans: ["AtkinsonHyperlegible_400Regular"],
         "sans-bold": ["AtkinsonHyperlegible_700Bold"]
       }

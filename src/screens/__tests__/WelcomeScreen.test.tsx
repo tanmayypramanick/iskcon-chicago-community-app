@@ -10,12 +10,14 @@ describe("WelcomeScreen", () => {
       <WelcomeScreen onAuthenticated={jest.fn()} />,
     );
 
-    expect(getByText("Home of Sri Sri Kisora-Kisori")).toBeTruthy();
+    expect(getByText("Home of Śrī Śrī Kiśora-Kiśorī")).toBeTruthy();
     expect(
-      getByText("One community, growing closer to Krishna."),
+      getByText("Come as you are. Grow closer to Kṛṣṇa, together."),
     ).toBeTruthy();
     expect(
-      getByText("Connecting devotees through seva, sadhana, and kirtana."),
+      getByText(
+        "A loving community connected through seva, sādhana, and kīrtana.",
+      ),
     ).toBeTruthy();
     expect(getByText("Create account")).toBeTruthy();
     expect(getByText("Continue with Google")).toBeTruthy();
@@ -46,7 +48,7 @@ describe("WelcomeScreen", () => {
   });
 
   it("switches to account creation and password reset", async () => {
-    const { getByRole, getByText } = await render(
+    const { getByRole, getByText, queryByText } = await render(
       <WelcomeScreen onAuthenticated={jest.fn()} />,
     );
 
@@ -55,10 +57,35 @@ describe("WelcomeScreen", () => {
     );
     expect(getByText("Join the community")).toBeTruthy();
     expect(getByText("Full name")).toBeTruthy();
+    expect(getByText("Create your account with email")).toBeTruthy();
+    expect(queryByText("Phone OTP")).toBeNull();
 
     await fireEvent.press(getByRole("button", { name: "Show Sign in" }));
     await fireEvent.press(getByRole("button", { name: "Forgot password?" }));
     expect(getByText("Reset your password")).toBeTruthy();
     expect(getByText("Send reset link")).toBeTruthy();
+  });
+
+  it("uses a phone number only for OTP sign-in", async () => {
+    const { getByPlaceholderText, getByRole, getByText, queryByPlaceholderText } =
+      await render(<WelcomeScreen onAuthenticated={jest.fn()} />);
+
+    await fireEvent.press(
+      getByRole("button", { name: "Use Phone OTP" }),
+    );
+
+    expect(getByPlaceholderText("(312) 555-0123")).toBeTruthy();
+    expect(queryByPlaceholderText("At least 6 characters")).toBeNull();
+
+    await fireEvent.changeText(
+      getByPlaceholderText("(312) 555-0123"),
+      "3125550123",
+    );
+    await fireEvent.press(
+      getByRole("button", { name: "Send verification code" }),
+    );
+
+    expect(getByText("Verification code")).toBeTruthy();
+    expect(getByPlaceholderText("6-digit code")).toBeTruthy();
   });
 });

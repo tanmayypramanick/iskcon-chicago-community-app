@@ -42,7 +42,7 @@ function SpiritualHero({
             ISKCON Chicago
           </Text>
           <Text className="font-sans text-xs text-marigoldSoft">
-            Home of Sri Sri Kisora-Kisori
+            Home of Śrī Śrī Kiśora-Kiśorī
           </Text>
         </View>
       </View>
@@ -51,77 +51,89 @@ function SpiritualHero({
 
   return (
     <View
-      className={`overflow-hidden bg-indigo px-screen ${
-        compactHeight ? "h-[232px] pt-1" : "h-[278px] pt-2"
+      className={`overflow-hidden bg-ivory px-screen ${
+        compactHeight ? "h-[238px] pt-2" : "h-[304px] pt-3"
       }`}
     >
-      <View className="absolute -left-8 top-2 opacity-10">
+      <View className="absolute -left-10 top-10 opacity-5">
         <Ionicons
           name="flower-outline"
           size={124}
-          color={tokens.colors.white}
+          color={tokens.colors.indigo}
         />
       </View>
-      <View className="absolute -right-10 bottom-0 opacity-10">
+      <View className="absolute -right-10 bottom-2 opacity-10">
         <Ionicons
           name="flower-outline"
           size={142}
-          color={tokens.colors.marigoldSoft}
+          color={tokens.colors.marigold}
         />
       </View>
       <View className="absolute right-7 top-7 opacity-20">
         <Ionicons
           name="sparkles-outline"
           size={24}
-          color={tokens.colors.marigoldSoft}
+          color={tokens.colors.marigold}
         />
       </View>
 
       <View className="items-center">
-        <Image
-          source={require("../../assets/iskcon-chicago-logo.png")}
-          className={compactHeight ? "h-12 w-14" : "h-[62px] w-[72px]"}
-          resizeMode="contain"
-          accessibilityLabel="ISKCON Chicago logo"
-        />
-        <Text className="font-display text-[11px] tracking-[0.7px] text-marigoldSoft">
-          Home of Sri Sri Kisora-Kisori
-        </Text>
-      </View>
+        <View
+          className={`items-center justify-center bg-indigo ${
+            compactHeight
+              ? "h-[50px] w-[78px] rounded-[18px]"
+              : "h-[64px] w-[98px] rounded-[22px]"
+          }`}
+        >
+          <Image
+            source={require("../../assets/iskcon-chicago-logo.png")}
+            className={compactHeight ? "h-11 w-12" : "h-[58px] w-[66px]"}
+            resizeMode="contain"
+            accessibilityLabel="ISKCON Chicago logo"
+          />
+        </View>
 
-      <View className={`items-center ${compactHeight ? "mt-1" : "mt-2"}`}>
-        <View className="rounded-pill border border-marigoldSoft p-1">
-          <View className="rounded-pill border-2 border-marigold bg-white p-1">
+        <View
+          className={`overflow-hidden border border-marigold bg-sandalwood p-1 ${
+            compactHeight
+              ? "mt-2 h-[80px] w-[128px] rounded-t-[64px] rounded-b-[18px]"
+              : "mt-4 h-[112px] w-[172px] rounded-t-[86px] rounded-b-[22px]"
+          }`}
+        >
+          <View className="flex-1 overflow-hidden rounded-t-[80px] rounded-b-[18px] border border-marigoldSoft bg-white">
             <Image
               source={require("../../assets/sri-sri-kisora-kisori.jpg")}
-              className={
-                compactHeight
-                  ? "h-[64px] w-[64px] rounded-pill"
-                  : "h-[82px] w-[82px] rounded-pill"
-              }
+              className="h-full w-full"
               resizeMode="cover"
               accessibilityLabel="Sri Sri Kisora-Kisori at ISKCON Chicago"
             />
           </View>
         </View>
         <Text
-          className={`mt-2 max-w-[310px] text-center font-display text-white ${
+          className={`text-center font-display-italic text-marigold ${
+            compactHeight ? "mt-1 text-[10px]" : "mt-2 text-xs"
+          }`}
+        >
+          Home of Śrī Śrī Kiśora-Kiśorī
+        </Text>
+        <Text
+          className={`max-w-[330px] text-center font-display text-indigo ${
             compactHeight
-              ? "text-[16px] leading-5"
-              : "text-[18px] leading-[22px]"
+              ? "mt-1 text-[15px] leading-[19px]"
+              : "mt-2 text-[19px] leading-6"
           }`}
           accessibilityRole="header"
         >
-          One community, growing closer to Krishna.
+          Come as you are. Grow closer to Kṛṣṇa, together.
         </Text>
         <Text
-          className={`mt-1 max-w-[320px] text-center font-sans text-marigoldSoft ${
+          className={`mt-1 max-w-[320px] text-center font-sans text-stoneMuted ${
             compactHeight
-              ? "text-[11px] leading-[15px]"
+              ? "text-[10px] leading-[14px]"
               : "text-xs leading-4"
           }`}
         >
-          Connecting devotees through seva, sadhana, and kirtana.
+          A loving community connected through seva, sādhana, and kīrtana.
         </Text>
       </View>
     </View>
@@ -236,6 +248,9 @@ export function WelcomeScreen({
 
   const changeView = (nextView: AuthView) => {
     setView(nextView);
+    if (nextView === "createAccount") {
+      setMethod("email");
+    }
     setMessage("");
     setOtpSent(false);
     setOtp("");
@@ -296,8 +311,7 @@ export function WelcomeScreen({
       setMessage("Enter the name you would like shown.");
       return;
     }
-    if (method === "email" && !validateEmail()) return;
-    if (method === "phone" && !validatePhone()) return;
+    if (!validateEmail()) return;
     if (password.length < 6) {
       setMessage("Create a password with at least 6 characters.");
       return;
@@ -322,11 +336,12 @@ export function WelcomeScreen({
 
   const isSignIn = view === "signIn";
   const isCreateAccount = view === "createAccount";
+  const activeMethod: SignInMethod = isCreateAccount ? "email" : method;
   const fieldIsCompact = compactHeight || isCreateAccount || keyboardVisible;
   const showSocialSignIn = !keyboardVisible;
 
   return (
-    <SafeAreaView className="flex-1 bg-indigo" edges={["top", "bottom"]}>
+    <SafeAreaView className="flex-1 bg-ivory" edges={["top", "bottom"]}>
       <KeyboardAvoidingView
         className="flex-1 bg-ivory"
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -369,15 +384,28 @@ export function WelcomeScreen({
                   <View className="h-2" />
                 )}
 
-                <ChoiceSwitch
-                  choices={[
-                    { value: "email", label: "Email" },
-                    { value: "phone", label: "Phone" },
-                  ]}
-                  value={method}
-                  onChange={changeMethod}
-                  accessibilityPrefix="Use"
-                />
+                {isSignIn ? (
+                  <ChoiceSwitch
+                    choices={[
+                      { value: "email", label: "Email" },
+                      { value: "phone", label: "Phone OTP" },
+                    ]}
+                    value={method}
+                    onChange={changeMethod}
+                    accessibilityPrefix="Use"
+                  />
+                ) : (
+                  <View className="h-9 flex-row items-center rounded-[14px] bg-indigoSoft px-3">
+                    <Ionicons
+                      name="mail-outline"
+                      size={17}
+                      color={tokens.colors.indigo}
+                    />
+                    <Text className="ml-2 font-sans-bold text-sm text-indigo">
+                      Create your account with email
+                    </Text>
+                  </View>
+                )}
 
                 <View className={`gap-2 ${keyboardVisible ? "mt-2" : "mt-3"}`}>
                   {isCreateAccount ? (
@@ -393,7 +421,7 @@ export function WelcomeScreen({
                     />
                   ) : null}
 
-                  {method === "email" ? (
+                  {activeMethod === "email" ? (
                     <Field
                       compact={fieldIsCompact}
                       label="Email address"
@@ -418,7 +446,7 @@ export function WelcomeScreen({
                     />
                   )}
 
-                  {method === "email" || isCreateAccount ? (
+                  {activeMethod === "email" ? (
                     <Field
                       compact={fieldIsCompact}
                       label={isCreateAccount ? "Create password" : "Password"}
@@ -446,7 +474,7 @@ export function WelcomeScreen({
                   ) : null}
                 </View>
 
-                {isSignIn && method === "email" ? (
+                {isSignIn && activeMethod === "email" ? (
                   <Pressable
                     className="h-8 self-end justify-center"
                     accessibilityRole="button"
@@ -483,7 +511,7 @@ export function WelcomeScreen({
                     ? "Create my account"
                     : otpSent
                       ? "Verify and sign in"
-                      : method === "phone"
+                      : activeMethod === "phone"
                         ? "Send verification code"
                         : "Sign in"}
                 </Button>

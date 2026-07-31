@@ -5,7 +5,10 @@ import {
   AtkinsonHyperlegible_400Regular,
   AtkinsonHyperlegible_700Bold,
 } from "@expo-google-fonts/atkinson-hyperlegible";
-import { Lora_600SemiBold } from "@expo-google-fonts/lora";
+import {
+  Lora_500Medium_Italic,
+  Lora_600SemiBold,
+} from "@expo-google-fonts/lora";
 import { NavigationContainer, type Theme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useFonts } from "expo-font";
@@ -58,6 +61,7 @@ export default function App() {
   const [fontsLoaded] = useFonts({
     AtkinsonHyperlegible_400Regular,
     AtkinsonHyperlegible_700Bold,
+    Lora_500Medium_Italic,
     Lora_600SemiBold,
   });
 
