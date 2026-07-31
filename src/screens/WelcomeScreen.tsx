@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   useWindowDimensions,
@@ -27,11 +28,21 @@ const portraitShadow = {
   elevation: 5,
 };
 
-function BrandMark({ compact = false }: { compact?: boolean }) {
+function BrandMark({
+  size = "regular",
+}: {
+  size?: "regular" | "medium" | "compact";
+}) {
+  const sizeClass = {
+    regular: "h-[92px] w-[104px]",
+    medium: "h-[68px] w-[78px]",
+    compact: "h-11 w-12",
+  }[size];
+
   return (
     <Image
       source={require("../../assets/iskcon-chicago-logo.png")}
-      className={compact ? "h-11 w-12" : "h-[92px] w-[104px]"}
+      className={sizeClass}
       resizeMode="contain"
       style={{ tintColor: tokens.colors.indigo }}
       accessibilityLabel="ISKCON Chicago logo"
@@ -72,7 +83,7 @@ function SpiritualHero({
   if (keyboardVisible) {
     return (
       <View className="h-14 flex-row items-center justify-center bg-ivory px-screen">
-        <BrandMark compact />
+        <BrandMark size="compact" />
         <Text className="ml-3 font-sans-bold text-xs uppercase tracking-[2px] text-indigo">
           ISKCON Chicago
         </Text>
@@ -80,13 +91,24 @@ function SpiritualHero({
     );
   }
 
-  const isCondensed = condensed || compactHeight;
+  const heroHeight = condensed
+    ? compactHeight
+      ? "h-[210px] pt-1"
+      : "h-[288px] pt-2"
+    : compactHeight
+      ? "h-[360px] pt-2"
+      : "h-[466px] pt-3";
+  const portraitSize = condensed
+    ? compactHeight
+      ? "mt-1 h-[104px] w-[92px] rounded-t-[52px] rounded-b-[14px]"
+      : "mt-1.5 h-[136px] w-[118px] rounded-t-[64px] rounded-b-[16px]"
+    : compactHeight
+      ? "mt-2 h-[166px] w-[142px] rounded-t-[76px] rounded-b-[18px]"
+      : "mt-4 h-[224px] w-[190px] rounded-t-[104px] rounded-b-[22px]";
 
   return (
     <View
-      className={`items-center overflow-hidden bg-ivory px-screen ${
-        isCondensed ? "h-[350px] pt-2" : "h-[466px] pt-3"
-      }`}
+      className={`items-center overflow-hidden bg-ivory px-screen ${heroHeight}`}
     >
       <View className="absolute -left-7 top-40 -rotate-12 opacity-5">
         <Ionicons name="leaf-outline" size={96} color={tokens.colors.indigo} />
@@ -99,14 +121,10 @@ function SpiritualHero({
         />
       </View>
 
-      <BrandMark />
+      <BrandMark size={condensed || compactHeight ? "medium" : "regular"} />
 
       <View
-        className={`overflow-hidden border border-marigold bg-sandalwood p-1 ${
-          isCondensed
-            ? "mt-2 h-[150px] w-[132px] rounded-t-[72px] rounded-b-[18px]"
-            : "mt-4 h-[224px] w-[190px] rounded-t-[104px] rounded-b-[22px]"
-        }`}
+        className={`overflow-hidden border border-marigold bg-sandalwood p-1 ${portraitSize}`}
         style={portraitShadow}
       >
         <View className="flex-1 overflow-hidden rounded-t-[98px] rounded-b-[17px] border border-marigoldSoft bg-white">
@@ -121,17 +139,19 @@ function SpiritualHero({
 
       <Text
         className={`text-center font-display-italic text-marigold ${
-          isCondensed ? "mt-0.5 text-[10px]" : "mt-1 text-xs"
+          condensed || compactHeight ? "mt-0.5 text-[10px]" : "mt-1 text-xs"
         }`}
       >
         Home of Śrī Śrī Kiśora-Kiśorī
       </Text>
 
-      {!isCondensed ? (
+      {!condensed ? (
         <>
-          <GarlandAccent />
+          {!compactHeight ? <GarlandAccent /> : <View className="h-2" />}
           <Text
-            className="text-center font-display text-[21px] leading-6 text-indigo"
+            className={`text-center font-display text-indigo ${
+              compactHeight ? "text-[17px] leading-5" : "text-[21px] leading-6"
+            }`}
             accessibilityRole="header"
             adjustsFontSizeToFit
             minimumFontScale={0.8}
@@ -140,14 +160,20 @@ function SpiritualHero({
             Come as you are
           </Text>
           <Text
-            className="text-center font-display text-[21px] leading-6 text-indigo"
+            className={`text-center font-display text-indigo ${
+              compactHeight ? "text-[17px] leading-5" : "text-[21px] leading-6"
+            }`}
             adjustsFontSizeToFit
             minimumFontScale={0.8}
             numberOfLines={1}
           >
             Grow closer to Kṛṣṇa together
           </Text>
-          <Text className="mt-1 text-center font-sans text-xs leading-4 text-stoneMuted">
+          <Text
+            className={`mt-1 text-center font-sans text-stoneMuted ${
+              compactHeight ? "text-[10px] leading-3" : "text-xs leading-4"
+            }`}
+          >
             A loving community connected through seva, sādhana, and kīrtana.
           </Text>
         </>
@@ -337,13 +363,13 @@ export function WelcomeScreen({
           condensed={!isSignIn}
         />
 
-        <View
-          className={`flex-1 bg-sandalwood px-6 ${
-            keyboardVisible ? "justify-center py-2" : "justify-end pb-2 pt-3"
-          }`}
-        >
-          {isSignIn ? (
-            <View className="gap-1.5">
+        {isSignIn ? (
+          <View
+            className={`flex-1 bg-sandalwood px-6 ${
+              keyboardVisible ? "justify-center py-2" : "justify-end pb-2 pt-3"
+            }`}
+          >
+            <View className="w-full max-w-[430px] self-center gap-1.5">
               <Field
                 icon="mail-outline"
                 accessibilityLabel="Email address"
@@ -422,183 +448,204 @@ export function WelcomeScreen({
                 </>
               ) : null}
             </View>
-          ) : null}
+          </View>
+        ) : (
+          <ScrollView
+            className="flex-1 bg-sandalwood"
+            contentContainerStyle={{ flexGrow: 1 }}
+            keyboardDismissMode="interactive"
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <View className="flex-1 justify-center px-6 py-3">
+              <View className="w-full max-w-[430px] self-center gap-2.5 rounded-[28px] border border-border bg-ivory p-4">
+                {isCreateAccount ? (
+                  <>
+                    {!keyboardVisible ? (
+                      <View className="mb-1 items-center">
+                        <View className="mb-2 h-1 w-10 rounded-pill bg-marigold" />
+                        <Text className="text-center font-display text-[22px] text-indigo">
+                          Create your account
+                        </Text>
+                        <Text className="mt-0.5 text-center font-sans text-sm text-stoneMuted">
+                          Join our temple community in a few simple steps.
+                        </Text>
+                        <Text className="text-center font-sans text-[11px] text-stoneMuted">
+                          Your phone is used only for secure OTP verification.
+                        </Text>
+                      </View>
+                    ) : null}
 
-          {isCreateAccount ? (
-            <View className="gap-2">
-              {!keyboardVisible ? (
-                <View>
-                  <Text className="font-sans-bold text-lg text-stone">
-                    Create your account
-                  </Text>
-                  <Text className="font-sans text-xs text-stoneMuted">
-                    Your phone is used only for OTP verification.
-                  </Text>
-                </View>
-              ) : null}
-
-              <Field
-                icon="person-outline"
-                accessibilityLabel="Full name"
-                value={name}
-                onChangeText={setName}
-                placeholder="Full name"
-                autoCapitalize="words"
-                textContentType="name"
-              />
-              <Field
-                icon="mail-outline"
-                accessibilityLabel="Email address"
-                value={email}
-                onChangeText={setEmail}
-                placeholder="Email address"
-                autoCapitalize="none"
-                keyboardType="email-address"
-                textContentType="emailAddress"
-              />
-              <Field
-                icon="lock-closed-outline"
-                accessibilityLabel="Create password"
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Create password"
-                secureTextEntry
-                textContentType="newPassword"
-              />
-
-              {!otpSent ? (
-                <Field
-                  icon="call-outline"
-                  accessibilityLabel="Phone number"
-                  value={phone}
-                  onChangeText={setPhone}
-                  placeholder="Phone number"
-                  keyboardType="phone-pad"
-                  textContentType="telephoneNumber"
-                />
-              ) : (
-                <>
-                  <View className="h-8 flex-row items-center rounded-pill bg-peacockSoft px-3">
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={16}
-                      color={tokens.colors.peacock}
+                    <Field
+                      icon="person-outline"
+                      accessibilityLabel="Full name"
+                      value={name}
+                      onChangeText={setName}
+                      placeholder="Full name"
+                      autoCapitalize="words"
+                      textContentType="name"
                     />
-                    <Text className="ml-2 flex-1 font-sans-bold text-xs text-peacock">
-                      Code sent to {phone}
+                    <Field
+                      icon="mail-outline"
+                      accessibilityLabel="Email address"
+                      value={email}
+                      onChangeText={setEmail}
+                      placeholder="Email address"
+                      autoCapitalize="none"
+                      keyboardType="email-address"
+                      textContentType="emailAddress"
+                    />
+                    <Field
+                      icon="lock-closed-outline"
+                      accessibilityLabel="Create password"
+                      value={password}
+                      onChangeText={setPassword}
+                      placeholder="Create password"
+                      secureTextEntry
+                      textContentType="newPassword"
+                    />
+
+                    {!otpSent ? (
+                      <Field
+                        icon="call-outline"
+                        accessibilityLabel="Phone number"
+                        value={phone}
+                        onChangeText={setPhone}
+                        placeholder="Phone number"
+                        keyboardType="phone-pad"
+                        textContentType="telephoneNumber"
+                      />
+                    ) : (
+                      <>
+                        <View className="h-8 flex-row items-center rounded-pill bg-peacockSoft px-3">
+                          <Ionicons
+                            name="checkmark-circle"
+                            size={16}
+                            color={tokens.colors.peacock}
+                          />
+                          <Text className="ml-2 flex-1 font-sans-bold text-xs text-peacock">
+                            Code sent to {phone}
+                          </Text>
+                          <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel="Change phone number"
+                            hitSlop={12}
+                            onPress={() => {
+                              setOtpSent(false);
+                              setOtp("");
+                              setMessage("");
+                            }}
+                          >
+                            <Text className="font-sans-bold text-xs text-indigo">
+                              Change
+                            </Text>
+                          </Pressable>
+                        </View>
+                        <Field
+                          icon="keypad-outline"
+                          accessibilityLabel="Verification code"
+                          value={otp}
+                          onChangeText={setOtp}
+                          placeholder="6-digit verification code"
+                          keyboardType="number-pad"
+                          maxLength={6}
+                          textContentType="oneTimeCode"
+                        />
+                      </>
+                    )}
+
+                    {message ? (
+                      <Text
+                        className="text-center font-sans text-xs text-vermilion"
+                        accessibilityLiveRegion="polite"
+                      >
+                        {message}
+                      </Text>
+                    ) : null}
+
+                    <ActionButton
+                      icon={
+                        otpSent ? "checkmark-circle-outline" : "call-outline"
+                      }
+                      onPress={submitCreateAccount}
+                    >
+                      {otpSent
+                        ? "Verify and create account"
+                        : "Send phone verification"}
+                    </ActionButton>
+
+                    {!keyboardVisible ? (
+                      <>
+                        <Pressable
+                          className="h-8 items-center justify-center"
+                          accessibilityRole="button"
+                          accessibilityLabel="Return to sign in"
+                          hitSlop={12}
+                          onPress={() => changeView("signIn")}
+                        >
+                          <Text className="font-sans text-base text-stoneMuted">
+                            Already have an account?{" "}
+                            <Text className="font-sans-bold text-indigo">
+                              Sign in
+                            </Text>
+                          </Text>
+                        </Pressable>
+                        <FinePrint />
+                      </>
+                    ) : null}
+                  </>
+                ) : null}
+
+                {view === "resetPassword" ? (
+                  <>
+                    <Text className="font-sans-bold text-lg text-stone">
+                      Reset your password
                     </Text>
+                    <Text className="font-sans text-xs text-stoneMuted">
+                      We will send a secure reset link to your email.
+                    </Text>
+                    <Field
+                      icon="mail-outline"
+                      accessibilityLabel="Reset email address"
+                      value={email}
+                      onChangeText={setEmail}
+                      placeholder="Email address"
+                      autoCapitalize="none"
+                      keyboardType="email-address"
+                      textContentType="emailAddress"
+                    />
+                    {message ? (
+                      <Text
+                        className="text-center font-sans text-xs text-vermilion"
+                        accessibilityLiveRegion="polite"
+                      >
+                        {message}
+                      </Text>
+                    ) : null}
+                    <ActionButton
+                      icon="mail-unread-outline"
+                      onPress={submitReset}
+                    >
+                      Send reset link
+                    </ActionButton>
                     <Pressable
+                      className="h-7 items-center justify-center"
                       accessibilityRole="button"
-                      accessibilityLabel="Change phone number"
+                      accessibilityLabel="Return to sign in"
                       hitSlop={12}
-                      onPress={() => {
-                        setOtpSent(false);
-                        setOtp("");
-                        setMessage("");
-                      }}
+                      onPress={() => changeView("signIn")}
                     >
                       <Text className="font-sans-bold text-xs text-indigo">
-                        Change
+                        Back to sign in
                       </Text>
                     </Pressable>
-                  </View>
-                  <Field
-                    icon="keypad-outline"
-                    accessibilityLabel="Verification code"
-                    value={otp}
-                    onChangeText={setOtp}
-                    placeholder="6-digit verification code"
-                    keyboardType="number-pad"
-                    maxLength={6}
-                    textContentType="oneTimeCode"
-                  />
-                </>
-              )}
-
-              {message ? (
-                <Text
-                  className="text-center font-sans text-xs text-vermilion"
-                  accessibilityLiveRegion="polite"
-                >
-                  {message}
-                </Text>
-              ) : null}
-
-              <ActionButton
-                icon={otpSent ? "checkmark-circle-outline" : "call-outline"}
-                onPress={submitCreateAccount}
-              >
-                {otpSent
-                  ? "Verify and create account"
-                  : "Send phone verification"}
-              </ActionButton>
-
-              {!keyboardVisible ? (
-                <>
-                  <Pressable
-                    className="h-6 items-center justify-center"
-                    accessibilityRole="button"
-                    accessibilityLabel="Return to sign in"
-                    hitSlop={12}
-                    onPress={() => changeView("signIn")}
-                  >
-                    <Text className="font-sans text-xs text-stoneMuted">
-                      Already have an account?{" "}
-                      <Text className="font-sans-bold text-indigo">
-                        Sign in
-                      </Text>
-                    </Text>
-                  </Pressable>
-                  <FinePrint />
-                </>
-              ) : null}
+                    <FinePrint />
+                  </>
+                ) : null}
+              </View>
             </View>
-          ) : null}
-
-          {view === "resetPassword" ? (
-            <View className="gap-3">
-              <Text className="font-sans-bold text-lg text-stone">
-                Reset your password
-              </Text>
-              <Text className="font-sans text-xs text-stoneMuted">
-                We will send a secure reset link to your email.
-              </Text>
-              <Field
-                icon="mail-outline"
-                accessibilityLabel="Reset email address"
-                value={email}
-                onChangeText={setEmail}
-                placeholder="Email address"
-                autoCapitalize="none"
-                keyboardType="email-address"
-                textContentType="emailAddress"
-              />
-              {message ? (
-                <Text
-                  className="text-center font-sans text-xs text-vermilion"
-                  accessibilityLiveRegion="polite"
-                >
-                  {message}
-                </Text>
-              ) : null}
-              <ActionButton icon="mail-unread-outline" onPress={submitReset}>
-                Send reset link
-              </ActionButton>
-              <Pressable
-                className="h-7 items-center justify-center"
-                accessibilityRole="button"
-                accessibilityLabel="Return to sign in"
-                hitSlop={12}
-                onPress={() => changeView("signIn")}
-              >
-                <Text className="font-sans-bold text-xs text-indigo">
-                  Back to sign in
-                </Text>
-              </Pressable>
-              <FinePrint />
-            </View>
-          ) : null}
-        </View>
+          </ScrollView>
+        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
