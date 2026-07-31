@@ -19,7 +19,6 @@ import tokens from "../../design-tokens.json";
 import { Button } from "../components/ui";
 
 type AuthView = "signIn" | "createAccount" | "resetPassword";
-type SignInMethod = "email" | "phone";
 
 function SpiritualHero({
   keyboardVisible,
@@ -52,20 +51,20 @@ function SpiritualHero({
   return (
     <View
       className={`overflow-hidden bg-ivory px-screen ${
-        compactHeight ? "h-[238px] pt-2" : "h-[304px] pt-3"
+        compactHeight ? "h-[280px] pt-3" : "h-[365px] pt-4"
       }`}
     >
-      <View className="absolute -left-10 top-10 opacity-5">
+      <View className="absolute -left-5 top-24 -rotate-12 opacity-5">
         <Ionicons
-          name="flower-outline"
-          size={124}
+          name="leaf-outline"
+          size={92}
           color={tokens.colors.indigo}
         />
       </View>
-      <View className="absolute -right-10 bottom-2 opacity-10">
+      <View className="absolute -right-4 bottom-8 rotate-12 opacity-10">
         <Ionicons
-          name="flower-outline"
-          size={142}
+          name="leaf-outline"
+          size={108}
           color={tokens.colors.marigold}
         />
       </View>
@@ -81,13 +80,13 @@ function SpiritualHero({
         <View
           className={`items-center justify-center bg-indigo ${
             compactHeight
-              ? "h-[50px] w-[78px] rounded-[18px]"
-              : "h-[64px] w-[98px] rounded-[22px]"
+              ? "h-[58px] w-[94px] rounded-[20px]"
+              : "h-[82px] w-[132px] rounded-[28px]"
           }`}
         >
           <Image
             source={require("../../assets/iskcon-chicago-logo.png")}
-            className={compactHeight ? "h-11 w-12" : "h-[58px] w-[66px]"}
+            className={compactHeight ? "h-[52px] w-[58px]" : "h-[76px] w-[86px]"}
             resizeMode="contain"
             accessibilityLabel="ISKCON Chicago logo"
           />
@@ -96,8 +95,8 @@ function SpiritualHero({
         <View
           className={`overflow-hidden border border-marigold bg-sandalwood p-1 ${
             compactHeight
-              ? "mt-2 h-[80px] w-[128px] rounded-t-[64px] rounded-b-[18px]"
-              : "mt-4 h-[112px] w-[172px] rounded-t-[86px] rounded-b-[22px]"
+              ? "mt-3 h-[90px] w-[144px] rounded-t-[72px] rounded-b-[18px]"
+              : "mt-6 h-[130px] w-[198px] rounded-t-[99px] rounded-b-[24px]"
           }`}
         >
           <View className="flex-1 overflow-hidden rounded-t-[80px] rounded-b-[18px] border border-marigoldSoft bg-white">
@@ -111,23 +110,23 @@ function SpiritualHero({
         </View>
         <Text
           className={`text-center font-display-italic text-marigold ${
-            compactHeight ? "mt-1 text-[10px]" : "mt-2 text-xs"
+            compactHeight ? "mt-2 text-[10px]" : "mt-4 text-xs"
           }`}
         >
           Home of Śrī Śrī Kiśora-Kiśorī
         </Text>
         <Text
-          className={`max-w-[330px] text-center font-display text-indigo ${
+          className={`max-w-[340px] text-center font-sans-bold text-indigo ${
             compactHeight
-              ? "mt-1 text-[15px] leading-[19px]"
-              : "mt-2 text-[19px] leading-6"
+              ? "mt-2 text-[15px] leading-[19px]"
+              : "mt-4 text-[20px] leading-6"
           }`}
           accessibilityRole="header"
         >
           Come as you are. Grow closer to Kṛṣṇa, together.
         </Text>
         <Text
-          className={`mt-1 max-w-[320px] text-center font-sans text-stoneMuted ${
+          className={`mt-2 max-w-[320px] text-center font-sans text-stoneMuted ${
             compactHeight
               ? "text-[10px] leading-[14px]"
               : "text-xs leading-4"
@@ -219,7 +218,6 @@ export function WelcomeScreen({
   const compactHeight = height < 760;
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [view, setView] = useState<AuthView>("signIn");
-  const [method, setMethod] = useState<SignInMethod>("email");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -248,16 +246,6 @@ export function WelcomeScreen({
 
   const changeView = (nextView: AuthView) => {
     setView(nextView);
-    if (nextView === "createAccount") {
-      setMethod("email");
-    }
-    setMessage("");
-    setOtpSent(false);
-    setOtp("");
-  };
-
-  const changeMethod = (nextMethod: SignInMethod) => {
-    setMethod(nextMethod);
     setMessage("");
     setOtpSent(false);
     setOtp("");
@@ -281,25 +269,9 @@ export function WelcomeScreen({
 
   const submitSignIn = () => {
     setMessage("");
-
-    if (method === "email") {
-      if (!validateEmail()) return;
-      if (password.length < 6) {
-        setMessage("Password must be at least 6 characters.");
-        return;
-      }
-      onAuthenticated();
-      return;
-    }
-
-    if (!validatePhone()) return;
-    if (!otpSent) {
-      setOtpSent(true);
-      setMessage("Enter the 6-digit verification code.");
-      return;
-    }
-    if (otp.replace(/\D/g, "").length !== 6) {
-      setMessage("Enter the 6-digit verification code.");
+    if (!validateEmail()) return;
+    if (password.length < 6) {
+      setMessage("Password must be at least 6 characters.");
       return;
     }
     onAuthenticated();
@@ -314,6 +286,16 @@ export function WelcomeScreen({
     if (!validateEmail()) return;
     if (password.length < 6) {
       setMessage("Create a password with at least 6 characters.");
+      return;
+    }
+    if (!validatePhone()) return;
+    if (!otpSent) {
+      setOtpSent(true);
+      setMessage("Enter the 6-digit code sent to your phone.");
+      return;
+    }
+    if (otp.replace(/\D/g, "").length !== 6) {
+      setMessage("Enter the 6-digit verification code.");
       return;
     }
     onAuthenticated();
@@ -336,9 +318,8 @@ export function WelcomeScreen({
 
   const isSignIn = view === "signIn";
   const isCreateAccount = view === "createAccount";
-  const activeMethod: SignInMethod = isCreateAccount ? "email" : method;
   const fieldIsCompact = compactHeight || isCreateAccount || keyboardVisible;
-  const showSocialSignIn = !keyboardVisible;
+  const showSocialSignIn = isSignIn && !keyboardVisible;
 
   return (
     <SafeAreaView className="flex-1 bg-ivory" edges={["top", "bottom"]}>
@@ -371,40 +352,19 @@ export function WelcomeScreen({
 
                 {!keyboardVisible ? (
                   <View className="my-2">
-                    <Text className="font-display text-xl text-stone">
+                    <Text className="font-sans-bold text-lg text-stone">
                       {isSignIn ? "Welcome back" : "Join the community"}
                     </Text>
                     <Text className="font-sans text-sm text-stoneMuted">
                       {isSignIn
-                        ? "Continue your journey of devotion and seva."
-                        : "Begin with one simple community account."}
+                        ? "Sign in securely with your email."
+                        : otpSent
+                          ? "Verify your phone to finish creating your account."
+                          : "Your email creates the account; your phone verifies it."}
                     </Text>
                   </View>
                 ) : (
                   <View className="h-2" />
-                )}
-
-                {isSignIn ? (
-                  <ChoiceSwitch
-                    choices={[
-                      { value: "email", label: "Email" },
-                      { value: "phone", label: "Phone OTP" },
-                    ]}
-                    value={method}
-                    onChange={changeMethod}
-                    accessibilityPrefix="Use"
-                  />
-                ) : (
-                  <View className="h-9 flex-row items-center rounded-[14px] bg-indigoSoft px-3">
-                    <Ionicons
-                      name="mail-outline"
-                      size={17}
-                      color={tokens.colors.indigo}
-                    />
-                    <Text className="ml-2 font-sans-bold text-sm text-indigo">
-                      Create your account with email
-                    </Text>
-                  </View>
                 )}
 
                 <View className={`gap-2 ${keyboardVisible ? "mt-2" : "mt-3"}`}>
@@ -421,19 +381,30 @@ export function WelcomeScreen({
                     />
                   ) : null}
 
-                  {activeMethod === "email" ? (
-                    <Field
-                      compact={fieldIsCompact}
-                      label="Email address"
-                      icon="mail-outline"
-                      value={email}
-                      onChangeText={setEmail}
-                      placeholder="you@example.com"
-                      autoCapitalize="none"
-                      keyboardType="email-address"
-                      textContentType="emailAddress"
-                    />
-                  ) : (
+                  <Field
+                    compact={fieldIsCompact}
+                    label="Email address"
+                    icon="mail-outline"
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder="you@example.com"
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    textContentType="emailAddress"
+                  />
+
+                  <Field
+                    compact={fieldIsCompact}
+                    label={isCreateAccount ? "Create password" : "Password"}
+                    icon="lock-closed-outline"
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder="At least 6 characters"
+                    secureTextEntry
+                    textContentType={isCreateAccount ? "newPassword" : "password"}
+                  />
+
+                  {isCreateAccount && !otpSent ? (
                     <Field
                       compact={fieldIsCompact}
                       label="Phone number"
@@ -444,37 +415,49 @@ export function WelcomeScreen({
                       keyboardType="phone-pad"
                       textContentType="telephoneNumber"
                     />
-                  )}
-
-                  {activeMethod === "email" ? (
-                    <Field
-                      compact={fieldIsCompact}
-                      label={isCreateAccount ? "Create password" : "Password"}
-                      icon="lock-closed-outline"
-                      value={password}
-                      onChangeText={setPassword}
-                      placeholder="At least 6 characters"
-                      secureTextEntry
-                      textContentType={isCreateAccount ? "newPassword" : "password"}
-                    />
                   ) : null}
 
-                  {otpSent && isSignIn ? (
-                    <Field
-                      compact={fieldIsCompact}
-                      label="Verification code"
-                      icon="keypad-outline"
-                      value={otp}
-                      onChangeText={setOtp}
-                      placeholder="6-digit code"
-                      keyboardType="number-pad"
-                      maxLength={6}
-                      textContentType="oneTimeCode"
-                    />
+                  {isCreateAccount && otpSent ? (
+                    <View className="gap-2">
+                      <View className="h-8 flex-row items-center rounded-[12px] bg-peacockSoft px-3">
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={17}
+                          color={tokens.colors.peacock}
+                        />
+                        <Text className="ml-2 flex-1 font-sans-bold text-xs text-peacock">
+                          Code sent to {phone}
+                        </Text>
+                        <Pressable
+                          accessibilityRole="button"
+                          accessibilityLabel="Change phone number"
+                          onPress={() => {
+                            setOtpSent(false);
+                            setOtp("");
+                            setMessage("");
+                          }}
+                        >
+                          <Text className="font-sans-bold text-xs text-indigo">
+                            Change
+                          </Text>
+                        </Pressable>
+                      </View>
+                      <Field
+                        compact={fieldIsCompact}
+                        label="Verification code"
+                        icon="keypad-outline"
+                        value={otp}
+                        onChangeText={setOtp}
+                        placeholder="6-digit code"
+                        keyboardType="number-pad"
+                        maxLength={6}
+                        textContentType="oneTimeCode"
+                      />
+                    </View>
                   ) : null}
                 </View>
 
-                {isSignIn && activeMethod === "email" ? (
+                {isSignIn ? (
                   <Pressable
                     className="h-8 self-end justify-center"
                     accessibilityRole="button"
@@ -500,20 +483,18 @@ export function WelcomeScreen({
                 <Button
                   icon={
                     isCreateAccount
-                      ? "person-add-outline"
-                      : otpSent
+                      ? otpSent
                         ? "checkmark-circle-outline"
-                        : "arrow-forward"
+                        : "call-outline"
+                      : "arrow-forward"
                   }
                   onPress={isCreateAccount ? submitCreateAccount : submitSignIn}
                 >
                   {isCreateAccount
-                    ? "Create my account"
-                    : otpSent
-                      ? "Verify and sign in"
-                      : activeMethod === "phone"
-                        ? "Send verification code"
-                        : "Sign in"}
+                    ? otpSent
+                      ? "Verify and create account"
+                      : "Send phone verification"
+                    : "Sign in"}
                 </Button>
 
                 {showSocialSignIn ? (
@@ -551,7 +532,7 @@ export function WelcomeScreen({
                     Back to sign in
                   </Text>
                 </Pressable>
-                <Text className="font-display text-xl text-stone">
+                <Text className="font-sans-bold text-lg text-stone">
                   Reset your password
                 </Text>
                 <Text className="mb-4 mt-1 font-sans text-sm leading-5 text-stoneMuted">
