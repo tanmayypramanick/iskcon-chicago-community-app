@@ -131,7 +131,7 @@ function SpiritualHero({
         <>
           <GarlandAccent />
           <Text
-            className="text-center font-display text-[21px] leading-6 text-stone"
+            className="text-center font-display text-[21px] leading-6 text-indigo"
             accessibilityRole="header"
             adjustsFontSizeToFit
             minimumFontScale={0.8}
@@ -140,7 +140,7 @@ function SpiritualHero({
             Come as you are
           </Text>
           <Text
-            className="text-center font-display text-[21px] leading-6 text-stone"
+            className="text-center font-display text-[21px] leading-6 text-indigo"
             adjustsFontSizeToFit
             minimumFontScale={0.8}
             numberOfLines={1}
@@ -199,16 +199,8 @@ function ActionButton({
       accessibilityLabel={children}
       onPress={onPress}
     >
-      <Ionicons
-        name={icon}
-        size={20}
-        color={primary ? tokens.colors.stone : tokens.colors.indigo}
-      />
-      <Text
-        className={`ml-2 font-sans-bold text-base ${
-          primary ? "text-stone" : "text-indigo"
-        }`}
-      >
+      <Ionicons name={icon} size={20} color={tokens.colors.indigo} />
+      <Text className="ml-2 font-sans-bold text-base text-indigo">
         {children}
       </Text>
     </Pressable>
@@ -413,13 +405,13 @@ export function WelcomeScreen({
                     Continue with Google
                   </ActionButton>
                   <Pressable
-                    className="h-5 items-center justify-center"
+                    className="h-7 items-center justify-center"
                     accessibilityRole="button"
                     accessibilityLabel="Create an account"
                     hitSlop={12}
                     onPress={() => changeView("createAccount")}
                   >
-                    <Text className="font-sans text-xs text-stoneMuted">
+                    <Text className="font-sans text-base text-stoneMuted">
                       New here?{" "}
                       <Text className="font-sans-bold text-indigo">
                         Create an account
