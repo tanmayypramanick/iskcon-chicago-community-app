@@ -21,10 +21,9 @@ import tokens from "../../design-tokens.json";
 import {
   getAuthProviderAvailability,
   requestPasswordReset,
-  requestPhoneVerification,
   signInWithEmail,
+  signInWithGoogle,
   signUpWithEmail,
-  verifyPhoneChange,
   type AuthProviderAvailability,
 } from "../services/auth";
 
@@ -192,6 +191,42 @@ function SpiritualHero({
   );
 }
 
+/**
+ * The one message slot each form has. Confirmations and failures both land
+ * here, so the tone has to say which it is — an "email sent" line in error red
+ * reads as a failure and sends devotees round the loop again.
+ */
+function FormMessage({
+  text,
+  tone,
+}: {
+  text: string;
+  tone: "error" | "success";
+}) {
+  const failed = tone === "error";
+  return (
+    <View
+      className={`flex-row items-start rounded-card px-3 py-2 ${
+        failed ? "bg-vermilionSoft" : "bg-peacockSoft"
+      }`}
+      accessibilityLiveRegion="polite"
+    >
+      <Ionicons
+        name={failed ? "alert-circle-outline" : "checkmark-circle-outline"}
+        size={15}
+        color={failed ? tokens.colors.vermilion : tokens.colors.peacock}
+      />
+      <Text
+        className={`ml-2 flex-1 font-sans text-xs leading-4 ${
+          failed ? "text-vermilion" : "text-peacock"
+        }`}
+      >
+        {text}
+      </Text>
+    </View>
+  );
+}
+
 function Field({
   icon,
   accessibilityLabel,
@@ -275,12 +310,11 @@ export function WelcomeScreen({
   const [view, setView] = useState<AuthView>("signIn");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [otp, setOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
   const [message, setMessage] = useState("");
+  const [messageTone, setMessageTone] = useState<"error" | "success">("error");
   const [submitting, setSubmitting] = useState(false);
+  const [googleSubmitting, setGoogleSubmitting] = useState(false);
   const [providers, setProviders] = useState<AuthProviderAvailability | null>(
     null,
   );
@@ -322,21 +356,23 @@ export function WelcomeScreen({
   const changeView = (nextView: AuthView) => {
     setView(nextView);
     setMessage("");
-    setOtpSent(false);
-    setOtp("");
+    setMessageTone("error");
+  };
+
+  const showError = (text: string) => {
+    setMessageTone("error");
+    setMessage(text);
+  };
+
+  /** Confirmations share the message slot but must not be dressed as faults. */
+  const showSuccess = (text: string) => {
+    setMessageTone("success");
+    setMessage(text);
   };
 
   const validateEmail = () => {
-    if (!email.trim().includes("@")) {
-      setMessage("Enter a valid email address.");
-      return false;
-    }
-    return true;
-  };
-
-  const validatePhone = () => {
-    if (phone.replace(/\D/g, "").length < 10) {
-      setMessage("Enter a valid phone number, including area code.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) {
+      showError("Enter a valid email address.");
       return false;
     }
     return true;
@@ -347,16 +383,11 @@ export function WelcomeScreen({
       ? error.message
       : "Something went wrong. Please try again.";
 
-  const normalizedPhone = () => {
-    const digits = phone.replace(/\D/g, "");
-    return digits.length === 10 ? `+1${digits}` : `+${digits}`;
-  };
-
   const submitSignIn = async () => {
     setMessage("");
     if (!validateEmail()) return;
     if (password.length < 6) {
-      setMessage("Password must be at least 6 characters.");
+      showError("Password must be at least 6 characters.");
       return;
     }
 
@@ -364,12 +395,12 @@ export function WelcomeScreen({
     try {
       const session = await signInWithEmail(email, password);
       if (!session) {
-        setMessage("Sign-in did not return a session. Please try again.");
+        showError("Sign-in did not return a session. Please try again.");
         return;
       }
       onAuthenticated();
     } catch (error) {
-      setMessage(getErrorMessage(error));
+      showError(getErrorMessage(error));
     } finally {
       setSubmitting(false);
     }
@@ -378,59 +409,35 @@ export function WelcomeScreen({
   const submitCreateAccount = async () => {
     setMessage("");
     if (name.trim().length < 2) {
-      setMessage("Enter the name you would like shown.");
+      showError("Enter the name you would like shown.");
       return;
     }
     if (!validateEmail()) return;
     if (password.length < 6) {
-      setMessage("Create a password with at least 6 characters.");
+      showError("Create a password with at least 6 characters.");
       return;
     }
-    if (!validatePhone()) return;
 
     setSubmitting(true);
     try {
-      if (otpSent) {
-        if (otp.replace(/\D/g, "").length !== 6) {
-          setMessage("Enter the 6-digit verification code.");
-          return;
-        }
-
-        await verifyPhoneChange(normalizedPhone(), otp);
-        onAuthenticated();
-        return;
-      }
-
       const session = await signUpWithEmail({
         name,
         email,
         password,
-        phone: normalizedPhone(),
       });
 
       if (!session) {
         setView("signIn");
         setPassword("");
-        setMessage(
+        showSuccess(
           "Account created. Check your email to confirm it, then sign in.",
         );
         return;
       }
 
-      if (providers?.phone) {
-        await requestPhoneVerification(normalizedPhone());
-        setOtpSent(true);
-        setMessage("Enter the 6-digit code sent to your phone.");
-        return;
-      }
-
-      Alert.alert(
-        "Account created",
-        "Your account is signed in. Phone OTP will become available after the Phone provider is enabled in Supabase.",
-      );
       onAuthenticated();
     } catch (error) {
-      setMessage(getErrorMessage(error));
+      showError(getErrorMessage(error));
     } finally {
       setSubmitting(false);
     }
@@ -443,27 +450,36 @@ export function WelcomeScreen({
     setSubmitting(true);
     try {
       await requestPasswordReset(email);
-      setMessage("Password reset email sent. Check your inbox.");
+      showSuccess(
+        "Reset link sent. Open it on this phone to choose a new password.",
+      );
     } catch (error) {
-      setMessage(getErrorMessage(error));
+      showError(getErrorMessage(error));
     } finally {
       setSubmitting(false);
     }
   };
 
-  const showGoogleSetup = () => {
-    if (providers?.google) {
+  const submitGoogleSignIn = async () => {
+    setMessage("");
+
+    if (providers && !providers.google) {
       Alert.alert(
-        "Google provider enabled",
-        "The Supabase provider is ready. The native OAuth callback still needs its Google Cloud client IDs before sign-in can open securely.",
+        "Google sign-in is unavailable",
+        "Enable the Google provider in Supabase, then restart the app.",
       );
       return;
     }
 
-    Alert.alert(
-      "Enable Google in Supabase",
-      "Open Authentication → Providers → Google, then add the Google Cloud client ID and secret.",
-    );
+    setGoogleSubmitting(true);
+    try {
+      const session = await signInWithGoogle();
+      if (session) onAuthenticated();
+    } catch (error) {
+      showError(getErrorMessage(error));
+    } finally {
+      setGoogleSubmitting(false);
+    }
   };
 
   const isSignIn = view === "signIn";
@@ -475,6 +491,25 @@ export function WelcomeScreen({
         className="flex-1 bg-ivory"
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
+        {/* Sign in is the root of this screen, so only the two views reached
+            from it offer a way back. Without this a devotee who taps "Forgot
+            password?" by mistake has no way out but to kill the app. */}
+        {!isSignIn ? (
+          <Pressable
+            className="absolute left-3 top-2 z-10 h-11 w-11 items-center justify-center rounded-pill"
+            accessibilityRole="button"
+            accessibilityLabel="Back to sign in"
+            hitSlop={8}
+            onPress={() => changeView("signIn")}
+          >
+            <Ionicons
+              name="chevron-back"
+              size={26}
+              color={tokens.colors.indigo}
+            />
+          </Pressable>
+        ) : null}
+
         <SpiritualHero
           keyboardVisible={keyboardVisible}
           compactHeight={compactHeight}
@@ -482,12 +517,22 @@ export function WelcomeScreen({
         />
 
         {isSignIn ? (
-          <View
-            className={`flex-1 bg-sandalwood px-6 ${
-              keyboardVisible ? "justify-center py-2" : "justify-end pb-2 pt-3"
-            }`}
+          // Scrollable rather than a fixed pane: on a short screen with the
+          // keyboard up the fields were pushed under it with no way to reach
+          // them. flexGrow keeps the form bottom-aligned when it does fit.
+          <ScrollView
+            className="flex-1 bg-sandalwood"
+            contentContainerStyle={{ flexGrow: 1 }}
+            keyboardDismissMode="interactive"
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
           >
-            <View className="w-full max-w-[430px] self-center gap-1.5">
+            <View
+              className={`flex-1 px-6 ${
+                keyboardVisible ? "justify-center py-3" : "justify-end pb-2 pt-3"
+              }`}
+            >
+              <View className="w-full max-w-[430px] self-center gap-1.5">
               <Field
                 icon="mail-outline"
                 accessibilityLabel="Email address"
@@ -520,17 +565,13 @@ export function WelcomeScreen({
               </Pressable>
 
               {message ? (
-                <Text
-                  className="text-center font-sans text-xs text-vermilion"
-                  accessibilityLiveRegion="polite"
-                >
-                  {message}
-                </Text>
+                <FormMessage text={message} tone={messageTone} />
               ) : null}
 
               <ActionButton
                 icon="arrow-forward"
                 loading={submitting}
+                disabled={googleSubmitting}
                 onPress={submitSignIn}
               >
                 Sign in
@@ -548,7 +589,9 @@ export function WelcomeScreen({
                   <ActionButton
                     variant="secondary"
                     icon="logo-google"
-                    onPress={showGoogleSetup}
+                    loading={googleSubmitting}
+                    disabled={submitting}
+                    onPress={submitGoogleSignIn}
                   >
                     Continue with Google
                   </ActionButton>
@@ -569,8 +612,9 @@ export function WelcomeScreen({
                   <FinePrint />
                 </>
               ) : null}
+              </View>
             </View>
-          </View>
+          </ScrollView>
         ) : (
           <ScrollView
             className="flex-1 bg-sandalwood"
@@ -590,10 +634,7 @@ export function WelcomeScreen({
                           Create your account
                         </Text>
                         <Text className="mt-0.5 text-center font-sans text-sm text-stoneMuted">
-                          Join our temple community in a few simple steps.
-                        </Text>
-                        <Text className="text-center font-sans text-[11px] text-stoneMuted">
-                          Your phone is used only for secure OTP verification.
+                          Join our temple community with your name and email.
                         </Text>
                       </View>
                     ) : null}
@@ -627,76 +668,16 @@ export function WelcomeScreen({
                       textContentType="newPassword"
                     />
 
-                    {!otpSent ? (
-                      <Field
-                        icon="call-outline"
-                        accessibilityLabel="Phone number"
-                        value={phone}
-                        onChangeText={setPhone}
-                        placeholder="Phone number"
-                        keyboardType="phone-pad"
-                        textContentType="telephoneNumber"
-                      />
-                    ) : (
-                      <>
-                        <View className="h-8 flex-row items-center rounded-pill bg-peacockSoft px-3">
-                          <Ionicons
-                            name="checkmark-circle"
-                            size={16}
-                            color={tokens.colors.peacock}
-                          />
-                          <Text className="ml-2 flex-1 font-sans-bold text-xs text-peacock">
-                            Code sent to {phone}
-                          </Text>
-                          <Pressable
-                            accessibilityRole="button"
-                            accessibilityLabel="Change phone number"
-                            hitSlop={12}
-                            onPress={() => {
-                              setOtpSent(false);
-                              setOtp("");
-                              setMessage("");
-                            }}
-                          >
-                            <Text className="font-sans-bold text-xs text-indigo">
-                              Change
-                            </Text>
-                          </Pressable>
-                        </View>
-                        <Field
-                          icon="keypad-outline"
-                          accessibilityLabel="Verification code"
-                          value={otp}
-                          onChangeText={setOtp}
-                          placeholder="6-digit verification code"
-                          keyboardType="number-pad"
-                          maxLength={6}
-                          textContentType="oneTimeCode"
-                        />
-                      </>
-                    )}
-
                     {message ? (
-                      <Text
-                        className="text-center font-sans text-xs text-vermilion"
-                        accessibilityLiveRegion="polite"
-                      >
-                        {message}
-                      </Text>
+                      <FormMessage text={message} tone={messageTone} />
                     ) : null}
 
                     <ActionButton
-                      icon={
-                        otpSent ? "checkmark-circle-outline" : "call-outline"
-                      }
+                      icon="person-add-outline"
                       loading={submitting}
                       onPress={submitCreateAccount}
                     >
-                      {otpSent
-                        ? "Verify and create account"
-                        : providers?.phone
-                          ? "Create account & send OTP"
-                          : "Create account"}
+                      Create account
                     </ActionButton>
 
                     {!keyboardVisible ? (
@@ -740,12 +721,7 @@ export function WelcomeScreen({
                       textContentType="emailAddress"
                     />
                     {message ? (
-                      <Text
-                        className="text-center font-sans text-xs text-vermilion"
-                        accessibilityLiveRegion="polite"
-                      >
-                        {message}
-                      </Text>
+                      <FormMessage text={message} tone={messageTone} />
                     ) : null}
                     <ActionButton
                       icon="mail-unread-outline"

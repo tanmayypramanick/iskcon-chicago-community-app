@@ -5,6 +5,7 @@
     "indigo": "#2B3A67",
     "indigoSoft": "#E7EAF3",
     "vermilion": "#C1440E",
+    "vermilionSoft": "#FAE7DF",
     "ivory": "#FBF7EF",
     "stone": "#3A342B",
     "stoneMuted": "#766D61",
@@ -15,14 +16,14 @@
     "white": "#FFFFFF"
   },
   "spacing": {
-    "screen": "20px",
-    "section": "24px",
-    "card": "18px",
+    "screen": "16px",
+    "section": "20px",
+    "card": "15px",
     "touch": "48px"
   },
   "radii": {
-    "card": "24px",
-    "button": "18px",
+    "card": "20px",
+    "button": "16px",
     "pill": "999px"
   }
 }

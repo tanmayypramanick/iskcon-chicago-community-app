@@ -5,6 +5,7 @@ import { fireEvent, render, waitFor } from "@testing-library/react-native";
 import {
   getAuthProviderAvailability,
   signInWithEmail,
+  signInWithGoogle,
   signUpWithEmail,
 } from "../../services/auth";
 import { WelcomeScreen } from "../WelcomeScreen";
@@ -12,16 +13,16 @@ import { WelcomeScreen } from "../WelcomeScreen";
 jest.mock("../../services/auth", () => ({
   getAuthProviderAvailability: jest.fn(),
   requestPasswordReset: jest.fn(),
-  requestPhoneVerification: jest.fn(),
   signInWithEmail: jest.fn(),
+  signInWithGoogle: jest.fn(),
   signUpWithEmail: jest.fn(),
-  verifyPhoneChange: jest.fn(),
 }));
 
 const mockGetAuthProviderAvailability = jest.mocked(
   getAuthProviderAvailability,
 );
 const mockSignInWithEmail = jest.mocked(signInWithEmail);
+const mockSignInWithGoogle = jest.mocked(signInWithGoogle);
 const mockSignUpWithEmail = jest.mocked(signUpWithEmail);
 
 describe("WelcomeScreen", () => {
@@ -29,11 +30,11 @@ describe("WelcomeScreen", () => {
     jest.clearAllMocks();
     mockGetAuthProviderAvailability.mockResolvedValue({
       email: true,
-      phone: true,
       google: false,
       emailConfirmationRequired: true,
     });
     mockSignInWithEmail.mockResolvedValue({} as never);
+    mockSignInWithGoogle.mockResolvedValue({} as never);
     mockSignUpWithEmail.mockResolvedValue({} as never);
   });
 
@@ -84,6 +85,30 @@ describe("WelcomeScreen", () => {
     });
   });
 
+  it("opens a Supabase session through Google", async () => {
+    const onAuthenticated = jest.fn();
+    mockGetAuthProviderAvailability.mockResolvedValueOnce({
+      email: true,
+      google: true,
+      emailConfirmationRequired: true,
+    });
+    const { getByRole } = await render(
+      <WelcomeScreen onAuthenticated={onAuthenticated} />,
+    );
+
+    await waitFor(() =>
+      expect(mockGetAuthProviderAvailability).toHaveBeenCalled(),
+    );
+    await fireEvent.press(
+      getByRole("button", { name: "Continue with Google" }),
+    );
+
+    await waitFor(() => {
+      expect(mockSignInWithGoogle).toHaveBeenCalledTimes(1);
+      expect(onAuthenticated).toHaveBeenCalledTimes(1);
+    });
+  });
+
   it("switches to account creation and password reset", async () => {
     const { getByPlaceholderText, getByRole, getByText, queryByText } =
       await render(<WelcomeScreen onAuthenticated={jest.fn()} />);
@@ -96,7 +121,7 @@ describe("WelcomeScreen", () => {
     expect(getByPlaceholderText("Full name")).toBeTruthy();
     expect(getByPlaceholderText("Email address")).toBeTruthy();
     expect(getByPlaceholderText("Create password")).toBeTruthy();
-    expect(getByPlaceholderText("Phone number")).toBeTruthy();
+    expect(queryByText(/phone/i)).toBeNull();
     expect(queryByText("Continue with Google")).toBeNull();
 
     await fireEvent.press(getByRole("button", { name: "Return to sign in" }));
@@ -105,9 +130,11 @@ describe("WelcomeScreen", () => {
     expect(getByText("Send reset link")).toBeTruthy();
   });
 
-  it("uses the phone number to verify a new account by OTP", async () => {
-    const { getByPlaceholderText, getByRole, getByText, queryByText } =
-      await render(<WelcomeScreen onAuthenticated={jest.fn()} />);
+  it("creates an account with name, email, and password only", async () => {
+    const onAuthenticated = jest.fn();
+    const { getByPlaceholderText, getByRole } = await render(
+      <WelcomeScreen onAuthenticated={onAuthenticated} />,
+    );
 
     await fireEvent.press(getByRole("button", { name: "Create an account" }));
 
@@ -123,19 +150,16 @@ describe("WelcomeScreen", () => {
       getByPlaceholderText("Create password"),
       "haribol",
     );
-    await fireEvent.changeText(
-      getByPlaceholderText("Phone number"),
-      "3125550123",
-    );
-    await fireEvent.press(
-      getByRole("button", { name: "Create account & send OTP" }),
-    );
+    await fireEvent.press(getByRole("button", { name: "Create account" }));
 
     await waitFor(() => {
-      expect(getByPlaceholderText("6-digit verification code")).toBeTruthy();
-      expect(getByRole("button", { name: "Change phone number" })).toBeTruthy();
+      expect(mockSignUpWithEmail).toHaveBeenCalledWith({
+        name: "Gauranga Sharma",
+        email: "devotee@example.com",
+        password: "haribol",
+      });
+      expect(onAuthenticated).toHaveBeenCalledTimes(1);
     });
-    expect(queryByText("Continue with Google")).toBeNull();
   });
 
   it("asks an email-confirmation signup to confirm before signing in", async () => {
@@ -157,13 +181,7 @@ describe("WelcomeScreen", () => {
       getByPlaceholderText("Create password"),
       "haribol",
     );
-    await fireEvent.changeText(
-      getByPlaceholderText("Phone number"),
-      "3125550123",
-    );
-    await fireEvent.press(
-      getByRole("button", { name: "Create account & send OTP" }),
-    );
+    await fireEvent.press(getByRole("button", { name: "Create account" }));
 
     await waitFor(() => {
       expect(

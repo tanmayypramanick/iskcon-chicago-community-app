@@ -2,6 +2,13 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "resolveJsonModule": true
-  }
+    "resolveJsonModule": true,
+    "types": [
+      "node",
+      "jest"
+    ]
+  },
+  "exclude": [
+    "supabase/functions"
+  ]
 }

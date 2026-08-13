@@ -2,24 +2,24 @@
 
 ## 1. Master feature list (confirmed scope)
 
-| # | Feature | Notes |
-|---|---|---|
-| 1 | Service board | Post a need (pot washing, cooking, cleaning, etc.), notify all users, people join until slots filled, auto-close. Free-text service if not on preset list. |
-| 2 | Self-logged services | "I'm doing X from [time]," 30-min increments, no request required. |
-| 3 | Availability status | "At Temple" / "Not at temple," visible to others. |
-| 4 | Festival help requests | Art, chart, painting, acting, dance practice, kirtan/kirtan practice, general "need help with X." |
-| 5 | Communities | User-created groups, admin-approved join, chat, file/photo sharing. |
-| 6 | Courses | President-approved to list; instructor-approved to join; materials/links/files; attendance %, exams; upcoming/ongoing/finished states; date/time/place or virtual link. |
-| 7 | Rankings | Gamified progress: services + community activity + course completion, weekly/monthly/overall. |
-| 8 | Access levels | President, VP, Cabinet, Members, Brahmacaris, Devotees, Volunteers. |
-| 9 | Newsletter | Monthly, uploaded by designated members. |
-| 10 | Announcements | Push-notified, image/file attachments, role-gated posting. |
-| 11 | Donations | Role-gated visibility (president/authorized only). |
-| 12 | Feedback | Role-gated visibility. |
-| 13 | Forum | Open posting board; like, comment, repost, share-into-a-community. |
-| 14 | **Devotee database + schedule** | Who's doing what, on what day — the backbone the service system reads/writes against. |
-| 15 | **Service assignment** | Core members (president, etc.) assign a specific devotee to a specific service. |
-| 16 | **Recurring services** | Standing weekly (or other cadence) assignments — e.g., Devotee A every Thursday. |
+| #   | Feature                         | Notes                                                                                                                                                                   |
+| --- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Service board                   | Post a need (pot washing, cooking, cleaning, etc.), notify all users, people join until slots filled, auto-close. Free-text service if not on preset list.              |
+| 2   | Live-tracked services           | A devotee starts and finishes a live timer from a catalog selection or temple QR code. Retrospective self-logging is disabled.                                          |
+| 3   | Availability status             | "At Temple" / "Not at temple," visible to others.                                                                                                                       |
+| 4   | Festival help requests          | Art, chart, painting, acting, dance practice, kirtan/kirtan practice, general "need help with X."                                                                       |
+| 5   | Communities                     | User-created groups, admin-approved join, chat, file/photo sharing.                                                                                                     |
+| 6   | Courses                         | President-approved to list; instructor-approved to join; materials/links/files; attendance %, exams; upcoming/ongoing/finished states; date/time/place or virtual link. |
+| 7   | Rankings                        | Gamified progress: services + community activity + course completion, weekly/monthly/overall.                                                                           |
+| 8   | Access levels                   | President, Tech Member, Core Member, Volunteer, Devotee. President and Tech Member approve access requests.                                                             |
+| 9   | Newsletter                      | Monthly, uploaded by designated members.                                                                                                                                |
+| 10  | Announcements                   | Push-notified, image/file attachments, role-gated posting.                                                                                                              |
+| 11  | Donations                       | Role-gated visibility (president/authorized only).                                                                                                                      |
+| 12  | Feedback                        | Role-gated visibility.                                                                                                                                                  |
+| 13  | Forum                           | Open posting board; like, comment, repost, share-into-a-community.                                                                                                      |
+| 14  | **Devotee database + schedule** | Who's doing what, on what day — the backbone the service system reads/writes against.                                                                                   |
+| 15  | **Service assignment**          | Core members (president, etc.) assign a specific devotee to a specific service.                                                                                         |
+| 16  | **Recurring services**          | Standing weekly (or other cadence) assignments — e.g., Devotee A every Thursday.                                                                                        |
 
 Priority order for build: **14 → 15 → 16 → 1 → 2 → 3**, then everything else.
 
@@ -29,16 +29,22 @@ Priority order for build: **14 → 15 → 16 → 1 → 2 → 3**, then everythin
 
 ```
 users
-  id, name, phone, email, photo_url, ashram_status (profile tag, NOT permission),
+  id, name, phone (nullable profile/contact data; NOT used for auth), email,
+  photo_url, ashram_status (profile tag, NOT permission),
   role_id (FK), joined_at
 
 roles
-  id, name  -- president, vp, cabinet, brahmacari, member, volunteer
+  id, name  -- president, tech, core, volunteer, devotee
 
 role_permissions
   role_id, permission_key
   -- e.g. assign_service, approve_course, view_donations,
   --      post_announcement, create_community, moderate_forum
+
+access_requests
+  id, requester_id, requested_role_id,
+  status (pending/approved/denied), created_at,
+  reviewed_at, reviewed_by
 
 service_templates
   id, name, description, is_recurring (bool),
@@ -63,6 +69,10 @@ service_exceptions
 
 **Why `ashram_status` is a profile field, not a role:** a brahmacari isn't automatically an app admin, and a president isn't necessarily a brahmacari. Keep spiritual designation and app permission as two separate axes — collapsing them causes access-control bugs later.
 
+**Confirmed access-request rules:** new accounts start as Devotees. A Devotee may request Volunteer or Core Member access; a Volunteer may request Core Member access. Only a President or Tech Member can approve or deny a request. Users cannot request President or Tech access and cannot change their own production role.
+
+**Service permissions:** everyone can view upcoming/completed services, participate, run a live service timer, complete their own assignment, report unavailability, and answer an assignment offer. President, Tech, Core Member, and Volunteer can post requirements, invite a particular devotee, and arrange coverage. Core Member, Tech, and President can manage recurring templates, see recurring assignees, review recurring-service interests, and oversee active service timers. Volunteers cannot see recurring assignee details. President and Tech have complete app visibility.
+
 ---
 
 ## 3. Recurring-service engine — two options
@@ -80,6 +90,7 @@ Start with A. Migrating A → B later is a schema addition, not a rewrite, since
 Assigning recurring services to dozens of devotees, approving courses, and reviewing donations are bulk, table-heavy admin tasks. These are painful to build well on a phone screen and much faster to build (and use) as a role-gated web table view.
 
 Recommendation: same Postgres backend, two frontends —
+
 - **Mobile app (Expo/React Native):** devotee-facing — service board, self-log, communities, courses, forum, plus lightweight president actions (approve a join request, post an announcement).
 - **Web admin (Next.js, or a low-code layer like Retool on the same DB):** bulk service assignment, course/community approval, donation visibility, newsletter upload.
 
@@ -91,7 +102,7 @@ If you'd rather keep everything in the one mobile app, that's workable too — j
 
 0. **Setup** — Expo (React Native) project, Supabase project (Postgres + Auth + Storage), repo, CI.
 1. **Schema** — migrate the tables in §2.
-2. **Auth** — phone/email + OTP via Supabase Auth. Seed president/VP roles manually at first; decide self-registration vs. invite-only (open item, see §6).
+2. **Auth** — email/password with email confirmation, plus Google via Supabase Auth. Phone is optional profile/contact data and is not used for OTP or sign-in. Seed president/VP roles manually at first; decide self-registration vs. invite-only (open item, see §6).
 3. **Devotee directory** — list + profile screen (name, photo, ashram status, contact). Needed before assignment makes sense.
 4. **Service board (ad-hoc)** — create request, notify, join, auto-close at capacity. Get this working with a handful of real devotees before building anything else.
 5. **Recurring templates** — president creates "Every Thursday 6–8pm Kitchen Prep," assigns devotees; nightly job generates instances 4 weeks out.
@@ -106,7 +117,8 @@ If you'd rather keep everything in the one mobile app, that's workable too — j
 
 - **Onboarding:** self-registration with president approval (assumed) vs. invite-only. Changes the auth flow and directory-seeding approach.
 - **Ashram status visibility:** public on profile (assumed) vs. private/president-only.
-- **Self-logged service trust:** honor-system self-report (assumed, fine for a small community) vs. requiring a confirming devotee/QR check-in — matters more once rankings are tied to it, since self-report is gameable.
+- **Service trust (confirmed August 3, 2026):** retrospective self-logging is disabled. A devotee either scans a temple service QR code or starts a live timer from the approved service catalog. QR sessions are labeled `qr_scan`; list-selected sessions are labeled `live_timer` so reporting can distinguish their verification level.
+- **Recurring-service interest (confirmed August 3, 2026):** a devotee submits skills, desired services, availability, and optional current recurring-seva details. Core, Tech, or President verifies the profile; verification does not silently create an assignment. Actual recurring assignment continues through the coordinator invitation and devotee acceptance flow.
 
 ---
 

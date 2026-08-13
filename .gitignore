@@ -39,3 +39,13 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Holds the live push secret. Generated locally, never committed.
+supabase/enable-push.sql
+
+# Supabase CLI project-link and version cache. Generated for this machine.
+supabase/.temp/
+
+# Firebase config for Android push. Not secret (it ships inside the APK) but
+# it is per-project setup, not source.
+google-services.json
