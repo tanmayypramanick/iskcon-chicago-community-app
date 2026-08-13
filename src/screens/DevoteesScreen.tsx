@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useIsFocused } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Alert, Pressable, Text, TextInput, View } from "react-native";
 
 import tokens from "../../design-tokens.json";
 import { ActionSheet, type ActionSheetAction } from "../components/ActionSheet";
@@ -28,7 +28,10 @@ import {
   isAccessRole,
 } from "../features/access/model";
 import { openConversation } from "../features/messaging/api";
-import { useConversations } from "../features/messaging/hooks";
+import {
+  useConversations,
+  useRemoveConversationForMe,
+} from "../features/messaging/hooks";
 import type { ConversationSummary } from "../features/messaging/types";
 import { AtTempleBadge } from "../features/presence/components";
 import { useTemplePresence } from "../features/presence/hooks";
@@ -213,6 +216,7 @@ export function DevoteesScreen({ navigation, route }: Props) {
   const dashboard = useServiceDashboard(activeUserId);
   const presence = useTemplePresence(activeUserId);
   const conversations = useConversations();
+  const removeConversation = useRemoveConversationForMe();
   const reachable = useServerReachable();
   // Messages first: it is the only list on this screen that changes while a
   // devotee is away from it, so it is the one they came back for.
@@ -860,6 +864,27 @@ export function DevoteesScreen({ navigation, route }: Props) {
                 devoteeId: row.conversation.other_devotee_id,
                 name: row.conversation.other_name,
               })
+            }
+            onRemove={() =>
+              Alert.alert(
+                `Remove conversation with ${row.conversation.other_name}?`,
+                "It will disappear from your Messages. The temple's retained record is not erased, and a new message will bring the conversation back.",
+                [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    text: "Remove",
+                    style: "destructive",
+                    onPress: () =>
+                      removeConversation.mutate(row.conversation.id, {
+                        onError: () =>
+                          Alert.alert(
+                            "Conversation not removed",
+                            "Please check your connection and try again.",
+                          ),
+                      }),
+                  },
+                ],
+              )
             }
           />
         );

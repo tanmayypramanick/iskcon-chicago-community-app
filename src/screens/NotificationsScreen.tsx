@@ -14,6 +14,7 @@ import {
   useDeleteAppNotification,
   useMarkAppNotificationsRead,
 } from "../features/notifications/hooks";
+import { getNotificationTarget } from "../features/notifications/navigation";
 import type { AppNotificationRow } from "../features/notifications/types";
 import type { HomeStackParamList, MainTabParamList } from "../navigation/types";
 import {
@@ -77,89 +78,6 @@ function fromLocal(notification: AppNotification): NotificationItem {
   };
 }
 
-type NotificationTarget = { tab: "Services" | "Profile"; params: unknown };
-
-/**
- * Where a notification opens, or null when it opens nowhere. Tappability and
- * routing both read this, so a row can never look tappable and then do nothing
- * — which is what happened when the two were maintained as separate lists.
- */
-function notificationTarget(notification: {
-  kind: string;
-  data: Record<string, unknown>;
-}): NotificationTarget | null {
-  const { data, kind } = notification;
-  const text = (key: string) =>
-    typeof data[key] === "string" ? (data[key] as string) : null;
-
-  const exceptionId = text("serviceExceptionId");
-  if (kind === "service_coverage_needed" && exceptionId) {
-    return {
-      tab: "Services",
-      params: {
-        screen: "CoverageDetail",
-        params: { exceptionId },
-      },
-    };
-  }
-
-  // A verification request belongs to the member who was asked; the devotee's
-  // own outcome belongs on their Seva tab. Checked before the instance id,
-  // because a verified seva carries both.
-  if (text("serviceVerificationId")) {
-    return {
-      tab: "Services",
-      params: {
-        screen:
-          kind === "seva_verification_requested"
-            ? "SevaApprovals"
-            : "ServicesHome",
-      },
-    };
-  }
-  if (text("serviceOfferCounterId")) {
-    return { tab: "Services", params: { screen: "SevaApprovals" } };
-  }
-  // Both sides of an access request are handled on the profile screen: the
-  // reviewer's pending list and the requester's own access level.
-  if (text("accessRequestId")) {
-    return { tab: "Profile", params: { screen: "ProfileHome" } };
-  }
-
-  const serviceId = text("serviceInstanceId");
-  if (serviceId) {
-    return {
-      tab: "Services",
-      params: { screen: "ServiceDetail", params: { serviceId } },
-    };
-  }
-  if (text("serviceOfferId")) {
-    return { tab: "Services", params: { screen: "ServicesHome" } };
-  }
-  const templateId = text("serviceTemplateId");
-  if (templateId) {
-    return {
-      tab: "Services",
-      params: { screen: "WeeklySevaDetail", params: { templateId } },
-    };
-  }
-  if (text("recurringInterestId")) {
-    return {
-      tab: "Profile",
-      params: {
-        screen:
-          kind === "recurring_interest_submitted"
-            ? "RecurringInterestInbox"
-            : "RecurringInterest",
-      },
-    };
-  }
-  if (text("serviceSessionId")) {
-    return { tab: "Services", params: { screen: "ServicesHome" } };
-  }
-  return null;
-}
-
 export function NotificationsScreen({ navigation }: Props) {
   const isFocused = useIsFocused();
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
@@ -204,14 +122,10 @@ export function NotificationsScreen({ navigation }: Props) {
   }, [activeUserId, remote.data]);
 
   const openNotification = (notification: NotificationItem) => {
-    const target = notificationTarget(notification);
+    const target = getNotificationTarget(notification);
     if (!target) return;
     const tabs = navigation.getParent<NavigationProp<MainTabParamList>>();
-    if (target.tab === "Profile") {
-      tabs?.navigate("Profile", target.params as never);
-    } else {
-      tabs?.navigate("Services", target.params as never);
-    }
+    tabs?.navigate(target.tab, target.params as never);
   };
 
   const clearOne = (notification: NotificationItem) => {
@@ -264,7 +178,7 @@ export function NotificationsScreen({ navigation }: Props) {
         }
         renderItem={(notification, index) => {
           const isTempleReminder = notification.kind === "temple-reminder";
-          const canOpen = notificationTarget(notification) !== null;
+          const canOpen = getNotificationTarget(notification) !== null;
           const isFirst = index === 0;
           const isLast = index === notifications.length - 1;
 

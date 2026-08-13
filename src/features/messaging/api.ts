@@ -132,6 +132,16 @@ export async function hideMessageForMe(messageId: string) {
   return runRpc("hide_message_for_me", { p_message_id: messageId });
 }
 
+/**
+ * Clears the existing thread from this devotee's inbox without deleting the
+ * retained conversation. A later message makes it appear again.
+ */
+export async function removeConversationForMe(conversationId: string) {
+  return runRpc("remove_conversation_for_me", {
+    p_conversation_id: conversationId,
+  });
+}
+
 export async function markConversationRead(
   conversationId: string,
 ): Promise<number> {

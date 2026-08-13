@@ -113,6 +113,13 @@ function dayLabel(value: string | null) {
   return `${formatChicagoShortDate(instant)}, ${getChicagoWallClock(instant).year}`;
 }
 
+function genderLabel(value: string | null) {
+  if (value === "male") return "Male";
+  if (value === "female") return "Female";
+  if (value === "prefer_not_to_say") return "Prefer not to say";
+  return null;
+}
+
 /** How the devotee came by the access they hold. */
 const grantSourceLabels: Record<string, string> = {
   appointment: "Appointed directly",
@@ -347,6 +354,7 @@ export function DevoteeProfileScreen({ navigation, route }: Props) {
           label="Date of birth"
           value={dayLabel(devotee.date_of_birth)}
         />
+        <DetailRow label="Gender" value={genderLabel(devotee.gender)} />
         <DetailRow
           label="Age"
           value={devotee.age === null ? null : `${devotee.age}`}

@@ -1,127 +1,154 @@
-# ISKCON Chicago Community App — Build Spec v1
+# ISKCON Chicago Community App — Current Product Specification
 
-## 1. Master feature list (confirmed scope)
+Status baseline: 12 August 2026. This document describes the application that
+exists now, not the original prototype plan.
 
-| #   | Feature                         | Notes                                                                                                                                                                   |
-| --- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Service board                   | Post a need (pot washing, cooking, cleaning, etc.), notify all users, people join until slots filled, auto-close. Free-text service if not on preset list.              |
-| 2   | Live-tracked services           | A devotee starts and finishes a live timer from a catalog selection or temple QR code. Retrospective self-logging is disabled.                                          |
-| 3   | Availability status             | "At Temple" / "Not at temple," visible to others.                                                                                                                       |
-| 4   | Festival help requests          | Art, chart, painting, acting, dance practice, kirtan/kirtan practice, general "need help with X."                                                                       |
-| 5   | Communities                     | User-created groups, admin-approved join, chat, file/photo sharing.                                                                                                     |
-| 6   | Courses                         | President-approved to list; instructor-approved to join; materials/links/files; attendance %, exams; upcoming/ongoing/finished states; date/time/place or virtual link. |
-| 7   | Rankings                        | Gamified progress: services + community activity + course completion, weekly/monthly/overall.                                                                           |
-| 8   | Access levels                   | President, Tech Member, Core Member, Volunteer, Devotee. President and Tech Member approve access requests.                                                             |
-| 9   | Newsletter                      | Monthly, uploaded by designated members.                                                                                                                                |
-| 10  | Announcements                   | Push-notified, image/file attachments, role-gated posting.                                                                                                              |
-| 11  | Donations                       | Role-gated visibility (president/authorized only).                                                                                                                      |
-| 12  | Feedback                        | Role-gated visibility.                                                                                                                                                  |
-| 13  | Forum                           | Open posting board; like, comment, repost, share-into-a-community.                                                                                                      |
-| 14  | **Devotee database + schedule** | Who's doing what, on what day — the backbone the service system reads/writes against.                                                                                   |
-| 15  | **Service assignment**          | Core members (president, etc.) assign a specific devotee to a specific service.                                                                                         |
-| 16  | **Recurring services**          | Standing weekly (or other cadence) assignments — e.g., Devotee A every Thursday.                                                                                        |
+## Product purpose
 
-Priority order for build: **14 → 15 → 16 → 1 → 2 → 3**, then everything else.
+A single, clear mobile home for ISKCON Chicago devotees to stay connected,
+serve reliably and participate in temple community life. The interface should
+remain spiritual, calm, modern, highly legible and usable across age groups on
+small iPhones and Android phones.
 
----
+## Identity and account rules
 
-## 2. Core data model (service system — build this first)
+- Authentication: email/password or Google through Supabase Auth.
+- Email confirmation is required according to the Supabase project setting.
+- Phone is mandatory contact information but is not used for sign-in or OTP.
+- Required profile: photo, name, phone, date of birth, occupation and gender.
+- Users cannot delete their own account. Authorised temple administration may
+  close or disable accounts.
+- Current Arpita/sample congregation content is test/demo data and must be
+  reviewed and removed or replaced before production launch.
 
-```
-users
-  id, name, phone (nullable profile/contact data; NOT used for auth), email,
-  photo_url, ashram_status (profile tag, NOT permission),
-  role_id (FK), joined_at
+## Access levels
 
-roles
-  id, name  -- president, tech, core, volunteer, devotee
+1. Devotee
+2. Volunteer
+3. Community Head (`core` in the database)
+4. Tech Admin (`tech` in the database)
+5. President
 
-role_permissions
-  role_id, permission_key
-  -- e.g. assign_service, approve_course, view_donations,
-  --      post_announcement, create_community, moderate_forum
+Access is enforced by PostgreSQL functions, RLS and permissions. UI visibility
+is not treated as security. President and Tech Admin hold whole-app oversight.
+Access request, appointment, review and revocation flows are implemented.
 
-access_requests
-  id, requester_id, requested_role_id,
-  status (pending/approved/denied), created_at,
-  reviewed_at, reviewed_by
+## Implemented modules
 
-service_templates
-  id, name, description, is_recurring (bool),
-  recurrence_rule (see §3), default_slots_needed, created_by (FK users)
+### Home
 
-service_instances
-  id, template_id (FK, nullable — null = one-off ad-hoc),
-  date, start_time, duration_minutes, slots_needed,
-  status (open/full/closed/completed), created_by
+- Personal greeting and Chicago-local date
+- Manual At the temple status and shared live presence roster
+- Optional on-device location detection that reminds rather than checks in
+- Notification bell and actionable notification inbox
+- Community module cards
 
-service_assignments
-  id, service_instance_id (FK), devotee_id (FK),
-  assigned_by (FK, nullable — null = self-joined),
-  status (assigned/confirmed/declined/completed/no-show)
+### Seva
 
-service_exceptions
-  id, service_instance_id (FK), devotee_id (FK),
-  type (skip/substitute), substitute_devotee_id (nullable), reason
-```
+- One-time/open requirements and custom typed seva
+- Weekly Seva templates, multi-day schedules and assignments
+- Invitations, accept/decline/counter flows and self-assignment
+- Time-bounded unavailability and coverage replacement
+- QR or list-started seva sessions with live/planned start and end times
+- Attendance, completion, verification and correction controls
+- Role-aware community schedule, searchable lists and Excel reports
+- Seva Yatra awards, boards, history, care and reliability views
 
-**Why `service_exceptions` matters:** a recurring assignment ("Devotee A, every Thursday") breaks down the first time Devotee A is sick or traveling. Without an exception/override mechanism, the schedule silently goes stale. This table lets someone skip one instance or hand it to a substitute without touching the recurring template.
+### Devotees
 
-**Why `ashram_status` is a profile field, not a role:** a brahmacari isn't automatically an app admin, and a president isn't necessarily a brahmacari. Keep spiritual designation and app permission as two separate axes — collapsing them causes access-control bugs later.
+- Directory and public devotee profiles
+- Direct realtime messaging, photos, typing and delivery/read states
+- Delete-for-me and delete-for-everyone message behavior
+- Per-devotee complete-conversation removal without record destruction
+- Sangas, membership, join review, chat and management
 
-**Confirmed access-request rules:** new accounts start as Devotees. A Devotee may request Volunteer or Core Member access; a Volunteer may request Core Member access. Only a President or Tech Member can approve or deny a request. Users cannot request President or Tech access and cannot change their own production role.
+### Community content
 
-**Service permissions:** everyone can view upcoming/completed services, participate, run a live service timer, complete their own assignment, report unavailability, and answer an assignment offer. President, Tech, Core Member, and Volunteer can post requirements, invite a particular devotee, and arrange coverage. Core Member, Tech, and President can manage recurring templates, see recurring assignees, review recurring-service interests, and oversee active service timers. Volunteers cannot see recurring assignee details. President and Tech have complete app visibility.
+- Announcements, scheduling, images/files, reactions and comments
+- Birthday prompts
+- Feedback with response workflow
+- Confidential devotee care posts and replies
+- Newsletter issues, submissions, reviews and editor appointments
 
----
+### Giving
 
-## 3. Recurring-service engine — two options
+- General one-time and recurring Zeffy donation page
+- Multiple campaign-specific Zeffy sponsorship forms
+- Date holds, campaign availability and donation reconciliation
+- Personal giving history and authorised temple-wide records
+- Sponsorship fulfilment and notification workflow
 
-**Option A (recommended to start):** store `day_of_week + start_time + start_date + optional end_date`. A nightly/weekly job generates `service_instances` on a rolling window (e.g., always 4 weeks out). Covers weekly recurrence — the large majority of real temple patterns (Thursday class, Sunday kitchen crew).
+### Profile and governance
 
-**Option B (more powerful, more complex):** store an RFC 5545 RRULE string (the iCalendar standard — same thing Google Calendar uses under the hood) and expand it with a library (e.g., `rrule.js`). Needed only for patterns like "first Saturday of the month" or "every 2 weeks."
+- Editable contact, household, family and spiritual information
+- Access request/appointment management
+- Notification settings
+- Privacy and visibility explanation
+- Terms of Service
+- About this app
 
-Start with A. Migrating A → B later is a schema addition, not a rewrite, since both just populate the same `service_instances` table.
+## Privacy and record visibility
 
----
+Every signed-in devotee may see another devotee's name, photo, access level,
+joined date, email, gender, date of birth, derived age and occupation.
 
-## 4. "Presidential access" — recommend a separate web dashboard, not just mobile screens
+Phone, address, birthplace, family/children, emergency, initiation, mentor,
+guru and practice details are restricted to the devotee and authorised roles.
 
-Assigning recurring services to dozens of devotees, approving courses, and reviewing donations are bulk, table-heavy admin tasks. These are painful to build well on a phone screen and much faster to build (and use) as a role-gated web table view.
+Direct messages and attached photos are retained as temple records. Retracting
+a message clears the participant-facing content while retaining its original
+content in protected columns. Clearing a conversation is per devotee and
+time-based: existing messages disappear from that devotee's inbox, a newer
+message restores the thread, and authorised oversight continues to see the
+complete record.
 
-Recommendation: same Postgres backend, two frontends —
+## Notifications
 
-- **Mobile app (Expo/React Native):** devotee-facing — service board, self-log, communities, courses, forum, plus lightweight president actions (approve a join request, post an announcement).
-- **Web admin (Next.js, or a low-code layer like Retool on the same DB):** bulk service assignment, course/community approval, donation visibility, newsletter upload.
+The database notification kind is the source of truth. Notifications can be
+targeted to one devotee, role holders or the community according to the action.
+Every database kind has an intentional client destination. Operating-system
+push taps and in-app bell taps use the same resolver.
 
-If you'd rather keep everything in the one mobile app, that's workable too — just expect the bulk-assignment screens to take longer to get right (multi-select, filters, drag-assign UI on a small screen).
+Delivery path:
 
----
+1. A protected database function creates `app_notifications` rows.
+2. A signed Supabase database webhook calls `send-service-notification`.
+3. The Edge Function re-reads the trusted row and sends through Expo Push.
+4. Invalid device tokens are deactivated.
+5. The in-app inbox reads the retained notification row in realtime.
 
-## 5. Step-by-step build order
+Android remote delivery requires Firebase/FCM V1 configuration. iOS remote
+delivery requires a paid Apple Developer account/APNs credentials. Neither
+simulator alone is sufficient release evidence.
 
-0. **Setup** — Expo (React Native) project, Supabase project (Postgres + Auth + Storage), repo, CI.
-1. **Schema** — migrate the tables in §2.
-2. **Auth** — email/password with email confirmation, plus Google via Supabase Auth. Phone is optional profile/contact data and is not used for OTP or sign-in. Seed president/VP roles manually at first; decide self-registration vs. invite-only (open item, see §6).
-3. **Devotee directory** — list + profile screen (name, photo, ashram status, contact). Needed before assignment makes sense.
-4. **Service board (ad-hoc)** — create request, notify, join, auto-close at capacity. Get this working with a handful of real devotees before building anything else.
-5. **Recurring templates** — president creates "Every Thursday 6–8pm Kitchen Prep," assigns devotees; nightly job generates instances 4 weeks out.
-6. **Exceptions** — devotee marks "can't make it this week" → slot reopens or president is notified.
-7. **Push notifications** — Expo push, wired into steps 4–6.
-8. **Presidential web dashboard** — bulk assignment, oversight.
-9. **Everything else, in this order:** Communities → Courses → Rankings → Donations → Newsletter/Announcements → Forum.
+## Donations and Zeffy
 
----
+General donations open
+`https://www.zeffy.com/en-US/donation-form/donate-789`, which offers one-time
+and recurring giving.
 
-## 6. Open decisions (defaults assumed — confirm or override)
+Each sponsorship campaign may have its own Zeffy URL stored in Supabase. Zeffy
+HTML embed snippets are web components and are not inserted into this native
+app. The app opens the hosted form in the system browser for payment security,
+Apple Pay/Google Pay compatibility and a visible Zeffy origin.
 
-- **Onboarding:** self-registration with president approval (assumed) vs. invite-only. Changes the auth flow and directory-seeding approach.
-- **Ashram status visibility:** public on profile (assumed) vs. private/president-only.
-- **Service trust (confirmed August 3, 2026):** retrospective self-logging is disabled. A devotee either scans a temple service QR code or starts a live timer from the approved service catalog. QR sessions are labeled `qr_scan`; list-selected sessions are labeled `live_timer` so reporting can distinguish their verification level.
-- **Recurring-service interest (confirmed August 3, 2026):** a devotee submits skills, desired services, availability, and optional current recurring-seva details. Core, Tech, or President verifies the profile; verification does not silently create an assignment. Actual recurring assignment continues through the coordinator invitation and devotee acceptance flow.
+## Not yet implemented
 
----
+- Courses
+- Forum
+- Persistent offline cache across a cold restart
+- Persistent private crash reporting
+- CI and reproducible release pipelines
+- Production Android/iOS push credentials and completed physical test matrix
 
-## 7. Working with Claude Code
+## Release requirements
 
-Feed this file to Claude Code as project context (e.g., `CLAUDE.md`) and build table-by-table, screen-by-screen — don't ask it to scaffold the whole app in one prompt. Given your existing Claude Code Router / OpenRouter setup, this slots in directly: schema migration first, verify with a seed script and a couple of test queries, then build the service-board screens against it before moving to recurring templates.
+- Remove or replace all confirmed test/demo accounts and content.
+- Complete Android FCM and Apple APNs configuration.
+- Test two real accounts across one Android phone and one iPhone.
+- Validate foreground, background and terminated notification delivery and
+  every actionable deep link.
+- Validate real camera QR scanning, location, OAuth and media/file selection.
+- Have temple leadership and appropriate legal counsel review Terms of Service
+  and privacy wording.
+- Confirm every live Zeffy campaign URL and production webhook secret.

@@ -1,4 +1,4 @@
-import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { Ionicons } from "@expo/vector-icons";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
@@ -31,9 +31,9 @@ type Props = NativeStackScreenProps<ServicesStackParamList, "ServiceActivity">;
 
 function FilterDate({ label, value, onChange, minimumDate }: { label: string; value: Date; onChange: (value: Date) => void; minimumDate?: Date }) {
   const [open, setOpen] = useState(false);
-  const changed = (event: DateTimePickerEvent, selected?: Date) => {
+  const changed = (_event: unknown, selected: Date) => {
     if (Platform.OS === "android") setOpen(false);
-    if (event.type !== "dismissed" && selected) onChange(selected);
+    onChange(selected);
   };
   return (
     <View className="flex-1">
@@ -44,7 +44,7 @@ function FilterDate({ label, value, onChange, minimumDate }: { label: string; va
       </Pressable>
       {open ? (
         <View className="mt-2 rounded-card border border-border bg-white p-2">
-          <DateTimePicker value={value} minimumDate={minimumDate} mode="date" display={Platform.OS === "ios" ? "inline" : "default"} onChange={changed} />
+          <DateTimePicker value={value} minimumDate={minimumDate} mode="date" display={Platform.OS === "ios" ? "inline" : "default"} onValueChange={changed} onDismiss={() => setOpen(false)} />
           {Platform.OS === "ios" ? <Button onPress={() => setOpen(false)}>Done</Button> : null}
         </View>
       ) : null}

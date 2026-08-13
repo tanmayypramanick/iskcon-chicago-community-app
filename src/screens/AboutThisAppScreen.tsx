@@ -149,8 +149,9 @@ export function AboutThisAppScreen(_: Props) {
             color={tokens.colors.peacock}
           />
           <Text className="ml-3 flex-1 font-sans text-sm leading-6 text-stone">
-            It was made as an offering to the temple — seva of a different kind,
-            with the skills at hand. May it be of some use to the devotees here.
+            Created as a humble offering of seva to Sri Sri Kisora-Kisori and
+            the devotees of ISKCON Chicago. May it bring our temple family
+            closer, make service easier, and help every devotee feel at home.
           </Text>
         </View>
       </View>

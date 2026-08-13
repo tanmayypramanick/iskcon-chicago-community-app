@@ -107,7 +107,7 @@ export function ProfileStack({ onSignOut }: { onSignOut: () => void }) {
       <Stack.Screen
         name="TermsOfService"
         component={TermsOfServiceScreen}
-        options={{ title: "Terms of use" }}
+        options={{ title: "Terms of Service" }}
       />
       <Stack.Screen
         name="NotificationSettings"

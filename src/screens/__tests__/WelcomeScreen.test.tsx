@@ -54,7 +54,9 @@ describe("WelcomeScreen", () => {
     expect(getByRole("button", { name: "Create an account" })).toBeTruthy();
     expect(getByText("Continue with Google")).toBeTruthy();
     expect(
-      getByText("By continuing, you agree to our Terms & Privacy Policy."),
+      getByText(
+        "By continuing, you agree to our Terms of Service & Privacy Policy.",
+      ),
     ).toBeTruthy();
     expect(queryByText("Preview the app")).toBeNull();
     expect(queryByText(/visual prototype/i)).toBeNull();

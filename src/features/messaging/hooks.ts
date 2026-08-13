@@ -13,6 +13,7 @@ import {
   markConversationRead,
   openConversation,
   pickMessageImage,
+  removeConversationForMe,
   sendMessage,
   uploadMessageImage,
 } from "./api";
@@ -211,6 +212,26 @@ export function useHideMessageForMe() {
         (existing) =>
           (existing ?? []).filter((message) => message.id !== messageId),
       );
+    },
+  });
+}
+
+export function useRemoveConversationForMe() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (conversationId: string) =>
+      removeConversationForMe(conversationId),
+    onSuccess: (_result, conversationId) => {
+      queryClient.setQueryData<import("./types").ConversationSummary[]>(
+        messagingKeys.conversations(),
+        (existing) =>
+          (existing ?? []).filter(
+            (conversation) => conversation.id !== conversationId,
+          ),
+      );
+      queryClient.removeQueries({
+        queryKey: messagingKeys.messages(conversationId),
+      });
     },
   });
 }

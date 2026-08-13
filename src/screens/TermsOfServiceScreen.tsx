@@ -47,132 +47,147 @@ function Card({
 export function TermsOfServiceScreen(_: Props) {
   return (
     <Screen topInset={false}>
-      <ScreenTitle eyebrow="Terms of use">Using this app</ScreenTitle>
+      <ScreenTitle eyebrow="ISKCON Chicago">Terms of Service</ScreenTitle>
 
       <Text className="mb-section font-sans text-sm leading-6 text-stoneMuted">
-        This app belongs to one temple community, so its terms are short and
-        written plainly. Please read them. What information the temple keeps,
-        and who can see it, is set out separately on the Privacy and visibility
-        page.
+        These Terms of Service govern your use of the ISKCON Chicago community
+        app. Please read them together with Privacy and visibility, which
+        explains what information is held and who may see it.
       </Text>
 
-      <Card icon="checkmark-circle-outline" title="Accepting these terms">
+      <Card icon="checkmark-circle-outline" title="Agreement">
         <Paragraph>
-          Using the app means you accept what is written here. If there is
-          something you cannot agree to, please speak to a community head or the
-          President before you carry on.
+          By creating an account or using the app, you agree to these terms. If
+          you do not agree, please do not use the app and contact the President
+          or an authorised temple administrator.
         </Paragraph>
       </Card>
 
-      <Card icon="people-outline" title="Who may use the app">
+      <Card icon="people-outline" title="Community access">
         <Paragraph>
-          It is for the devotees and well-wishers of ISKCON Chicago. An account
-          is needed for every screen, and access is granted by the temple.
+          The app is intended for devotees and well-wishers participating in
+          the ISKCON Chicago community. Every person must use their own account,
+          and access levels are assigned according to temple responsibilities.
         </Paragraph>
         <Paragraph>
-          The temple may decline a request for access, or withdraw it later.
-          That decision rests with a community head or the President, and you
-          are always welcome to ask them about it.
-        </Paragraph>
-      </Card>
-
-      <Card icon="person-circle-outline" title="Your account">
-        <Paragraph>
-          Keep your details accurate — your name, your photo, and a number or
-          address that reaches you. Devotees arranging seva rely on them.
-        </Paragraph>
-        <Paragraph>
-          Your password is yours alone. Please do not share it, and please do
-          not sign in as anybody else. Whatever is done from your account is
-          treated as done by you, so if you think someone else has got into it,
-          tell a community head or the President straight away.
+          ISKCON Chicago may approve, decline, change, suspend or revoke access
+          when reasonably necessary to protect devotees, temple operations or
+          the integrity of community records.
         </Paragraph>
       </Card>
 
-      <Card icon="heart-outline" title="How we treat one another">
+      <Card icon="person-circle-outline" title="Account responsibility">
         <Paragraph>
-          Messages and sangas here are part of temple life. Speak to devotees as
-          you would in the temple room, and assume the same of them.
+          You must provide accurate information, including a current phone
+          number, and keep your profile up to date. Do not share your password,
+          allow another person to use your account or impersonate another
+          devotee.
         </Paragraph>
         <Paragraph>
-          No harassment, no abusive language, nothing unlawful. Please do not
-          use the app to sell things, to raise money of your own, or to send
-          devotees messages they have not asked for.
-        </Paragraph>
-      </Card>
-
-      <Card icon="hand-left-outline" title="Seva you register for">
-        <Paragraph>
-          Registering for a seva is a commitment, and other devotees arrange
-          their day around it. Once your name is against a seva, nobody else is
-          looking for someone to fill it. So please offer only what you can
-          truly serve. If something changes — as it does — say so as early as
-          you can, rather than simply not turning up. Mark yourself unavailable
-          in the app, or tell a community head or the President, so that
-          somebody else has time to step in. Withdrawing early is not a failure.
-          It is part of serving well.
-        </Paragraph>
-        <Paragraph>
-          Register seva honestly, and confirm somebody else's seva only when you
-          know it truly happened. The temple's records rest on that.
+          Activity performed through your signed-in account may be treated as
+          activity performed by you. Report suspected unauthorised access to an
+          authorised temple administrator promptly.
         </Paragraph>
       </Card>
 
-      <Card icon="image-outline" title="What you post">
+      <Card icon="heart-outline" title="Respectful community conduct">
         <Paragraph>
-          Your photos and your messages remain yours. The temple claims no
-          ownership of them, only your permission to show them where you have
-          posted them — your photo on your profile, your message in the
-          conversation you sent it to.
+          Communicate with devotees respectfully and use messages, sangas,
+          announcements and other community spaces only for appropriate temple
+          and community purposes.
         </Paragraph>
         <Paragraph>
-          Please upload only what is yours to share, and be thoughtful with
-          pictures of other devotees, especially children.
-        </Paragraph>
-      </Card>
-
-      <Card icon="shield-checkmark-outline" title="What the temple may do">
-        <Paragraph>
-          Where these terms are broken, the temple may remove content, withdraw
-          access to parts of the app, or close an account. Anything unsafe or
-          unlawful may be acted on at once.
-        </Paragraph>
-        <Paragraph>
-          These decisions are made by a community head or the President, and you
-          may always ask them why.
+          Harassment, abusive or unlawful content, impersonation, unsolicited
+          promotion, personal fundraising, misuse of private information and
+          attempts to interfere with the app are prohibited.
         </Paragraph>
       </Card>
 
-      <Card icon="cloud-offline-outline" title="The app as it is">
+      <Card icon="hand-left-outline" title="Seva commitments and records">
         <Paragraph>
-          This app is offered as it stands, as a seva to the community, and it
-          is not promised to be perfect or always available. It will sometimes
-          be slow, down for maintenance, or mistaken. For anything urgent,
-          please phone the temple rather than relying on the app alone.
+          Register only for seva you genuinely intend to perform. If your
+          availability changes, update the app or contact the appropriate
+          coordinator as early as possible so coverage can be arranged.
+        </Paragraph>
+        <Paragraph>
+          Seva time, attendance, completion and verification must be recorded
+          honestly. Authorised members may correct or review these records when
+          needed for scheduling, accountability and temple administration.
         </Paragraph>
       </Card>
 
-      <Card icon="refresh-outline" title="Changes to these terms">
+      <Card icon="image-outline" title="Content you share">
         <Paragraph>
-          These terms will change as the app grows, and the date below changes
-          with them. Carrying on using the app after a change means you accept
-          it.
+          You retain ownership of content you submit. You give ISKCON Chicago
+          permission to store, process and display that content within the app
+          as needed to operate its community features and records.
+        </Paragraph>
+        <Paragraph>
+          Share only content you are entitled to share. Exercise particular
+          care with personal information and images of other devotees,
+          especially children.
+        </Paragraph>
+      </Card>
+
+      <Card icon="chatbubble-ellipses-outline" title="Messages and retention">
+        <Paragraph>
+          Messages and attached photos are retained as temple community records
+          and may be viewed by specifically authorised leadership. Deleting a
+          message or removing a conversation from your own inbox does not erase
+          the retained record.
+        </Paragraph>
+        <Paragraph>
+          This retention supports safety, accountability and continuity of
+          temple administration. See Privacy and visibility for the exact
+          behavior presented in the app.
+        </Paragraph>
+      </Card>
+
+      <Card icon="cash-outline" title="Donations and third-party services">
+        <Paragraph>
+          Donation and sponsorship payments are completed on Zeffy, a
+          third-party payment service. Zeffy's own terms and privacy practices
+          apply to payment information submitted there. The app does not
+          collect or store card details.
+        </Paragraph>
+      </Card>
+
+      <Card icon="shield-checkmark-outline" title="Moderation and account closure">
+        <Paragraph>
+          Authorised temple leadership may moderate content, restrict features,
+          suspend access or close an account when these terms are breached or
+          when reasonably required for community safety and temple operations.
+          Users cannot delete their own account in the app; account questions
+          or closure requests must be directed to an authorised administrator.
+        </Paragraph>
+      </Card>
+
+      <Card icon="cloud-offline-outline" title="Availability and urgent matters">
+        <Paragraph>
+          The app is provided for community coordination and may occasionally
+          be unavailable, delayed or contain errors. It is not an emergency
+          service. For urgent matters, contact the temple directly rather than
+          relying on an app message or notification.
+        </Paragraph>
+      </Card>
+
+      <Card icon="refresh-outline" title="Updates to these terms">
+        <Paragraph>
+          These terms may be updated as the app and temple services evolve. The
+          revised date will be shown here. Continued use after an update means
+          you accept the revised terms.
         </Paragraph>
       </Card>
 
       <View className="mt-section">
-        <SectionHeader title="Questions, and leaving" />
+        <SectionHeader title="Questions" />
         <Paragraph>
-          A community head or the President can answer anything about your
-          account or about these terms.
-        </Paragraph>
-        <Paragraph>
-          If you would like your account removed, ask a community head or the
-          President and it will be done for you. There is no button in the app
-          for it.
+          Contact the President or an authorised temple administrator with any
+          question about these Terms of Service, your account or the temple's
+          records.
         </Paragraph>
         <Text className="mt-4 font-sans text-xs uppercase tracking-wider text-stoneMuted">
-          Last updated 9 August 2026
+          Effective 12 August 2026
         </Text>
       </View>
     </Screen>

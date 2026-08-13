@@ -47,6 +47,7 @@ import {
 } from "./src/services/auth";
 import { useServerReachable } from "./src/lib/connectivity";
 import { useAppNotificationsRealtime } from "./src/features/notifications/hooks";
+import { getNotificationTarget } from "./src/features/notifications/navigation";
 import { useTemplePresenceRealtime } from "./src/features/presence/hooks";
 import { useServiceRealtime } from "./src/features/services/hooks";
 import { getSupabaseClient } from "./src/lib/supabase";
@@ -220,119 +221,16 @@ function LiveSubscriptions() {
 
 function openNotificationDestination(data: Record<string, unknown>) {
   if (!navigationRef.isReady()) return;
+  const target = getNotificationTarget({
+    kind: typeof data.kind === "string" ? data.kind : null,
+    data,
+  });
+  if (!target) return;
 
-  // An announcement has no page of its own — the board is the destination, and
-  // the newest notice is the one that was just announced.
-  if (typeof data.announcementId === "string") {
-    navigationRef.navigate("MainTabs", {
-      screen: "Home",
-      params: { screen: "Announcements" },
-    });
-    return;
-  }
-
-  // A birthday prompt is an invitation to write something, so it opens where
-  // the writing happens. The payload's devoteeId is deliberately not carried
-  // into the route: the prompt card on the board reads today's birthdays for
-  // itself, and a stale notification from last week must not reopen a composer
-  // for a birthday that has passed.
-  if (data.kind === "birthday_today") {
-    navigationRef.navigate("MainTabs", {
-      screen: "Home",
-      params: { screen: "Announcements" },
-    });
-    return;
-  }
-
-  const serviceExceptionId = data.serviceExceptionId;
-  if (
-    data.kind === "service_coverage_needed" &&
-    typeof serviceExceptionId === "string"
-  ) {
-    navigationRef.navigate("MainTabs", {
-      screen: "Services",
-      params: {
-        screen: "CoverageDetail",
-        params: { exceptionId: serviceExceptionId },
-      },
-    });
-    return;
-  }
-
-  // A verification request belongs to the member who was asked; the devotee's
-  // own outcome belongs on their Seva tab. Both land somewhere useful.
-  if (typeof data.serviceVerificationId === "string") {
-    navigationRef.navigate("MainTabs", {
-      screen: "Services",
-      params: {
-        screen:
-          data.kind === "seva_verification_requested"
-            ? "SevaApprovals"
-            : "ServicesHome",
-      },
-    });
-    return;
-  }
-
-  if (typeof data.serviceOfferCounterId === "string") {
-    navigationRef.navigate("MainTabs", {
-      screen: "Services",
-      params: { screen: "SevaApprovals" },
-    });
-    return;
-  }
-
-  const serviceInstanceId = data.serviceInstanceId;
-  if (typeof serviceInstanceId === "string") {
-    navigationRef.navigate("MainTabs", {
-      screen: "Services",
-      params: {
-        screen: "ServiceDetail",
-        params: { serviceId: serviceInstanceId },
-      },
-    });
-    return;
-  }
-
-  const recurringInterestId = data.recurringInterestId;
-  if (typeof recurringInterestId === "string") {
-    navigationRef.navigate("MainTabs", {
-      screen: "Profile",
-      params: {
-        screen:
-          data.kind === "recurring_interest_submitted"
-            ? "RecurringInterestInbox"
-            : "RecurringInterest",
-      },
-    });
-    return;
-  }
-
-  if (typeof data.serviceOfferId === "string") {
-    navigationRef.navigate("MainTabs", {
-      screen: "Services",
-      params: { screen: "ServicesHome" },
-    });
-    return;
-  }
-
-  if (typeof data.serviceTemplateId === "string") {
-    navigationRef.navigate("MainTabs", {
-      screen: "Services",
-      params: {
-        screen: "WeeklySevaDetail",
-        params: { templateId: data.serviceTemplateId },
-      },
-    });
-    return;
-  }
-
-  if (typeof data.serviceSessionId === "string") {
-    navigationRef.navigate("MainTabs", {
-      screen: "Services",
-      params: { screen: "ServicesHome" },
-    });
-  }
+  navigationRef.navigate("MainTabs", {
+    screen: target.tab,
+    params: target.params as never,
+  });
 }
 
 export default function App() {

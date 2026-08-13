@@ -294,7 +294,7 @@ function ActionButton({
 function FinePrint() {
   return (
     <Text className="text-center font-sans text-[10px] text-stoneMuted">
-      By continuing, you agree to our Terms &amp; Privacy Policy.
+      By continuing, you agree to our Terms of Service &amp; Privacy Policy.
     </Text>
   );
 }

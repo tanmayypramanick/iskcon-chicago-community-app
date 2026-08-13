@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, type NavigationProp } from "@react-navigation/native";
-import { Pressable, Text, View } from "react-native";
+import { Alert, Pressable, Text, View } from "react-native";
+import { Swipeable } from "react-native-gesture-handler";
 
 import tokens from "../../design-tokens.json";
 import {
@@ -10,7 +11,10 @@ import {
   UnreadBadge,
   unreadLabel,
 } from "../components/ui";
-import { useConversations } from "../features/messaging/hooks";
+import {
+  useConversations,
+  useRemoveConversationForMe,
+} from "../features/messaging/hooks";
 import type { ConversationSummary } from "../features/messaging/types";
 import { AtTempleBadge } from "../features/presence/components";
 import { FormError } from "../features/services/components";
@@ -56,6 +60,7 @@ export function ConversationRow({
   isLast,
   atTemple = false,
   onPress,
+  onRemove,
 }: {
   row: ConversationSummary;
   viewerId: string | null;
@@ -64,6 +69,8 @@ export function ConversationRow({
   /** Whether the other devotee is on today's temple presence list. */
   atTemple?: boolean;
   onPress: () => void;
+  /** Removes this thread from the current devotee's inbox, not the record. */
+  onRemove?: () => void;
 }) {
   const unread = row.unread_count > 0;
   const preview = conversationPreview(row, viewerId);
@@ -71,13 +78,14 @@ export function ConversationRow({
     row.unread_count,
   )}${atTemple ? ", at the temple today" : ""}`;
 
-  return (
+  const content = (
     <Pressable
-      className={`min-h-[76px] flex-row items-center border-x border-border bg-white px-card py-3 ${
-        isFirst ? "rounded-t-card border-t" : ""
-      } ${isLast ? "rounded-b-card border-b" : "border-b"}`}
+      className="min-h-[76px] flex-row items-center bg-white px-card py-3"
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityHint={
+        onRemove ? "Swipe left to remove this conversation" : undefined
+      }
       onPress={onPress}
     >
       <Avatar
@@ -111,6 +119,41 @@ export function ConversationRow({
       </View>
     </Pressable>
   );
+
+  return (
+    <View
+      className={`overflow-hidden border-x border-border bg-white ${
+        isFirst ? "rounded-t-card border-t" : ""
+      } ${isLast ? "rounded-b-card border-b" : "border-b"}`}
+    >
+      {onRemove ? (
+        <Swipeable
+          overshootRight={false}
+          renderRightActions={() => (
+            <Pressable
+              className="w-24 items-center justify-center bg-vermilion"
+              accessibilityRole="button"
+              accessibilityLabel={`Remove conversation with ${row.other_name}`}
+              onPress={onRemove}
+            >
+              <Ionicons
+                name="trash-outline"
+                size={21}
+                color={tokens.colors.white}
+              />
+              <Text className="mt-1 font-sans-bold text-xs text-white">
+                Remove
+              </Text>
+            </Pressable>
+          )}
+        >
+          {content}
+        </Swipeable>
+      ) : (
+        content
+      )}
+    </View>
+  );
 }
 
 export function ConversationsEmpty() {
@@ -136,6 +179,7 @@ export function ConversationsScreen() {
   const navigation = useNavigation<NavigationProp<DevoteesStackParamList>>();
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
   const conversations = useConversations();
+  const removeConversation = useRemoveConversationForMe();
   // The RPC already orders by last_message_at, newest first.
   const rows: ConversationSummary[] = conversations.data ?? [];
 
@@ -156,6 +200,27 @@ export function ConversationsScreen() {
               devoteeId: row.other_devotee_id,
               name: row.other_name,
             })
+          }
+          onRemove={() =>
+            Alert.alert(
+              `Remove conversation with ${row.other_name}?`,
+              "It will disappear from your Messages. The temple's retained record is not erased, and a new message will bring the conversation back.",
+              [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: "Remove",
+                  style: "destructive",
+                  onPress: () =>
+                    removeConversation.mutate(row.id, {
+                      onError: () =>
+                        Alert.alert(
+                          "Conversation not removed",
+                          "Please check your connection and try again.",
+                        ),
+                    }),
+                },
+              ],
+            )
           }
         />
       )}

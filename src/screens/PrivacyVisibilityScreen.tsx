@@ -48,7 +48,7 @@ function RuleCard({
 
 /**
  * What the app holds about a devotee and who can reach it — a different
- * question from the Terms of Use, which is the agreement itself. Every line
+ * question from the Terms of Service, which is the agreement itself. Every line
  * here is checked against the schema and the screens, not against intent. The
  * app has no per-field privacy switches, and showing toggles that changed
  * nothing would be a lie told in a friendly voice.
@@ -76,7 +76,7 @@ export function PrivacyVisibilityScreen(_: Props) {
       <RuleCard
         icon="person-circle-outline"
         title="Your profile page"
-        body="Opening your name in the Directory shows a devotee your photo, your access level, the day you joined, your email address and your date of birth. Nothing else from your profile is shown there."
+        body="Opening your name in the Directory shows a devotee your photo, access level, joined date, email address, gender, date of birth, age and occupation. Your phone number, home address, family information and spiritual details are not shown to the wider community."
       />
       <RuleCard
         icon="time-outline"
@@ -117,7 +117,7 @@ export function PrivacyVisibilityScreen(_: Props) {
         icon="chatbubble-ellipses-outline"
         tone="marigold"
         title="Your messages"
-        body="Messages between devotees are kept as part of the temple's records, and so are the photos sent with them. Deleting a message clears it from the conversation and marks it as deleted for both of you — but the text it held is kept. Deleting is not erasing, and it would be wrong to tell you otherwise."
+        body="Messages and photos are retained as part of the temple's records. Deleting a message removes it from the devotees' thread but retains its original content for authorised oversight. Removing a complete conversation clears the existing thread from your own Messages view only; it does not erase the temple record, and a new message will bring the conversation back."
       />
       <RuleCard
         icon="key-outline"

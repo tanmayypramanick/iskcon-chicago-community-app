@@ -421,7 +421,7 @@ export function ProfileScreen({ onSignOut }: { onSignOut: () => void }) {
     },
     {
       icon: "document-text-outline",
-      label: "Terms of use",
+      label: "Terms of Service",
       onPress: () => navigation.navigate("TermsOfService"),
     },
     // The congregation record is every devotee's private details in one list.

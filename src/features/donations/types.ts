@@ -19,7 +19,7 @@
  * or a second screen for the recurring case.
  */
 export const GENERAL_DONATION_URL =
-  "https://www.zeffy.com/embed/donation-form/donate-789";
+  "https://www.zeffy.com/en-US/donation-form/donate-789";
 
 /**
  * How long `hold_sponsorship` keeps a date. Stated here so the screen can warn

@@ -1,64 +1,132 @@
 # ISKCON Chicago Community App
 
-Expo + React Native app for iOS and Android. Authentication is connected to
-Supabase. Temple presence, the devotee directory, access requests, service
-coordination, and the in-app notification inbox use live Supabase data.
+Expo SDK 57 + React Native application for the ISKCON Chicago community on
+iOS and Android. Supabase provides authentication, PostgreSQL, row-level
+security, realtime updates, storage and Edge Functions.
 
-## Supabase authentication
+The current checkpoint is backed up in the private GitHub repository
+`tanmayypramanick/iskcon-chicago-community-app` on branch
+`checkpoint/full-app-2026-08-12`.
 
-Create `.env.local` with:
+## Current product
+
+Implemented areas include:
+
+- Email/password and Google sign-in with email verification and password reset
+- Required community profile, including a mandatory contact phone number
+- Devotee, Volunteer, Community Head, Tech Admin and President access levels
+- Manual temple check-in with location-based arrival reminders
+- One-time and Weekly Seva, assignments, offers, coverage, attendance,
+  verification, QR-started seva, live timers, reports and Seva Yatra
+- Devotee directory, direct messages, retained leadership conversation records
+- Sangas, announcements, birthdays, feedback and confidential devotee care
+- Newsletter publishing/submissions and editor appointments
+- Zeffy donations, sponsorship campaigns, matching and fulfilment records
+- Realtime in-app notifications and Expo push delivery infrastructure
+
+Courses and Forum are represented in the UI but are not implemented yet.
+
+## Local environment
+
+Create `.env.local` (never commit it):
 
 ```bash
 EXPO_PUBLIC_SUPABASE_URL=your-project-url
 EXPO_PUBLIC_SUPABASE_KEY=your-publishable-key
+EXPO_PUBLIC_EAS_PROJECT_ID=your-expo-project-uuid
 ```
 
-Email/password and Google are enabled in Supabase Authentication providers.
-Google uses this native callback:
+Never place a Supabase service-role key, Firebase service-account key, Apple
+signing key or webhook secret in this client file.
+
+Google Auth uses this callback:
 
 ```text
 iskconchicago://auth/callback
 ```
 
-Add that exact callback under **Authentication → URL Configuration → Redirect
-URLs** in the Supabase dashboard.
+Add it in Supabase Dashboard → Authentication → URL Configuration → Redirect
+URLs. Email/password and Google must both be enabled under Authentication →
+Providers.
 
-## Temple presence
-
-The Home screen uses a daily manual check-in for ISKCON Chicago at 1716 W Lunt
-Ave. Location never changes temple presence automatically. With “While Using”
-access, the app can detect a likely temple arrival while open; with
-“Always”/“All the time” access, it also registers a 75-meter arrival geofence.
-An accurate arrival creates at most one reminder per Chicago day, asking the
-devotee to confirm their own status. Only a manual switch change shows the small
-one-second toast. Confirmed daily presence is stored in Supabase and updates the
-shared “At the temple today” list across signed-in iOS and Android devices in
-real time.
-
-## Review on this Mac
-
-Install dependencies once:
+## Run locally
 
 ```bash
 npm install
+npx expo start
 ```
 
-Start the development server:
+After a native dependency or app configuration change, rebuild locally:
 
 ```bash
-npm start
+npx expo run:ios
+npx expo run:android
 ```
 
-Then open the installed **ISKCON Chicago** app in either simulator. Changes
-refresh automatically while the development server is running.
+Use `--device` to choose a connected physical phone. See
+[`docs/physical-device-testing.md`](docs/physical-device-testing.md) for the
+full iPhone/Android procedure and notification test matrix.
 
-To rebuild the native simulator app after native dependencies or app
-configuration change:
+## Supabase database
 
-```bash
-npm run ios
-npm run android
+Migrations live in `supabase/migrations` and must be applied in filename order.
+Verification scripts live in `supabase/verification`.
+
+The newest migration is:
+
+```text
+supabase/migrations/202608120071_conversation_removal.sql
 ```
+
+It adds WhatsApp-style per-devotee conversation removal without destroying the
+retained temple record. Run it in Supabase SQL Editor, then run:
+
+```text
+supabase/verification/conversation_removal.sql
+```
+
+The verification must finish with `conversation removal verification passed`.
+
+## Privacy decisions currently implemented
+
+- Phone number is mandatory profile/contact information, not a sign-in method.
+- Signed-in devotees can see another devotee's email, gender, date of birth,
+  age and occupation.
+- Phone, address, family and spiritual details remain restricted.
+- Deleted message content is retained and visible through the authorised
+  Devotee conversations record.
+- Removing a complete conversation clears it only from that devotee's Messages
+  view; a new message brings it back.
+- Users cannot delete their own account in the app. An authorised temple
+  administrator handles account closure.
+
+The in-app Terms of Service and privacy wording are a product draft and still
+require temple leadership/legal approval before public release.
+
+## Zeffy
+
+The standard one-time/recurring donation page is:
+
+```text
+https://www.zeffy.com/en-US/donation-form/donate-789
+```
+
+Campaign-specific sponsorship URLs are stored separately in
+`sponsorship_types.zeffy_campaign_url`. The native app opens each hosted Zeffy
+page in the phone's secure browser; it does not inject Zeffy's web-only HTML
+embed block into React Native and never receives card details.
+
+## Push notifications
+
+The app already creates Android channels, requests permission, registers Expo
+push tokens, stores them per devotee, creates targeted notification rows and
+delivers them through the protected `send-service-notification` Edge Function.
+Push-banner taps and in-app bell taps share one tested routing contract.
+
+Android still needs `google-services.json` in the repository root and an FCM
+V1 service-account credential uploaded to the Expo project. iOS remote push
+requires a paid Apple Developer account and APNs credentials. Local/in-app
+notifications can work without those production credentials.
 
 ## Quality checks
 
@@ -68,68 +136,18 @@ npm test -- --runInBand
 npx expo-doctor
 ```
 
-The milestone uses live profiles and services; no sample people or service
-schedules are rendered. Push-token registration and local temple-arrival
-reminders are wired, while remote delivery still requires production Expo push
-credentials and a server-side delivery worker.
+Simulator checks cannot prove camera QR scanning, background/terminated push,
+APNs/FCM credentials, actual geofencing, OAuth handoff in an installed build or
+real photo/file picking. Those must be checked on physical devices.
 
-## Access-level preview
+## Known release work
 
-The Profile screen has a testing-only switcher for President, Tech Member, Core
-Member, Volunteer, and Devotee. It lets you review each presentation and test a
-local request/approve/deny flow without creating five accounts. Changing the
-preview never changes Supabase permissions.
-
-The production access schema and RLS policies are in:
-
-```text
-supabase/migrations/202608020001_access_levels.sql
-```
-
-To activate production access, open **Supabase Dashboard → SQL Editor**, create
-a new query, paste the complete migration, and run it. Do not add a Supabase
-service-role key to the Expo `.env.local` file. After the migration is applied,
-it must be seeded and verified with real Devotee, Volunteer, Core, Tech, and
-President accounts before the testing-only switcher is removed.
-# Seva operations upgrade (August 3, 2026)
-
-Before opening the updated Seva tab, run the complete contents of
-`supabase/migrations/202608030008_service_operations_and_reports.sql` once in
-Supabase Dashboard → SQL Editor, followed by
-`supabase/verification/service_operations_and_reports.sql`. Next, run
-`supabase/migrations/202608030009_weekly_seva_visibility_and_coverage.sql`,
-followed by:
-
-```text
-supabase/verification/weekly_seva_visibility_and_coverage.sql
-```
-
-Their final rows must say `service operations verification passed` and
-`weekly seva schema verification passed` respectively. The functional weekly
-verification is intended only for a disposable local/test database because it
-creates test accounts inside a transaction before rolling everything back.
-
-This migration enables custom and QR seva with planned endings, automatic
-completion, secure activity deletion, reports, multi-day Weekly Seva,
-time-scoped coverage, role-targeted notifications, and physical-device push
-token registration. Until it is applied, the Services screen intentionally
-shows a load error because the new protected RPCs do not exist remotely yet.
-
-## Enable background push on physical phones
-
-The real-time notification bell works immediately after the migration. For
-background push when the app is closed:
-
-1. Initialize/link the Expo project with `npx eas-cli@latest init` and put the
-   resulting project ID in `.env.local`:
-   `EXPO_PUBLIC_EAS_PROJECT_ID=your-project-id`.
-2. Link the Supabase CLI project, set a strong webhook secret, and deploy:
-   `npx supabase secrets set NOTIFICATION_WEBHOOK_SECRET=your-secret`
-   `npx supabase functions deploy send-service-notification --no-verify-jwt`
-3. In Supabase Dashboard → Database → Webhooks, create an `INSERT` webhook for
-   `public.app_notifications` that calls the deployed
-   `send-service-notification` function. Add request header
-   `x-notification-secret` with the same secret from step 2.
-4. Rebuild the development app on each physical phone. Expo push tokens do not
-   work on iOS or Android simulators; the app safely retries registration on a
-   physical device.
+- Complete Android FCM and Apple APNs credentials
+- Run the physical-device matrix on one Android phone and one iPhone
+- Add persistent offline query storage; current query cache does not survive a
+  cold app restart
+- Connect persistent crash reporting; current crash details are memory-only
+- Add CI/reproducible release configuration when EAS builds are introduced
+- Review and remove confirmed test/demo accounts and content before launch
+- Obtain leadership/legal approval for Terms of Service and privacy wording
+- Implement Courses and Forum after the existing product is stabilised

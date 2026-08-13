@@ -1,6 +1,4 @@
-import DateTimePicker, {
-  type DateTimePickerEvent,
-} from "@react-native-community/datetimepicker";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
@@ -614,9 +612,9 @@ export function TimeField({
   onChange: (value: Date) => void;
 }) {
   const [open, setOpen] = React.useState(false);
-  const handleChange = (event: DateTimePickerEvent, selected?: Date) => {
+  const handleValueChange = (_event: unknown, selected: Date) => {
     if (Platform.OS === "android") setOpen(false);
-    if (event.type !== "dismissed" && selected) onChange(selected);
+    onChange(selected);
   };
   return (
     <View className="flex-1">
@@ -649,7 +647,8 @@ export function TimeField({
           mode="time"
           display={Platform.OS === "ios" ? "spinner" : "default"}
           minuteInterval={5}
-          onChange={handleChange}
+          onValueChange={handleValueChange}
+          onDismiss={() => setOpen(false)}
         />
       </PickerSheet>
     </View>
@@ -674,9 +673,9 @@ export function DateField({
   withYear?: boolean;
 }) {
   const [open, setOpen] = React.useState(false);
-  const handleChange = (event: DateTimePickerEvent, selected?: Date) => {
+  const handleValueChange = (_event: unknown, selected: Date) => {
     if (Platform.OS === "android") setOpen(false);
-    if (event.type !== "dismissed" && selected) onChange(selected);
+    onChange(selected);
   };
   return (
     <View>
@@ -700,7 +699,8 @@ export function DateField({
           minimumDate={minimumDate}
           maximumDate={maximumDate}
           display={Platform.OS === "ios" ? "inline" : "default"}
-          onChange={handleChange}
+          onValueChange={handleValueChange}
+          onDismiss={() => setOpen(false)}
         />
       </PickerSheet>
     </View>
@@ -761,12 +761,10 @@ export function DateTimeFields({
   const { width } = useWindowDimensions();
   const compact = width < 380;
 
-  const handleChange = (event: DateTimePickerEvent, selected?: Date) => {
+  const handleValueChange = (_event: unknown, selected: Date) => {
     if (Platform.OS === "android") setPicker(null);
-    if (event.type !== "dismissed" && selected) {
-      if (picker === "date") onDateChange(selected);
-      if (picker === "time") onTimeChange(selected);
-    }
+    if (picker === "date") onDateChange(selected);
+    if (picker === "time") onTimeChange(selected);
   };
 
   return (
@@ -831,7 +829,8 @@ export function DateTimeFields({
             minuteInterval={30}
             minimumDate={picker === "date" ? minimumDate : undefined}
             maximumDate={picker === "date" ? maximumDate : undefined}
-            onChange={handleChange}
+            onValueChange={handleValueChange}
+            onDismiss={() => setPicker(null)}
           />
           {Platform.OS === "ios" ? (
             <Pressable
