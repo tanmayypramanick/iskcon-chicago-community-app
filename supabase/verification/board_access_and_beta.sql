@@ -809,12 +809,25 @@ begin
   -- AND THE FROZEN PERIOD DID NOT MOVE. Not its scores, not its computed_at,
   -- not its frozen_at. A frozen September was second under September's rule and
   -- stays second under it.
+  -- This file's OWN frozen period, by id. "Any frozen period" was not the same
+  -- question: the harness runs every verification script against one database,
+  -- and badges_and_reads.sql and award_currency_and_care_reach.sql both freeze
+  -- periods before this file runs. With no ORDER BY, `select ... into` then
+  -- picked whichever row the planner reached first and this assertion failed
+  -- describing somebody else's fixture.
   select periods.computed_at, periods.frozen_at, scores.score
   into v_frozen
   from public.seva_mala_periods periods
   join public.period_scores scores on scores.period_id = periods.id
-  where periods.frozen_at is not null;
+  where periods.frozen_at = timestamptz '2026-01-01 00:00:00+00'
+    and periods.starts_on = public.seva_mala_week_start(public.seva_mala_today() - 28);
 
+  -- A scoping that matched nothing would leave this null, and `null <> x` is
+  -- null, so the check below would pass while asserting nothing at all.
+  if v_frozen.score is null then
+    raise exception
+      'This file''s own frozen period was not found, so the check below would have proved nothing.';
+  end if;
   if v_frozen.score <> 9.999999 then
     raise exception
       'The frozen period was recomputed: its score is now % rather than the 9.999999 nobody could have computed.',
@@ -1461,10 +1474,18 @@ begin
       v_wrecked;
   end if;
 
+  -- This file's own frozen period, not anybody's. Same reason as the earlier
+  -- check: other verification scripts run first against the same database and
+  -- freeze periods of their own.
   select scores.score into v_frozen
   from public.period_scores scores
   join public.seva_mala_periods periods on periods.id = scores.period_id
-  where periods.frozen_at is not null;
+  where periods.frozen_at = timestamptz '2026-01-01 00:00:00+00'
+    and periods.starts_on = public.seva_mala_week_start(public.seva_mala_today() - 28);
+  if v_frozen is null then
+    raise exception
+      'This file''s own frozen period was not found, so the check below would have proved nothing.';
+  end if;
   if v_frozen <> 9.999999 then
     raise exception
       'The migration recomputed the frozen period; its score is now %.', v_frozen;
