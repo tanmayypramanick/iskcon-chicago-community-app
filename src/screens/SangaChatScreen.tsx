@@ -891,7 +891,7 @@ export function SangaChatScreen({ navigation, route }: Props) {
                 </Text>
                 <Text className="mt-1 text-center font-sans text-sm text-stoneMuted">
                   {capabilities.canPost
-                    ? `Say Hare Krsna to ${sangaName}.`
+                    ? `Say Hare Kṛṣṇa to ${sangaName}.`
                     : `Nothing has been said in ${sangaName}.`}
                 </Text>
               </View>

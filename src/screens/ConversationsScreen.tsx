@@ -46,7 +46,7 @@ export function conversationPreview(
   const mine = Boolean(viewerId) && row.last_sender_id === viewerId;
   if (row.last_body) return mine ? `You: ${row.last_body}` : row.last_body;
   if (row.last_has_image) return mine ? "You: Photo" : "Photo";
-  return "Say Hare Krsna";
+  return "Say Hare Kṛṣṇa";
 }
 
 /**

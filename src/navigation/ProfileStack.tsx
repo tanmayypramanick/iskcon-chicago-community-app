@@ -17,6 +17,7 @@ import { PrivacyVisibilityScreen } from "../screens/PrivacyVisibilityScreen";
 import { ProfileDetailsScreen } from "../screens/ProfileDetailsScreen";
 import { RequestAccessScreen } from "../screens/RequestAccessScreen";
 import { TermsOfServiceScreen } from "../screens/TermsOfServiceScreen";
+import { ChangePasswordScreen } from "../screens/ChangePasswordScreen";
 import { AllDonationsScreen } from "../screens/AllDonationsScreen";
 import { MyDonationsScreen } from "../screens/MyDonationsScreen";
 import { MyServiceHistoryScreen } from "../screens/MyServiceHistoryScreen";
@@ -42,7 +43,7 @@ export function ProfileStack({ onSignOut }: { onSignOut: () => void }) {
         headerStyle: { backgroundColor: tokens.colors.ivory },
         headerTintColor: tokens.colors.indigo,
         headerTitleStyle: {
-          fontFamily: "AtkinsonHyperlegible_700Bold",
+          fontFamily: "SourceSans3_700Bold",
         },
         contentStyle: { backgroundColor: tokens.colors.ivory },
       }}
@@ -108,6 +109,11 @@ export function ProfileStack({ onSignOut }: { onSignOut: () => void }) {
         name="TermsOfService"
         component={TermsOfServiceScreen}
         options={{ title: "Terms of Service" }}
+      />
+      <Stack.Screen
+        name="ChangePassword"
+        component={ChangePasswordScreen}
+        options={{ title: "Change password" }}
       />
       <Stack.Screen
         name="NotificationSettings"

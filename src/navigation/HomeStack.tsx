@@ -5,6 +5,8 @@ import { AllDonationsScreen } from "../screens/AllDonationsScreen";
 import { AnnouncementCommentsScreen } from "../screens/AnnouncementCommentsScreen";
 import { AnnouncementLikesScreen } from "../screens/AnnouncementLikesScreen";
 import { AnnouncementsScreen } from "../screens/AnnouncementsScreen";
+import { DailyDarshanScreen } from "../screens/DailyDarshanScreen";
+import { DarshanDayScreen } from "../screens/DarshanDayScreen";
 import { DevoteeCareScreen } from "../screens/DevoteeCareScreen";
 import { DonationsScreen } from "../screens/DonationsScreen";
 import { FeedbackScreen } from "../screens/FeedbackScreen";
@@ -14,12 +16,14 @@ import { NewsletterEditorsScreen } from "../screens/NewsletterEditorsScreen";
 import { NewsletterScreen } from "../screens/NewsletterScreen";
 import { NewsletterSubmissionsScreen } from "../screens/NewsletterSubmissionsScreen";
 import { NotificationsScreen } from "../screens/NotificationsScreen";
+import { PostDarshanScreen } from "../screens/PostDarshanScreen";
 import { SevaBoardDevoteeScreen } from "../screens/SevaBoardDevoteeScreen";
 import { SevaCareDevoteeScreen } from "../screens/SevaCareDevoteeScreen";
 import { SevaHistoryScreen } from "../screens/SevaHistoryScreen";
 import { SevaYatraScreen } from "../screens/SevaYatraScreen";
 import { SponsorshipCalendarScreen } from "../screens/SponsorshipCalendarScreen";
 import { TempleTodayScreen } from "../screens/TempleTodayScreen";
+import { VaisnavaCalendarScreen } from "../screens/VaisnavaCalendarScreen";
 import type { HomeStackParamList } from "./types";
 
 const Stack = createNativeStackNavigator<HomeStackParamList>();
@@ -33,7 +37,7 @@ export function HomeStack() {
         headerStyle: { backgroundColor: tokens.colors.ivory },
         headerTintColor: tokens.colors.indigo,
         headerTitleStyle: {
-          fontFamily: "AtkinsonHyperlegible_700Bold",
+          fontFamily: "SourceSans3_700Bold",
         },
         contentStyle: { backgroundColor: tokens.colors.ivory },
       }}
@@ -117,6 +121,26 @@ export function HomeStack() {
         name="SevaYatra"
         component={SevaYatraScreen}
         options={{ title: "Seva Yatra" }}
+      />
+      <Stack.Screen
+        name="VaisnavaCalendar"
+        component={VaisnavaCalendarScreen}
+        options={{ title: "Vaiṣṇava Calendar" }}
+      />
+      <Stack.Screen
+        name="DailyDarshan"
+        component={DailyDarshanScreen}
+        options={{ title: "Daily Darshan" }}
+      />
+      <Stack.Screen
+        name="DarshanDay"
+        component={DarshanDayScreen}
+        options={{ title: "Darshan" }}
+      />
+      <Stack.Screen
+        name="PostDarshan"
+        component={PostDarshanScreen}
+        options={{ title: "Post darshan" }}
       />
       <Stack.Screen
         name="SevaHistory"

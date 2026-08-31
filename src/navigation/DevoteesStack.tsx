@@ -23,7 +23,7 @@ export function DevoteesStack() {
         headerStyle: { backgroundColor: tokens.colors.ivory },
         headerTintColor: tokens.colors.indigo,
         headerTitleStyle: {
-          fontFamily: "AtkinsonHyperlegible_700Bold",
+          fontFamily: "SourceSans3_700Bold",
         },
         contentStyle: { backgroundColor: tokens.colors.ivory },
       }}

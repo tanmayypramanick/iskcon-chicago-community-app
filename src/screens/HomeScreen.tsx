@@ -6,7 +6,14 @@ import {
 } from "@react-navigation/native";
 import * as Location from "expo-location";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AppState, Pressable, ScrollView, Text, View } from "react-native";
+import {
+  AppState,
+  InteractionManager,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
 
 import tokens from "../../design-tokens.json";
 import {
@@ -27,6 +34,11 @@ import {
   useToggleAnnouncementLike,
 } from "../features/announcements/hooks";
 import type { Announcement } from "../features/announcements/types";
+import {
+  DarshanHomeHero,
+  useDarshanDayKeys,
+} from "../features/dailyDarshan/components";
+import { useLatestDailyDarshan } from "../features/dailyDarshan/hooks";
 import {
   useSetTemplePresence,
   useTemplePresence,
@@ -52,6 +64,7 @@ import {
 } from "../lib/chicagoDate";
 import { useServerReachable } from "../lib/connectivity";
 import { useNow } from "../lib/useNow";
+import { useRefreshOnFocus } from "../lib/useRefreshOnFocus";
 import type { HomeStackParamList, MainTabParamList } from "../navigation/types";
 import {
   getCurrentTempleProximity,
@@ -92,11 +105,13 @@ type CommunityFeature = {
   iconColor: string;
   route:
     | "Announcements"
+    | "DailyDarshan"
     | "Feedback"
     | "DevoteeCare"
     | "Newsletter"
     | "Donations"
-    | "SevaYatra";
+    | "SevaYatra"
+    | "VaisnavaCalendar";
 };
 
 /**
@@ -104,14 +119,38 @@ type CommunityFeature = {
  * here can never be a dead tap. Anything still being built belongs in
  * comingSoonFeatures instead.
  *
- * Six cards fill three even rows. Giving and Seva Yatra share the last one,
- * which is the right pairing: the leaderboard counts giving alongside seva, and
- * a devotee who taps one is often about to want the other.
+ * Every card is the same size. The temple asked for Daily Darshan and the
+ * Vaisnava Calendar "side by side, perfectly aligned", so they are the first
+ * pair — the two ways of asking what today is at the temple, one by sight and
+ * one by the calendar — and the six supporting modules fill three even rows
+ * beneath them. The darshan photograph itself is not in this grid at all; it
+ * is the picture above the section, which is the other half of the same
+ * request.
+ *
+ * The details are written to two lines at a phone's width on purpose: cards in
+ * one row stretch to the tallest of them, and a description that runs to three
+ * lines is what makes a row ragged.
  */
 const communityFeatures: CommunityFeature[] = [
   {
+    title: "Daily Darshan",
+    detail: "Today's Deities",
+    icon: "flower-outline",
+    iconClass: "bg-marigoldSoft",
+    iconColor: tokens.colors.stone,
+    route: "DailyDarshan",
+  },
+  {
+    title: "Vaiṣṇava Calendar",
+    detail: "Ekādaśīs and festivals",
+    icon: "calendar-outline",
+    iconClass: "bg-marigoldSoft",
+    iconColor: tokens.colors.stone,
+    route: "VaisnavaCalendar",
+  },
+  {
     title: "Announcements",
-    detail: "Temple updates in one clear place",
+    detail: "Temple updates",
     icon: "megaphone-outline",
     iconClass: "bg-peacockSoft",
     iconColor: tokens.colors.peacock,
@@ -119,7 +158,7 @@ const communityFeatures: CommunityFeature[] = [
   },
   {
     title: "Devotee care",
-    detail: "Ask for support and be looked after",
+    detail: "Ask for support",
     icon: "heart-circle-outline",
     iconClass: "bg-vermilionSoft",
     iconColor: tokens.colors.vermilion,
@@ -127,23 +166,15 @@ const communityFeatures: CommunityFeature[] = [
   },
   {
     title: "Newsletter",
-    detail: "Monthly stories from our community",
+    detail: "Monthly stories",
     icon: "newspaper-outline",
     iconClass: "bg-marigoldSoft",
     iconColor: tokens.colors.stone,
     route: "Newsletter",
   },
   {
-    title: "Feedback",
-    detail: "Tell the temple what would help",
-    icon: "chatbox-ellipses-outline",
-    iconClass: "bg-indigoSoft",
-    iconColor: tokens.colors.indigo,
-    route: "Feedback",
-  },
-  {
     title: "Donations",
-    detail: "Give, or sponsor a seva on a day of your own",
+    detail: "Give, or sponsor a seva",
     icon: "gift-outline",
     iconClass: "bg-marigoldSoft",
     iconColor: tokens.colors.stone,
@@ -151,11 +182,19 @@ const communityFeatures: CommunityFeature[] = [
   },
   {
     title: "Seva Yatra",
-    detail: "Your seva profile, and the temple's leaderboard",
+    detail: "Your seva and standing",
     icon: "trophy-outline",
     iconClass: "bg-marigoldSoft",
     iconColor: tokens.colors.marigold,
     route: "SevaYatra",
+  },
+  {
+    title: "Feedback",
+    detail: "What would help?",
+    icon: "chatbox-ellipses-outline",
+    iconClass: "bg-indigoSoft",
+    iconColor: tokens.colors.indigo,
+    route: "Feedback",
   },
 ];
 
@@ -166,12 +205,12 @@ type ComingSoonFeature = Pick<CommunityFeature, "title" | "detail" | "icon">;
 const comingSoonFeatures: ComingSoonFeature[] = [
   {
     title: "Courses",
-    detail: "Learn and grow in Krsna consciousness",
+    detail: "Learn and grow",
     icon: "book-outline",
   },
   {
     title: "Forum",
-    detail: "Share thoughtful community discussions",
+    detail: "Community discussions",
     icon: "chatbubbles-outline",
   },
 ];
@@ -521,31 +560,45 @@ function InvitationCard({
  */
 function ComingSoonCard({ feature }: { feature: ComingSoonFeature }) {
   return (
+    // The same geometry as a live card, so the two grids read as one screen
+    // rather than as two decisions. The "Soon" pill replaces the chevron a
+    // live card would have earned.
     <View
-      className="min-h-[118px] min-w-[46%] flex-1 rounded-card border border-border bg-ivory p-3"
+      className="min-h-[76px] min-w-[46%] flex-1 flex-row items-center rounded-card border border-border bg-ivory p-3"
       accessible
       accessibilityLabel={`${feature.title}, coming soon`}
     >
-      <View className="flex-row items-start justify-between">
-        <View className="h-9 w-9 items-center justify-center rounded-pill bg-sandalwood">
-          <Ionicons
-            name={feature.icon}
-            size={19}
-            color={tokens.colors.stoneMuted}
-          />
-        </View>
-        <View className="rounded-pill border border-border bg-sandalwood px-2 py-0.5">
-          <Text className="font-sans-bold text-[10px] uppercase tracking-wide text-stoneMuted">
-            Soon
-          </Text>
-        </View>
+      <View className="h-8 w-8 flex-shrink-0 items-center justify-center rounded-pill bg-sandalwood">
+        <Ionicons
+          name={feature.icon}
+          size={17}
+          color={tokens.colors.stoneMuted}
+        />
       </View>
-      <Text className="mt-3 font-sans-bold text-base text-stoneMuted">
-        {feature.title}
-      </Text>
-      <Text className="mt-1 font-sans text-xs leading-4 text-stoneMuted">
-        {feature.detail}
-      </Text>
+      {/* The pill shares the TITLE's row rather than the whole card's, so the
+          detail beneath it still has the card's full width. Sitting it beside
+          both lines narrowed the column enough to truncate "Learn and grow". */}
+      <View className="ml-2.5 min-w-0 flex-1">
+        <View className="flex-row items-center">
+          <Text
+            className="min-w-0 flex-1 font-sans-bold text-sm leading-5 text-stoneMuted"
+            numberOfLines={1}
+          >
+            {feature.title}
+          </Text>
+          <View className="ml-2 flex-shrink-0 rounded-pill border border-border bg-sandalwood px-2 py-0.5">
+            <Text className="font-sans-bold text-[10px] uppercase tracking-wide text-stoneMuted">
+              Soon
+            </Text>
+          </View>
+        </View>
+        <Text
+          className="mt-1 font-sans text-xs leading-[18px] text-stoneMuted"
+          numberOfLines={1}
+        >
+          {feature.detail}
+        </Text>
+      </View>
     </View>
   );
 }
@@ -572,12 +625,26 @@ export function HomeScreen() {
   // left here is already on the board by the time it is opened.
   const announcements = useAnnouncements(Boolean(activeUserId));
   const toggleAnnouncementLike = useToggleAnnouncementLike();
+  // One row, not the gallery: the card only ever shows the newest day, and the
+  // gallery's own list is a separate, larger read that Home need not pay for.
+  const latestDarshan = useLatestDailyDarshan(Boolean(activeUserId));
+  const darshanDayKeys = useDarshanDayKeys();
   const reachable = useServerReachable();
   const [hasForegroundPermission, setHasForegroundPermission] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const permissionInitialized = useRef(false);
   const locationCheckInFlight = useRef(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useRefreshOnFocus([
+    presence,
+    services,
+    appNotifications,
+    profile,
+    mySangas,
+    announcements,
+    latestDarshan,
+  ]);
 
   const currentPresence = presence.data?.current;
   const isAtTemple = Boolean(
@@ -739,29 +806,11 @@ export function HomeScreen() {
 
   useEffect(() => {
     if (!isFocused || !activeUserId || !hasForegroundPermission) return;
-    void runLocationCheck();
+    const task = InteractionManager.runAfterInteractions(() => {
+      void runLocationCheck();
+    });
+    return () => task.cancel();
   }, [activeUserId, hasForegroundPermission, isFocused, runLocationCheck]);
-
-  useEffect(() => {
-    if (!isFocused || !activeUserId) return;
-    void Promise.all([
-      presence.refetch(),
-      services.refetch(),
-      appNotifications.refetch(),
-      profile.refetch(),
-      mySangas.refetch(),
-      announcements.refetch(),
-    ]);
-  }, [
-    activeUserId,
-    announcements.refetch,
-    appNotifications.refetch,
-    isFocused,
-    mySangas.refetch,
-    presence.refetch,
-    profile.refetch,
-    services.refetch,
-  ]);
 
   const openServices = useCallback(
     (screen: "ServicesHome" | "ServiceDetail", serviceId?: string) => {
@@ -783,7 +832,16 @@ export function HomeScreen() {
   const openDevotees = useCallback(
     (params: { screen: string; params?: Record<string, unknown> }) => {
       const tabs = navigation.getParent<NavigationProp<MainTabParamList>>();
-      tabs?.navigate("Devotees", params as never);
+      // React Navigation treats a nested screen handed to a tab that is still
+      // mounting as that stack's INITIAL route, which left a devotee opening a
+      // sanga from here on a one-screen stack with nothing to go back to.
+      // `initial: false` keeps DevoteesHome underneath. The stack's own root
+      // is exempt: asking for it beneath itself would stack it twice.
+      const withHistory =
+        params.screen === "DevoteesHome"
+          ? params
+          : { ...params, initial: false };
+      tabs?.navigate("Devotees", withHistory as never);
     },
     [navigation],
   );
@@ -879,7 +937,7 @@ export function HomeScreen() {
             </Pressable>
           }
         >
-          {firstName ? `Hare Krsna, ${firstName}!` : "Hare Krsna!"}
+          {firstName ? `Hare Kṛṣṇa, ${firstName}!` : "Hare Kṛṣṇa!"}
         </ScreenTitle>
 
         <Pressable
@@ -1177,32 +1235,64 @@ export function HomeScreen() {
           )}
         </View>
 
+        {/* The temple asked for the darshan photograph above this section and
+            the darshan card inside it, so they are two things. This is the
+            photograph: the current day's, at the size a photograph deserves,
+            and absent altogether on a day nothing has been posted. */}
+        <View className="mt-section">
+          <DarshanHomeHero
+            darshan={latestDarshan.data}
+            todayKey={darshanDayKeys.todayKey}
+            yesterdayKey={darshanDayKeys.yesterdayKey}
+            onPress={() => navigation.navigate("DailyDarshan")}
+          />
+        </View>
+
         <View className="mt-section">
           <SectionHeader title="Explore the community" />
           <View className="flex-row flex-wrap gap-3">
             {communityFeatures.map((feature) => (
               <Pressable
                 key={feature.title}
-                className="min-h-[118px] min-w-[46%] flex-1 rounded-card border border-border bg-white p-3"
+                // The icon sits BESIDE the words rather than above them,
+                // which is most of why these cards are now around half the
+                // height they were. One geometry for every card in the grid:
+                // cards on a row stretch to the tallest, so an equal minimum
+                // and an equal internal rhythm keep a row's bottom edge
+                // straight.
+                className="min-h-[76px] min-w-[46%] flex-1 flex-row items-center rounded-card border border-border bg-white p-3"
                 accessibilityRole="button"
                 accessibilityLabel={feature.title}
                 onPress={() => navigation.navigate(feature.route)}
               >
                 <View
-                  className={`h-9 w-9 items-center justify-center rounded-pill ${feature.iconClass}`}
+                  className={`h-8 w-8 flex-shrink-0 items-center justify-center rounded-pill ${feature.iconClass}`}
                 >
                   <Ionicons
                     name={feature.icon}
-                    size={19}
+                    size={18}
                     color={feature.iconColor}
                   />
                 </View>
-                <Text className="mt-3 font-sans-bold text-base text-stone">
-                  {feature.title}
-                </Text>
-                <Text className="mt-1 font-sans text-xs leading-4 text-stoneMuted">
-                  {feature.detail}
-                </Text>
+                {/* One line each, so every card in the grid is the same
+                    height by construction rather than by a reserved block of
+                    empty space. Both are short fixed strings written to fit;
+                    the title is the name of a screen and the detail is a
+                    label, not a paragraph. */}
+                <View className="ml-2.5 min-w-0 flex-1">
+                  <Text
+                    className="font-sans-bold text-sm leading-5 text-stone"
+                    numberOfLines={1}
+                  >
+                    {feature.title}
+                  </Text>
+                  <Text
+                    className="mt-1 font-sans text-xs leading-[18px] text-stoneMuted"
+                    numberOfLines={1}
+                  >
+                    {feature.detail}
+                  </Text>
+                </View>
               </Pressable>
             ))}
           </View>
@@ -1228,7 +1318,7 @@ export function HomeScreen() {
             color={tokens.colors.peacock}
           />
           <Text className="mt-2 text-center font-display-italic text-lg leading-7 text-stoneMuted">
-            Every offering of seva brings our community closer in Krsna
+            Every offering of seva brings our community closer in Kṛṣṇa
             consciousness.
           </Text>
         </View>

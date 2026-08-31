@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useIsFocused } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, Pressable, Text, TextInput, View } from "react-native";
@@ -55,6 +54,7 @@ import { errorMessage } from "../features/services/format";
 import { useServiceDashboard } from "../features/services/hooks";
 import type { ServiceDevotee } from "../features/services/types";
 import { useServerReachable } from "../lib/connectivity";
+import { useRefreshOnFocus } from "../lib/useRefreshOnFocus";
 import type {
   DevoteesSection,
   DevoteesStackParamList,
@@ -211,7 +211,6 @@ function EmptyCard({
 }
 
 export function DevoteesScreen({ navigation, route }: Props) {
-  const isFocused = useIsFocused();
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
   const dashboard = useServiceDashboard(activeUserId);
   const presence = useTemplePresence(activeUserId);
@@ -263,6 +262,12 @@ export function DevoteesScreen({ navigation, route }: Props) {
     section === "sanga" && mayReviewSangas,
   );
   const pendingSangaCount = pendingSangas.data?.length ?? 0;
+  useRefreshOnFocus([
+    dashboard,
+    presence,
+    conversations,
+    ...(section === "sanga" ? [sangas] : []),
+  ]);
 
   const selectSection = (next: DevoteesSection) => {
     setSection(next);
@@ -273,11 +278,6 @@ export function DevoteesScreen({ navigation, route }: Props) {
     setShowAllJoined(false);
     setShowAllMore(false);
   };
-
-  useEffect(() => {
-    if (!isFocused || !activeUserId) return;
-    void Promise.all([dashboard.refetch(), presence.refetch()]);
-  }, [activeUserId, dashboard.refetch, isFocused, presence.refetch]);
 
   // Another screen can ask for a particular section — Sanga joined, in the
   // profile, sends devotees here to find more.

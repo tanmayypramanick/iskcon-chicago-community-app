@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useIsFocused } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -85,6 +84,7 @@ import {
 } from "../lib/chicagoDate";
 import { useNow } from "../lib/useNow";
 import { useServerReachable } from "../lib/connectivity";
+import { useRefreshOnFocus } from "../lib/useRefreshOnFocus";
 import { usePrototypeSession } from "../store/usePrototypeSession";
 
 type Props = NativeStackScreenProps<ServicesStackParamList, "ServicesHome">;
@@ -99,7 +99,6 @@ function whenLine(service: ServiceListItem) {
 }
 
 export function ServicesScreen({ navigation }: Props) {
-  const isFocused = useIsFocused();
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
   const previewRole = usePrototypeSession((state) => state.previewRole);
   const profileQuery = useCurrentAccessProfile(activeUserId);
@@ -112,10 +111,7 @@ export function ServicesScreen({ navigation }: Props) {
   // Seva changes section as the clock moves, not because data changed.
   const now = useNow();
 
-  useEffect(() => {
-    if (!isFocused || !activeUserId) return;
-    void dashboardQuery.refetch();
-  }, [activeUserId, dashboardQuery.refetch, isFocused]);
+  useRefreshOnFocus([dashboardQuery]);
 
   const actualRole = profileQuery.data?.role ?? "devotee";
   const effectiveRole = __DEV__ && previewRole ? previewRole : actualRole;
@@ -602,28 +598,42 @@ export function ServicesScreen({ navigation }: Props) {
         </View>
       ) : null}
 
-      <View className="mb-section flex-row gap-3">
+      <View className="mb-section gap-3">
         <Pressable
-          className="min-h-[72px] flex-1 justify-between rounded-card bg-indigo p-3"
+          className="min-h-[82px] flex-row items-center rounded-card bg-indigo px-card py-3"
           accessibilityRole="button"
           accessibilityLabel="Find a way to help"
-          onPress={() => navigation.navigate("FindSeva")}
+          accessibilityHint="Plan seva for now or a future time"
+          onPress={() => navigation.navigate("FindSeva", { mode: "plan" })}
         >
-          <Ionicons name="heart" size={21} color={tokens.colors.marigoldSoft} />
-          <Text className="font-sans-bold text-[15px] text-white">
-            Find a way to help
-          </Text>
+          <View className="h-11 w-11 items-center justify-center rounded-pill bg-white/15">
+            <Ionicons name="heart" size={23} color={tokens.colors.marigoldSoft} />
+          </View>
+          <View className="ml-3 min-w-0 flex-1">
+            <Text className="font-sans-bold text-base text-white">Find a way to help</Text>
+            <Text className="mt-0.5 font-sans text-xs leading-4 text-white">
+              Start now or plan a seva for later
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={21} color={tokens.colors.white} />
         </Pressable>
         <Pressable
-          className="min-h-[72px] flex-1 justify-between rounded-card border border-border bg-white p-3"
+          className="min-h-[82px] flex-row items-center rounded-card border border-border bg-white px-card py-3"
           accessibilityRole="button"
-          accessibilityLabel="Scan a temple seva QR code"
-          onPress={() => navigation.navigate("FindSeva", { scan: true })}
+          accessibilityLabel="Log your seva"
+          accessibilityHint="Record completed seva and ask a community leader to verify it"
+          onPress={() => navigation.navigate("FindSeva", { mode: "completed" })}
         >
-          <Ionicons name="qr-code" size={21} color={tokens.colors.peacock} />
-          <Text className="font-sans-bold text-[15px] text-stone">
-            Scan temple QR
-          </Text>
+          <View className="h-11 w-11 items-center justify-center rounded-pill bg-peacockSoft">
+            <Ionicons name="checkmark-done" size={23} color={tokens.colors.peacock} />
+          </View>
+          <View className="ml-3 min-w-0 flex-1">
+            <Text className="font-sans-bold text-base text-stone">Log your seva</Text>
+            <Text className="mt-0.5 font-sans text-xs leading-4 text-stoneMuted">
+              Record completed seva for verification
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={21} color={tokens.colors.indigo} />
         </Pressable>
       </View>
 

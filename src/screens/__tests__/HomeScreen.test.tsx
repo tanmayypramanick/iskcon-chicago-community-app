@@ -58,6 +58,25 @@ jest.mock("../../features/announcements/hooks", () => ({
   useToggleAnnouncementLike: () => ({ mutate: jest.fn() }),
 }));
 
+/**
+ * Home shows the newest day of darshan as a photograph above the Explore
+ * grid. Mocked here for the same reason the announcements module is: this file
+ * replaces whole modules, and the real hook wants a query client the screen
+ * under test does not carry.
+ */
+let mockLatestDarshan: unknown = null;
+
+jest.mock("../../features/dailyDarshan/hooks", () => ({
+  useLatestDailyDarshan: () => ({
+    data: mockLatestDarshan,
+    error: null,
+    isLoading: false,
+    isFetching: false,
+    dataUpdatedAt: Date.now(),
+    refetch: jest.fn(),
+  }),
+}));
+
 const mockSangasRefetch = jest.fn();
 
 jest.mock("../../features/sanga/hooks", () => ({
@@ -191,6 +210,7 @@ jest.mock("../../services/templeLocation", () => ({
   startTempleGeofencingIfAllowed: jest.fn(),
 }));
 
+import { getChicagoDateKey } from "../../lib/chicagoDate";
 import { usePrototypeSession } from "../../store/usePrototypeSession";
 import { HomeScreen } from "../HomeScreen";
 
@@ -281,9 +301,140 @@ describe("HomeScreen sangas", () => {
       getByLabelText("Open Kirtan Sanga chat, 12 members"),
     );
 
+    // `initial: false` is what keeps DevoteesHome under the sanga. Without it
+    // React Navigation makes the chat that stack's initial route and the
+    // header comes up with no back button.
     expect(mockTabNavigate).toHaveBeenCalledWith("Devotees", {
       screen: "SangaChat",
       params: { sangaId: "sanga-1", name: "Kirtan Sanga" },
+      initial: false,
     });
+  });
+});
+
+describe("HomeScreen daily darshan", () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.clearAllMocks();
+    mockLatestDarshan = null;
+    usePrototypeSession.setState({
+      activeUserId: "home-test-user",
+      notificationsByUser: {},
+    });
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    mockLatestDarshan = null;
+  });
+
+  it("shows the current day's photograph above Explore, and the card inside it", async () => {
+    // The temple asked for these to be two things: a picture above the section
+    // and an ordinary card within it.
+    mockLatestDarshan = {
+      id: "darshan-today",
+      darshan_on: getChicagoDateKey(),
+      note: null,
+      images: [
+        {
+          imageUrl: "https://temple.example/a.jpg",
+          deity: "Kisora Kisori",
+          dressedBy: "Rukmini devi dasi",
+          position: 0,
+        },
+        {
+          imageUrl: "https://temple.example/b.jpg",
+          deity: "Gaura Nitai",
+          dressedBy: null,
+          position: 1,
+        },
+      ],
+      posted_by: "head-1",
+      posted_by_name: "Gopal das",
+      posted_by_photo_url: null,
+      created_at: "2026-08-26T12:00:00.000Z",
+      can_delete: false,
+    };
+
+    const { getByLabelText } = await renderHome();
+
+    const hero = getByLabelText(
+      "Daily Darshan, Today. Kisora Kisori and Gaura Nitai",
+    );
+    await fireEvent.press(hero);
+    expect(mockNavigate).toHaveBeenCalledWith("DailyDarshan");
+
+    // And the card is still its own thing in the grid, beside the calendar.
+    await fireEvent.press(getByLabelText("Daily Darshan"));
+    expect(mockNavigate).toHaveBeenCalledWith("DailyDarshan");
+    expect(getByLabelText("Vaiṣṇava Calendar")).toBeTruthy();
+  });
+
+  it("draws no photograph at all on a day nothing has been posted", async () => {
+    // An empty frame on Home says only that something is broken.
+    const { queryByLabelText, getByLabelText } = await renderHome();
+
+    expect(queryByLabelText(/^Daily Darshan, /)).toBeNull();
+    expect(getByLabelText("Daily Darshan")).toBeTruthy();
+  });
+});
+
+describe("HomeScreen community calendar", () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.clearAllMocks();
+    usePrototypeSession.setState({
+      activeUserId: "home-test-user",
+      notificationsByUser: {},
+    });
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it("opens the Vaisnava Calendar from Explore the community", async () => {
+    const { getByLabelText } = await renderHome();
+
+    await fireEvent.press(getByLabelText("Vaiṣṇava Calendar"));
+
+    expect(mockNavigate).toHaveBeenCalledWith("VaisnavaCalendar");
+  });
+});
+
+describe("HomeScreen cross-tab history", () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.clearAllMocks();
+    usePrototypeSession.setState({
+      activeUserId: "home-test-user",
+      notificationsByUser: {},
+    });
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it("does not ask for history beneath the Devotees tab's own root", async () => {
+    const { getAllByLabelText } = await renderHome();
+
+    // Press every "See all" rather than guess which one is the sangas', so the
+    // invariant is asserted over whatever this screen navigates to.
+    for (const control of getAllByLabelText("See all")) {
+      await fireEvent.press(control);
+    }
+
+    const toDevoteesHome = mockTabNavigate.mock.calls.filter(
+      ([tab, params]) =>
+        tab === "Devotees" &&
+        (params as { screen?: string } | undefined)?.screen === "DevoteesHome",
+    );
+    expect(toDevoteesHome.length).toBeGreaterThan(0);
+    for (const [, params] of toDevoteesHome) {
+      // DevoteesHome IS the stack's root; asking for it beneath itself would
+      // stack it twice.
+      expect(params).not.toHaveProperty("initial");
+    }
   });
 });

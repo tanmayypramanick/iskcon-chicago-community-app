@@ -22,7 +22,6 @@ import {
   fetchClosedUnservedSeva,
   fetchServiceDashboard,
   fetchSevaClashes,
-  fetchServiceQrTokens,
   fetchSevaVerifiers,
   joinService,
   joinWeeklyService,
@@ -42,6 +41,7 @@ import {
   respondToServiceOfferCounter,
   updateServiceRequirement,
   requestSevaVerification,
+  logCompletedSeva,
   resendSevaVerification,
   respondToSevaVerification,
   respondToWeeklyOfferCounter,
@@ -64,6 +64,7 @@ import type {
   ProposeAlternativeInput,
   RecurringServiceInterestInput,
   RequestVerificationInput,
+  LogCompletedSevaInput,
   UpdateRecurringServiceInput,
   WeeklyUnavailableInput,
 } from "./types";
@@ -86,19 +87,6 @@ export function useServiceDashboard(userId: string | null) {
     // stays infrequent — each run rebuilds the whole dashboard on the JS
     // thread, which is expensive on low-powered devices.
     refetchInterval: 5 * 60_000,
-  });
-}
-
-/**
- * Only fetched while a coordinator has the QR test panel open. Returns an
- * empty list for any role without `services.manage_catalog`.
- */
-export function useServiceQrTokens(enabled: boolean) {
-  return useQuery({
-    queryKey: ["services", "qr-tokens"] as const,
-    queryFn: fetchServiceQrTokens,
-    enabled,
-    staleTime: 5 * 60_000,
   });
 }
 
@@ -497,6 +485,10 @@ export function useSevaVerifiers(enabled = true) {
 
 export function useRequestSevaVerification() {
   return useServiceMutation<RequestVerificationInput>(requestSevaVerification);
+}
+
+export function useLogCompletedSeva() {
+  return useServiceMutation<LogCompletedSevaInput>(logCompletedSeva);
 }
 
 export function useResendSevaVerification() {

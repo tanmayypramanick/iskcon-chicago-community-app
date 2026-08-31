@@ -41,7 +41,9 @@ export function useCurrentAccessProfile(userId: string | null) {
     queryKey: accessKeys.profile(userId),
     queryFn: fetchCurrentAccessProfile,
     enabled: Boolean(userId),
-    refetchInterval: 15_000,
+    // Access notifications invalidate this immediately. Polling is only a
+    // recovery path for a temporarily disconnected realtime socket.
+    refetchInterval: 5 * 60_000,
   });
 }
 
@@ -81,7 +83,7 @@ export function usePendingAccessRequests(userId: string | null) {
     queryKey: accessKeys.requests(userId),
     queryFn: fetchPendingAccessRequests,
     enabled: Boolean(userId),
-    refetchInterval: 15_000,
+    refetchInterval: 5 * 60_000,
   });
 }
 

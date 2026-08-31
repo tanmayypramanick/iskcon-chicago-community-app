@@ -14,7 +14,10 @@ import {
   useDeleteAppNotification,
   useMarkAppNotificationsRead,
 } from "../features/notifications/hooks";
-import { getNotificationTarget } from "../features/notifications/navigation";
+import {
+  getNotificationTarget,
+  withNotificationBackHistory,
+} from "../features/notifications/navigation";
 import type { AppNotificationRow } from "../features/notifications/types";
 import type { HomeStackParamList, MainTabParamList } from "../navigation/types";
 import {
@@ -122,8 +125,9 @@ export function NotificationsScreen({ navigation }: Props) {
   }, [activeUserId, remote.data]);
 
   const openNotification = (notification: NotificationItem) => {
-    const target = getNotificationTarget(notification);
-    if (!target) return;
+    const rawTarget = getNotificationTarget(notification);
+    if (!rawTarget) return;
+    const target = withNotificationBackHistory(rawTarget);
     const tabs = navigation.getParent<NavigationProp<MainTabParamList>>();
     tabs?.navigate(target.tab, target.params as never);
   };

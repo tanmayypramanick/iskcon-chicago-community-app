@@ -148,7 +148,7 @@ Apple Pay/Google Pay compatibility and a visible Zeffy origin.
 - Test two real accounts across one Android phone and one iPhone.
 - Validate foreground, background and terminated notification delivery and
   every actionable deep link.
-- Validate real camera QR scanning, location, OAuth and media/file selection.
+- Validate real location, OAuth and media/file selection.
 - Have temple leadership and appropriate legal counsel review Terms of Service
   and privacy wording.
 - Confirm every live Zeffy campaign URL and production webhook secret.

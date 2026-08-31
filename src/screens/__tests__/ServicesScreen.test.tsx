@@ -122,7 +122,8 @@ describe("ServicesScreen access-level presentation", () => {
       const screen = await renderServices(role);
 
       expect(screen.getByText("Find a way to help")).toBeTruthy();
-      expect(screen.getByText("Scan temple QR")).toBeTruthy();
+      expect(screen.getByText("Log your seva")).toBeTruthy();
+      expect(screen.queryByText("Scan temple QR")).toBeNull();
       expect(screen.getByText("My seva and history")).toBeTruthy();
       expect(Boolean(screen.queryByText("Post a seva request"))).toBe(canPost);
       expect(Boolean(screen.queryByText("Weekly seva"))).toBe(

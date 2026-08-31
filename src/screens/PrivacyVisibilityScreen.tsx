@@ -3,6 +3,7 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Text, View } from "react-native";
 
 import tokens from "../../design-tokens.json";
+import { CommunityEmailLink } from "../components/CommunityEmailLink";
 import { Screen, ScreenTitle, SectionHeader } from "../components/ui";
 import type { ProfileStackParamList } from "../navigation/types";
 
@@ -122,8 +123,8 @@ export function PrivacyVisibilityScreen(_: Props) {
       <RuleCard
         icon="key-outline"
         tone="indigo"
-        title="Nobody outside the temple"
-        body="The app needs a signed-in account for every screen. There is no public page and no guest view, so nothing here is visible to anyone outside the temple community."
+        title="No public devotee profile"
+        body="Every community screen requires a signed-in account; there is no guest directory or public devotee profile. Trusted technology providers process limited information only as needed to operate authentication, storage, notifications and other app services."
       />
 
       <View className="mt-section">
@@ -162,6 +163,9 @@ export function PrivacyVisibilityScreen(_: Props) {
           If anything here concerns you, please speak to a community head or the
           President.
         </Text>
+        <View className="mt-3">
+          <CommunityEmailLink subject="Privacy question" />
+        </View>
       </View>
     </Screen>
   );

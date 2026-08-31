@@ -12,7 +12,7 @@ const hasGoogleServices = fs.existsSync(googleServicesFile);
 
 module.exports = {
   expo: {
-    name: "ISKCON Chicago",
+    name: "ISKCON Chicago: Act of Service",
     slug: "iskcon-chicago-community",
     // Pinned to the temple's Expo account rather than left to whoever happens
     // to be logged in, so a build from another machine cannot quietly create a
@@ -36,10 +36,10 @@ module.exports = {
     ios: {
       supportsTablet: true,
       bundleIdentifier: "org.iskconchicago.community",
-      infoPlist: {
-        NSCameraUsageDescription:
-          "Allow ISKCON Chicago to scan temple service QR codes.",
-      },
+      // Keep a platform-specific source path so Expo regenerates iOS's native
+      // asset catalog whenever the shared brand artwork changes. The artwork
+      // itself is identical to the main Android/app icon.
+      icon: "./assets/ios-icon.png",
     },
     android: {
       package: "org.iskconchicago.community",
@@ -58,15 +58,6 @@ module.exports = {
     },
     plugins: [
       "@react-native-community/datetimepicker",
-      [
-        "expo-camera",
-        {
-          cameraPermission:
-            "Allow ISKCON Chicago to scan temple service QR codes.",
-          recordAudioAndroid: false,
-          barcodeScannerEnabled: true,
-        },
-      ],
       "expo-asset",
       "expo-font",
       "expo-splash-screen",

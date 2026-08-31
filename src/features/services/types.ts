@@ -8,13 +8,6 @@ export type ServiceType = {
   is_active: boolean;
 };
 
-/** Only returned to holders of `services.manage_catalog`, for printing codes. */
-export type ServiceQrToken = {
-  id: string;
-  name: string;
-  qr_token: string;
-};
-
 export type ServiceInstanceStatus =
   "open" | "full" | "closed" | "cancelled" | "completed";
 
@@ -375,13 +368,14 @@ export type SevaVerifier = {
 export type RequestVerificationInput = {
   serviceTypeId: string | null;
   customName: string | null;
-  /** A scanned temple code. Resolved server-side; never held on the client. */
-  qrToken: string | null;
   startAt: string;
   endAt: string;
   locationText: string;
   verifierId: string;
 };
+
+/** Completed seva uses the same fields, but a separate server operation. */
+export type LogCompletedSevaInput = RequestVerificationInput;
 
 // --- Weekly invitation counter-proposal -----------------------------------
 

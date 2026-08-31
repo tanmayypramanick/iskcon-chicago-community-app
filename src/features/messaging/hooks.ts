@@ -38,7 +38,7 @@ export function useConversations(enabled = true) {
     enabled,
     // Realtime keeps an open thread current; this only covers a device that
     // briefly lost its socket while the list was on screen.
-    refetchInterval: 60_000,
+    refetchInterval: 5 * 60_000,
   });
 }
 

@@ -20,11 +20,11 @@ import type {
   ServiceExceptionRow,
   ServiceOfferCounterRow,
   ServiceOfferRow,
-  ServiceQrToken,
   ServiceSessionRow,
   ServiceVerificationRow,
   SevaVerifier,
   RequestVerificationInput,
+  LogCompletedSevaInput,
   ProposeAlternativeInput,
   ServiceTemplateAssigneeRow,
   ServiceTemplateRow,
@@ -125,10 +125,9 @@ export async function fetchServiceDashboard(
   const [typesResult, instancesResult, assignmentsResult] = await Promise.all([
     supabase
       .from("service_types")
-      // qr_token is deliberately absent. Reading it client-side let any
-      // devotee replay a temple token from anywhere and earn the higher
-      // `qr_scan` verification. Scanned codes are validated server-side by
-      // start_planned_qr_service_session instead.
+      // The active catalog exposes only names and categories. Historical QR
+      // fields remain in the database for old records, but new app versions
+      // have no QR entry or scanning flow.
       .select("id,name,category,is_active")
       .eq("is_active", true)
       .order("category")
@@ -626,19 +625,6 @@ export function assembleDashboard(
   };
 }
 
-/**
- * Temple QR tokens, for coordinators who print the codes. The RPC returns an
- * empty set unless the caller holds `services.manage_catalog`, so a devotee
- * cannot enumerate tokens and replay one away from the temple.
- */
-export async function fetchServiceQrTokens(): Promise<ServiceQrToken[]> {
-  const { data, error } = await getSupabaseClient().rpc(
-    "list_service_qr_tokens",
-  );
-  if (error) throw error;
-  return (data ?? []) as unknown as ServiceQrToken[];
-}
-
 async function runRpc(name: string, params: Record<string, unknown>) {
   const { data, error } = await getSupabaseClient().rpc(name, params);
   // A transport failure means the server is unreachable; a Postgres error
@@ -838,7 +824,20 @@ export function requestSevaVerification(input: RequestVerificationInput) {
     p_end_at: input.endAt,
     p_location_text: input.locationText,
     p_verifier_id: input.verifierId,
-    p_qr_token: input.qrToken,
+    // The database keeps this legacy argument until older installed builds
+    // have aged out. New app versions never expose or submit QR codes.
+    p_qr_token: null,
+  });
+}
+
+export function logCompletedSeva(input: LogCompletedSevaInput) {
+  return runRpc("log_completed_seva", {
+    p_service_type_id: input.serviceTypeId,
+    p_custom_name: input.customName,
+    p_start_at: input.startAt,
+    p_end_at: input.endAt,
+    p_location_text: input.locationText,
+    p_verifier_id: input.verifierId,
   });
 }
 

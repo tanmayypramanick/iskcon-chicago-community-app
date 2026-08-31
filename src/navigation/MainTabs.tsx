@@ -27,6 +27,7 @@ const icons: Record<
 export function MainTabs({ onSignOut }: { onSignOut: () => void }) {
   return (
     <Tab.Navigator
+      detachInactiveScreens
       /**
        * A tab bar tap means "show me this tab", not "put me back wherever I
        * left off in it". Each tab keeps its own stack history across switches,
@@ -71,7 +72,7 @@ export function MainTabs({ onSignOut }: { onSignOut: () => void }) {
         tabBarActiveTintColor: tokens.colors.indigo,
         tabBarInactiveTintColor: tokens.colors.stoneMuted,
         tabBarLabelStyle: {
-          fontFamily: "AtkinsonHyperlegible_700Bold",
+          fontFamily: "SourceSans3_700Bold",
           fontSize: 11,
           paddingBottom: 1,
         },

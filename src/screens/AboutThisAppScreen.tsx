@@ -4,6 +4,7 @@ import Constants from "expo-constants";
 import { Alert, Linking, Text, View } from "react-native";
 
 import tokens from "../../design-tokens.json";
+import { CommunityEmailLink } from "../components/CommunityEmailLink";
 import { Screen, ScreenTitle, SectionHeader } from "../components/ui";
 import type { ProfileStackParamList } from "../navigation/types";
 
@@ -82,7 +83,7 @@ export function AboutThisAppScreen(_: Props) {
         icon="heart-outline"
         tone="marigold"
         title="Seva"
-        body="The temple's schedule and every open request. Join where help is needed, scan a temple QR code, arrange coverage when you cannot attend, and follow your own seva history."
+        body="The temple's schedule and every open request. Find a way to help, record completed seva for a community leader to verify, arrange coverage when you cannot attend, and follow your seva history."
       />
       <AreaCard
         icon="people-outline"
@@ -149,10 +150,35 @@ export function AboutThisAppScreen(_: Props) {
             color={tokens.colors.peacock}
           />
           <Text className="ml-3 flex-1 font-sans text-sm leading-6 text-stone">
-            Created as a humble offering of seva to Sri Sri Kisora-Kisori and
+            Created as a humble offering of seva to Śrī Śrī Kiśora-Kiśorī and
             the devotees of ISKCON Chicago. May it bring our temple family
             closer, make service easier, and help every devotee feel at home.
           </Text>
+        </View>
+      </View>
+
+      <View className="mt-section">
+        <SectionHeader title="Contact ISKCON Chicago" />
+      </View>
+
+      <View className="rounded-card border border-border bg-white p-card">
+        <View className="flex-row items-start">
+          <View className="h-10 w-10 items-center justify-center rounded-pill bg-peacockSoft">
+            <Ionicons
+              name="mail-outline"
+              size={19}
+              color={tokens.colors.peacock}
+            />
+          </View>
+          <View className="ml-3 min-w-0 flex-1">
+            <Text className="font-sans text-sm leading-5 text-stoneMuted">
+              For account help, privacy questions, or support with the app,
+              write to our temple technology seva.
+            </Text>
+            <View className="mt-2">
+              <CommunityEmailLink subject="ISKCON Chicago app support" />
+            </View>
+          </View>
         </View>
       </View>
 

@@ -144,7 +144,7 @@ export function buildCompletedSevaRows(
           participant.assignment.verification === "member_verified"
             ? "Member verified"
             : participant.assignment.verification === "qr_scan"
-              ? "Temple QR"
+              ? "Temple verified"
               : participant.assignment.verification.replace(/_/g, " "),
         completion: "Completed requirement",
         key: `assignment-${participant.assignment.id}`,

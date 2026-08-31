@@ -8,6 +8,7 @@ import {
   fetchAppNotifications,
   markAppNotificationsRead,
 } from "./api";
+import type { AppNotificationRow } from "./types";
 
 export const appNotificationKeys = {
   all: ["app-notifications"] as const,
@@ -20,7 +21,8 @@ export function useAppNotifications(userId: string | null) {
     queryKey: appNotificationKeys.list(userId),
     queryFn: fetchAppNotifications,
     enabled: Boolean(userId),
-    refetchInterval: 20_000,
+    // Realtime is immediate; polling only repairs a socket interruption.
+    refetchInterval: 5 * 60_000,
   });
 }
 
@@ -60,10 +62,35 @@ export function useAppNotificationsRealtime() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "app_notifications" },
-        () => {
+        (payload) => {
           void queryClient.invalidateQueries({
             queryKey: appNotificationKeys.all,
           });
+
+          if (payload.eventType !== "INSERT") return;
+          const row = payload.new as Partial<AppNotificationRow>;
+          const kind = row.kind;
+          if (!kind) return;
+
+          // The notification is also a precise, user-scoped signal that a
+          // feature changed. Refresh that cache instead of polling every
+          // dashboard whenever a tab receives focus.
+          if (kind === "message_received") {
+            void queryClient.invalidateQueries({
+              queryKey: ["messaging", "conversations"],
+            });
+          } else if (
+            kind === "sanga_message_received" ||
+            kind.startsWith("sanga_")
+          ) {
+            void queryClient.invalidateQueries({ queryKey: ["sanga"] });
+          } else if (kind.startsWith("announcement_")) {
+            void queryClient.invalidateQueries({
+              queryKey: ["announcements"],
+            });
+          } else if (kind.startsWith("access_")) {
+            void queryClient.invalidateQueries({ queryKey: ["access"] });
+          }
         },
       )
       .subscribe();

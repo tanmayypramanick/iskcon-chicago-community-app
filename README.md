@@ -136,7 +136,7 @@ npm test -- --runInBand
 npx expo-doctor
 ```
 
-Simulator checks cannot prove camera QR scanning, background/terminated push,
+Simulator checks cannot prove background/terminated push,
 APNs/FCM credentials, actual geofencing, OAuth handoff in an installed build or
 real photo/file picking. Those must be checked on physical devices.
 

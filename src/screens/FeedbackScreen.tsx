@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Alert, Pressable, Text, TextInput, View } from "react-native";
 
 import tokens from "../../design-tokens.json";
+import { CommunityEmailLink } from "../components/CommunityEmailLink";
 import {
   Avatar,
   Button,
@@ -424,6 +425,14 @@ export function FeedbackScreen() {
       <Text className="mt-1 font-sans text-sm leading-5 text-stoneMuted">
         Only the President and the Tech Admin read this. You will be told when
         it has been read.
+      </Text>
+      <Text className="mt-2 font-sans text-xs leading-5 text-stoneMuted">
+        Prefer email? Write to{" "}
+        <CommunityEmailLink
+          subject="Feedback for ISKCON Chicago"
+          className="font-sans text-xs text-indigo underline"
+        />
+        .
       </Text>
 
       <View className="mt-4 flex-row flex-wrap gap-2">

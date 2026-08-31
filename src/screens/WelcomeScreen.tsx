@@ -18,9 +18,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import tokens from "../../design-tokens.json";
+import { COMMUNITY_EMAIL } from "../config/contact";
 import {
   getAuthProviderAvailability,
+  PASSWORD_MIN_LENGTH,
   requestPasswordReset,
+  requestReplacementLink,
   signInWithEmail,
   signInWithGoogle,
   signUpWithEmail,
@@ -315,6 +318,12 @@ export function WelcomeScreen({
   const [messageTone, setMessageTone] = useState<"error" | "success">("error");
   const [submitting, setSubmitting] = useState(false);
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
+  // Kept across view changes on purpose. Gmail's in-app browser often refuses
+  // to hand a custom scheme to the app, so a devotee can be left holding a
+  // confirmation link that does nothing; this is what keeps a second link one
+  // tap away instead of stranding them on a sign-in that will not work yet.
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState("");
+  const [resending, setResending] = useState(false);
   const [providers, setProviders] = useState<AuthProviderAvailability | null>(
     null,
   );
@@ -386,8 +395,8 @@ export function WelcomeScreen({
   const submitSignIn = async () => {
     setMessage("");
     if (!validateEmail()) return;
-    if (password.length < 6) {
-      showError("Password must be at least 6 characters.");
+    if (password.length < PASSWORD_MIN_LENGTH) {
+      showError(`Password must be at least ${PASSWORD_MIN_LENGTH} characters.`);
       return;
     }
 
@@ -413,8 +422,12 @@ export function WelcomeScreen({
       return;
     }
     if (!validateEmail()) return;
-    if (password.length < 6) {
-      showError("Create a password with at least 6 characters.");
+    // Reads the server's own minimum rather than a stricter number of its own:
+    // a rule the copy states has to be the rule the account is actually held to.
+    if (password.length < PASSWORD_MIN_LENGTH) {
+      showError(
+        `Create a password with at least ${PASSWORD_MIN_LENGTH} characters.`,
+      );
       return;
     }
 
@@ -429,8 +442,9 @@ export function WelcomeScreen({
       if (!session) {
         setView("signIn");
         setPassword("");
+        setAwaitingConfirmation(email.trim());
         showSuccess(
-          "Account created. Check your email to confirm it, then sign in.",
+          `Welcome. Open the private verification link sent from ${COMMUNITY_EMAIL} on this phone, then return here to sign in.`,
         );
         return;
       }
@@ -451,12 +465,36 @@ export function WelcomeScreen({
     try {
       await requestPasswordReset(email);
       showSuccess(
-        "Reset link sent. Open it on this phone to choose a new password.",
+        `If an account uses this email, a secure link will arrive from ${COMMUNITY_EMAIL}. Open it on this phone to choose a new password.`,
       );
     } catch (error) {
       showError(getErrorMessage(error));
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  /**
+   * Says only that a link is on its way — never whether the address is known.
+   * Supabase answers a resend for a stranger's address as a success precisely
+   * so the app cannot be used to test who has an account, and the copy here
+   * must not undo that.
+   */
+  const resendConfirmation = async () => {
+    if (resending) return;
+    setMessage("");
+    setResending(true);
+    try {
+      await requestReplacementLink(awaitingConfirmation, "signup");
+      showSuccess(
+        `If that address is with us, another link is on its way from ${COMMUNITY_EMAIL}. Open it on this phone.`,
+      );
+    } catch {
+      showError(
+        "The link could not be sent just now. Check your connection and try again.",
+      );
+    } finally {
+      setResending(false);
     }
   };
 
@@ -529,89 +567,119 @@ export function WelcomeScreen({
           >
             <View
               className={`flex-1 px-6 ${
-                keyboardVisible ? "justify-center py-3" : "justify-end pb-2 pt-3"
+                keyboardVisible
+                  ? "justify-center py-3"
+                  : "justify-end pb-2 pt-3"
               }`}
             >
               <View className="w-full max-w-[430px] self-center gap-1.5">
-              <Field
-                icon="mail-outline"
-                accessibilityLabel="Email address"
-                value={email}
-                onChangeText={setEmail}
-                placeholder="Email address"
-                autoCapitalize="none"
-                keyboardType="email-address"
-                textContentType="emailAddress"
-              />
-              <Field
-                icon="lock-closed-outline"
-                accessibilityLabel="Password"
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Password"
-                secureTextEntry
-                textContentType="password"
-              />
-              <Pressable
-                className="h-5 self-end justify-center"
-                accessibilityRole="button"
-                accessibilityLabel="Forgot password?"
-                hitSlop={12}
-                onPress={() => changeView("resetPassword")}
-              >
-                <Text className="font-sans-bold text-xs text-indigo">
-                  Forgot password?
-                </Text>
-              </Pressable>
+                <Field
+                  icon="mail-outline"
+                  accessibilityLabel="Email address"
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="Email address"
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  textContentType="emailAddress"
+                />
+                <Field
+                  icon="lock-closed-outline"
+                  accessibilityLabel="Password"
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="Password"
+                  secureTextEntry
+                  textContentType="password"
+                />
+                <Pressable
+                  className="h-5 self-end justify-center"
+                  accessibilityRole="button"
+                  accessibilityLabel="Forgot password?"
+                  hitSlop={12}
+                  onPress={() => changeView("resetPassword")}
+                >
+                  <Text className="font-sans-bold text-xs text-indigo">
+                    Forgot password?
+                  </Text>
+                </Pressable>
 
-              {message ? (
-                <FormMessage text={message} tone={messageTone} />
-              ) : null}
+                {message ? (
+                  <FormMessage text={message} tone={messageTone} />
+                ) : null}
 
-              <ActionButton
-                icon="arrow-forward"
-                loading={submitting}
-                disabled={googleSubmitting}
-                onPress={submitSignIn}
-              >
-                Sign in
-              </ActionButton>
+                <ActionButton
+                  icon="arrow-forward"
+                  loading={submitting}
+                  disabled={googleSubmitting}
+                  onPress={submitSignIn}
+                >
+                  Sign in
+                </ActionButton>
 
-              {!keyboardVisible ? (
-                <>
-                  <View className="flex-row items-center">
-                    <View className="h-px flex-1 bg-border" />
-                    <Text className="mx-3 font-sans text-xs text-stoneMuted">
-                      OR
-                    </Text>
-                    <View className="h-px flex-1 bg-border" />
-                  </View>
-                  <ActionButton
-                    variant="secondary"
-                    icon="logo-google"
-                    loading={googleSubmitting}
-                    disabled={submitting}
-                    onPress={submitGoogleSignIn}
-                  >
-                    Continue with Google
-                  </ActionButton>
-                  <Pressable
-                    className="h-7 items-center justify-center"
-                    accessibilityRole="button"
-                    accessibilityLabel="Create an account"
-                    hitSlop={12}
-                    onPress={() => changeView("createAccount")}
-                  >
-                    <Text className="font-sans text-base text-stoneMuted">
-                      New here?{" "}
-                      <Text className="font-sans-bold text-indigo">
-                        Create an account
+                {!keyboardVisible ? (
+                  <>
+                    {awaitingConfirmation ? (
+                      <View className="rounded-card border border-border bg-white px-3 py-2.5">
+                        <Text className="font-sans text-[11px] leading-4 text-stoneMuted">
+                          Still waiting on the link for {awaitingConfirmation}?
+                          If it opened a browser rather than the app, open the
+                          same email in Mail or Safari and tap it there.
+                        </Text>
+                        <Pressable
+                          className="mt-1.5 h-6 justify-center"
+                          accessibilityRole="button"
+                          accessibilityLabel="Send the confirmation link again"
+                          accessibilityState={{
+                            disabled: resending,
+                            busy: resending,
+                          }}
+                          disabled={resending}
+                          hitSlop={10}
+                          onPress={resendConfirmation}
+                        >
+                          <Text className="font-sans-bold text-xs text-indigo">
+                            {resending
+                              ? "Sending…"
+                              : "Send the confirmation link again"}
+                          </Text>
+                        </Pressable>
+                      </View>
+                    ) : null}
+
+                    <View className="flex-row items-center">
+                      <View className="h-px flex-1 bg-border" />
+                      <Text className="mx-3 font-sans text-xs text-stoneMuted">
+                        OR
                       </Text>
-                    </Text>
-                  </Pressable>
-                  <FinePrint />
-                </>
-              ) : null}
+                      <View className="h-px flex-1 bg-border" />
+                    </View>
+                    <ActionButton
+                      variant="secondary"
+                      icon="logo-google"
+                      loading={googleSubmitting}
+                      disabled={submitting}
+                      onPress={submitGoogleSignIn}
+                    >
+                      Continue with Google
+                    </ActionButton>
+                    <Pressable
+                      className="h-7 items-center justify-center"
+                      accessibilityRole="button"
+                      accessibilityLabel="Create an account"
+                      hitSlop={12}
+                      onPress={() => changeView("createAccount")}
+                    >
+                      <Text className="font-sans text-base text-stoneMuted">
+                        New here?{" "}
+                        <Text className="font-sans-bold text-indigo">
+                          Create an account
+                        </Text>
+                      </Text>
+                    </Pressable>
+                    <FinePrint />
+                  </>
+                ) : null}
               </View>
             </View>
           </ScrollView>
@@ -707,8 +775,12 @@ export function WelcomeScreen({
                     <Text className="font-sans-bold text-lg text-stone">
                       Reset your password
                     </Text>
-                    <Text className="font-sans text-xs text-stoneMuted">
-                      We will send a secure reset link to your email.
+                    {/* Says what we will do, not what we know. Confirming that
+                        an address does or does not have an account would turn
+                        this form into a way of finding out who is a member. */}
+                    <Text className="font-sans text-xs leading-4 text-stoneMuted">
+                      Enter your address and we will send a secure link to
+                      choose a new password. Open it on this phone.
                     </Text>
                     <Field
                       icon="mail-outline"
@@ -730,6 +802,10 @@ export function WelcomeScreen({
                     >
                       Send reset link
                     </ActionButton>
+                    <Text className="font-sans text-[11px] leading-4 text-stoneMuted">
+                      If the link opens a browser rather than the app, open the
+                      same email in Mail or Safari and tap it there.
+                    </Text>
                     <Pressable
                       className="h-7 items-center justify-center"
                       accessibilityRole="button"

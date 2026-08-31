@@ -5,6 +5,23 @@ export type NotificationTarget = {
   params: unknown;
 };
 
+/**
+ * React Navigation normally treats a nested screen supplied while a tab is
+ * first mounting as that stack's initial route. A notification that opened
+ * ServiceDetail, Chat, or Announcements could therefore create a one-screen
+ * stack with no back button. `initial: false` keeps the stack's declared root
+ * underneath the notification destination, including on a cold app launch.
+ */
+export function withNotificationBackHistory(
+  target: NotificationTarget,
+): NotificationTarget {
+  if (!target.params || typeof target.params !== "object") return target;
+  return {
+    ...target,
+    params: { ...target.params, initial: false },
+  };
+}
+
 type NotificationLike = {
   kind?: string | null;
   data: Record<string, unknown>;
@@ -35,6 +52,12 @@ export function getNotificationTarget({
     return { tab: "Home", params: { screen: "Announcements" } };
   }
 
+  // The congregation is told the Deities have been dressed; what they want is
+  // the photographs, not the inbox row they tapped.
+  if (kind === "darshan_posted" || text("darshanId")) {
+    return { tab: "Home", params: { screen: "DailyDarshan" } };
+  }
+
   if (kind === "care_reply") {
     return { tab: "Home", params: { screen: "DevoteeCare" } };
   }
@@ -49,6 +72,45 @@ export function getNotificationTarget({
   }
   if (kind === "seva_award_earned") {
     return { tab: "Home", params: { screen: "SevaYatra" } };
+  }
+  // A devotee reading "today is Ekadasi" or "the fast may be broken between
+  // 7:15 and 8:48" wants the calendar, not the inbox they tapped from.
+  if (["vaisnava_tomorrow", "vaisnava_today", "vaisnava_parana"].includes(kind)) {
+    return { tab: "Home", params: { screen: "VaisnavaCalendar" } };
+  }
+
+  if (kind === "message_received") {
+    const conversationId = text("conversationId");
+    const devoteeId = text("devoteeId");
+    const name = text("name");
+    if (conversationId && devoteeId && name) {
+      return {
+        tab: "Devotees",
+        params: {
+          screen: "Chat",
+          params: { conversationId, devoteeId, name },
+        },
+      };
+    }
+    return {
+      tab: "Devotees",
+      params: { screen: "DevoteesHome", params: { section: "messages" } },
+    };
+  }
+
+  if (kind === "sanga_message_received") {
+    const sangaId = text("sangaId");
+    const name = text("sangaName");
+    if (sangaId && name) {
+      return {
+        tab: "Devotees",
+        params: { screen: "SangaChat", params: { sangaId, name } },
+      };
+    }
+    return {
+      tab: "Devotees",
+      params: { screen: "DevoteesHome", params: { section: "sanga" } },
+    };
   }
 
   if (kind.startsWith("sanga_") || text("sangaId")) {
@@ -93,7 +155,17 @@ export function getNotificationTarget({
     return { tab: "Services", params: { screen: "SevaApprovals" } };
   }
 
-  if (text("accessRequestId") || kind.startsWith("access_")) {
+  const accessRequestId = text("accessRequestId");
+  if (kind === "access_request_submitted" && accessRequestId) {
+    return {
+      tab: "Profile",
+      params: {
+        screen: "AccessRequestReview",
+        params: { requestId: accessRequestId },
+      },
+    };
+  }
+  if (accessRequestId || kind.startsWith("access_")) {
     return { tab: "Profile", params: { screen: "ProfileHome" } };
   }
   if (kind === "profile_incomplete") {

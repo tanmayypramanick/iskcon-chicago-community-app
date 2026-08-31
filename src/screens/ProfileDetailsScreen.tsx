@@ -648,8 +648,8 @@ function ChildForm({
           onChange={(gender) => onChange({ gender })}
         />
         <YesNoField
-          question="Practices Krsna consciousness?"
-          spokenAs={`Child ${position} practices Krsna consciousness?`}
+          question="Practices Kṛṣṇa consciousness?"
+          spokenAs={`Child ${position} practices Kṛṣṇa consciousness?`}
           value={child.practices}
           onChange={(practices) => onChange({ practices })}
         >

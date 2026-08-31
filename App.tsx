@@ -2,13 +2,13 @@ import "./global.css";
 import "react-native-gesture-handler";
 
 import {
-  AtkinsonHyperlegible_400Regular,
-  AtkinsonHyperlegible_700Bold,
-} from "@expo-google-fonts/atkinson-hyperlegible";
+  SourceSans3_400Regular,
+  SourceSans3_700Bold,
+} from "@expo-google-fonts/source-sans-3";
 import {
-  Lora_500Medium_Italic,
-  Lora_600SemiBold,
-} from "@expo-google-fonts/lora";
+  EBGaramond_500Medium_Italic,
+  EBGaramond_600SemiBold,
+} from "@expo-google-fonts/eb-garamond";
 import {
   createNavigationContainerRef,
   NavigationContainer,
@@ -22,11 +22,10 @@ import {
 } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
   AppState,
-  Alert,
   Linking,
   LogBox,
   Text,
@@ -38,16 +37,21 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import tokens from "./design-tokens.json";
 import { ErrorBoundary } from "./src/components/ErrorBoundary";
 import { ConnectionBar } from "./src/components/ui";
+import { AuthLinkProblemScreen } from "./src/screens/AuthLinkProblemScreen";
 import { CompleteProfileScreen } from "./src/screens/CompleteProfileScreen";
+import {
+  EmailVerifiedModal,
+  EmailVerifiedScreen,
+} from "./src/screens/EmailVerifiedScreen";
 import { SetNewPasswordScreen } from "./src/screens/SetNewPasswordScreen";
 import { useRequiredProfile } from "./src/features/access/hooks";
-import {
-  createSessionFromRecoveryUrl,
-  isRecoveryUrl,
-} from "./src/services/auth";
+import { consumeAuthLink, type AuthLinkOutcome } from "./src/services/auth";
 import { useServerReachable } from "./src/lib/connectivity";
 import { useAppNotificationsRealtime } from "./src/features/notifications/hooks";
-import { getNotificationTarget } from "./src/features/notifications/navigation";
+import {
+  getNotificationTarget,
+  withNotificationBackHistory,
+} from "./src/features/notifications/navigation";
 import { useTemplePresenceRealtime } from "./src/features/presence/hooks";
 import { useServiceRealtime } from "./src/features/services/hooks";
 import { getSupabaseClient } from "./src/lib/supabase";
@@ -107,7 +111,7 @@ function StartupScreen({
           color: tokens.colors.stone,
         }}
       >
-        Hare Krsna
+        Hare Kṛṣṇa
       </Text>
       {slow ? (
         <Text
@@ -136,8 +140,10 @@ const navigationRef = createNavigationContainerRef<RootStackParamList>();
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 3_000,
-      refetchOnMount: "always",
+      // Realtime carries normal live changes. A three-second stale window made
+      // quick tab switches refetch the same dashboards repeatedly.
+      staleTime: 30_000,
+      refetchOnMount: true,
       refetchOnWindowFocus: true,
       retry: 1,
     },
@@ -156,19 +162,19 @@ const navigationTheme: Theme = {
   },
   fonts: {
     regular: {
-      fontFamily: "AtkinsonHyperlegible_400Regular",
+      fontFamily: "SourceSans3_400Regular",
       fontWeight: "400",
     },
     medium: {
-      fontFamily: "AtkinsonHyperlegible_700Bold",
+      fontFamily: "SourceSans3_700Bold",
       fontWeight: "700",
     },
     bold: {
-      fontFamily: "AtkinsonHyperlegible_700Bold",
+      fontFamily: "SourceSans3_700Bold",
       fontWeight: "700",
     },
     heavy: {
-      fontFamily: "AtkinsonHyperlegible_700Bold",
+      fontFamily: "SourceSans3_700Bold",
       fontWeight: "700",
     },
   },
@@ -221,11 +227,12 @@ function LiveSubscriptions() {
 
 function openNotificationDestination(data: Record<string, unknown>) {
   if (!navigationRef.isReady()) return;
-  const target = getNotificationTarget({
+  const rawTarget = getNotificationTarget({
     kind: typeof data.kind === "string" ? data.kind : null,
     data,
   });
-  if (!target) return;
+  if (!rawTarget) return;
+  const target = withNotificationBackHistory(rawTarget);
 
   navigationRef.navigate("MainTabs", {
     screen: target.tab,
@@ -239,12 +246,16 @@ export default function App() {
   const setActiveUserId = usePrototypeSession((state) => state.setActiveUserId);
   const [authReady, setAuthReady] = useState(false);
   const [hasSession, setHasSession] = useState(false);
-  const [mustSetPassword, setMustSetPassword] = useState(false);
+  const [linkOutcome, setLinkOutcome] = useState<AuthLinkOutcome>(null);
+  // Read inside the deep-link handler, which closes over its own render's
+  // state; the ref is what tells it whether the devotee was already inside the
+  // app before the link created a session.
+  const hasSessionRef = useRef(false);
   const [fontsLoaded] = useFonts({
-    AtkinsonHyperlegible_400Regular,
-    AtkinsonHyperlegible_700Bold,
-    Lora_500Medium_Italic,
-    Lora_600SemiBold,
+    SourceSans3_400Regular,
+    SourceSans3_700Bold,
+    EBGaramond_500Medium_Italic,
+    EBGaramond_600SemiBold,
   });
 
   useEffect(() => {
@@ -253,6 +264,7 @@ export default function App() {
     supabase.auth
       .getSession()
       .then(({ data }) => {
+        hasSessionRef.current = Boolean(data.session);
         setHasSession(Boolean(data.session));
         setActiveUserId(data.session?.user.id ?? null);
       })
@@ -263,6 +275,7 @@ export default function App() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      hasSessionRef.current = Boolean(session);
       setHasSession(Boolean(session));
       setActiveUserId(session?.user.id ?? null);
       if (!session) queryClient.clear();
@@ -272,27 +285,22 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, [setActiveUserId]);
 
-  // A reset or magic link arrives as a deep link. It carries the session in
-  // the URL, so it has to be exchanged here rather than left to the browser.
+  // Signup confirmation, reset and magic links arrive as deep links. They
+  // carry the session in the URL, so it must be exchanged here rather than
+  // left inside the browser.
+  //
+  // From a cold start `hasSessionRef` may still be false while the stored
+  // session is being read. That only decides full screen versus dialog, and a
+  // cold start has no place in the app to preserve, so the full screen is the
+  // right answer either way.
   useEffect(() => {
     let active = true;
 
     const consume = async (url: string | null) => {
-      if (!url || !url.includes("auth/recover")) return;
-      try {
-        const session = await createSessionFromRecoveryUrl(url);
-        if (!active || !session) return;
-        // A magic link signs them straight in; only a recovery link means the
-        // password itself is unknown and has to be replaced.
-        if (isRecoveryUrl(url)) setMustSetPassword(true);
-      } catch (error) {
-        Alert.alert(
-          "That link did not work",
-          error instanceof Error
-            ? error.message
-            : "Please request a new link and try again.",
-        );
-      }
+      const outcome = await consumeAuthLink(url, {
+        hadSession: hasSessionRef.current,
+      });
+      if (active && outcome) setLinkOutcome(outcome);
     };
 
     void Linking.getInitialURL().then(consume);
@@ -334,16 +342,43 @@ export default function App() {
     return <StartupScreen fontsLoaded={fontsLoaded} authReady={authReady} />;
   }
 
-  // Stands in front of everything: the devotee is signed in from the link but
-  // still does not know their password, and sending them into the app would
-  // leave the next sign-in failing exactly as before.
-  if (mustSetPassword) {
+  // Everything an email link can lead to that has to be answered before the
+  // app itself. Each stands in front of the navigator for its own reason, and
+  // each clears itself once the devotee has been dealt with.
+  const standalone =
+    linkOutcome?.kind === "recovery" ? (
+      // The devotee is signed in from the link but still does not know their
+      // password; sending them into the app would leave the next sign-in
+      // failing exactly as before.
+      <SetNewPasswordScreen
+        onDone={() => setLinkOutcome(null)}
+        // Awaited before the gate is cleared, so the navigator that mounts
+        // behind it is built against a session that has already gone: clearing
+        // first would mount MainTabs for a devotee who is on their way out.
+        onCancel={async () => {
+          await signOutFromSupabase();
+          signOut();
+          setLinkOutcome(null);
+        }}
+      />
+    ) : linkOutcome?.kind === "problem" ? (
+      <AuthLinkProblemScreen
+        problem={linkOutcome.problem}
+        linkKind={linkOutcome.linkKind}
+        onDismiss={() => setLinkOutcome(null)}
+      />
+    ) : linkOutcome?.kind === "verified" && !linkOutcome.hadSession ? (
+      // Arriving from the inbox with nothing on screen to lose: the
+      // confirmation is the welcome, and it comes before the profile gate so
+      // the first thing they are told is that it worked, not what is missing.
+      <EmailVerifiedScreen onContinue={() => setLinkOutcome(null)} />
+    ) : null;
+
+  if (standalone) {
     return (
       <GestureHandlerRootView className="flex-1">
         <SafeAreaProvider>
-          <ErrorBoundary>
-            <SetNewPasswordScreen onDone={() => setMustSetPassword(false)} />
-          </ErrorBoundary>
+          <ErrorBoundary>{standalone}</ErrorBoundary>
         </SafeAreaProvider>
       </GestureHandlerRootView>
     );
@@ -354,6 +389,12 @@ export default function App() {
       <SafeAreaProvider>
         <ErrorBoundary>
           <ConnectionBanner />
+          {/* Already signed in when the link was opened, so the good news
+              arrives over the app rather than in place of it. */}
+          <EmailVerifiedModal
+            visible={linkOutcome?.kind === "verified"}
+            onDismiss={() => setLinkOutcome(null)}
+          />
         <QueryClientProvider client={queryClient}>
           {hasSession ? <LiveSubscriptions /> : null}
           <RequiredProfileGate onSignOut={leaveTheApp}>
@@ -367,7 +408,7 @@ export default function App() {
                   headerStyle: { backgroundColor: tokens.colors.ivory },
                   headerTintColor: tokens.colors.indigo,
                   headerTitleStyle: {
-                    fontFamily: "AtkinsonHyperlegible_700Bold",
+                    fontFamily: "SourceSans3_700Bold",
                   },
                   contentStyle: { backgroundColor: tokens.colors.ivory },
                 }}

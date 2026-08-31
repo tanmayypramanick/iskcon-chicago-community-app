@@ -5,6 +5,7 @@ import {
   FlatList,
   Image,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -49,6 +50,7 @@ export function Screen({
         className="flex-1"
         contentContainerClassName={`px-screen pt-2 ${bottomInset ? "pb-24" : "pb-6"}`}
         showsVerticalScrollIndicator={false}
+        removeClippedSubviews={Platform.OS === "android"}
         // On a long form the keyboard covers the choice being made. Without
         // this, the tap that reaches past it only dismisses the keyboard and
         // the button underneath is never pressed.
@@ -101,10 +103,10 @@ export function ListScreen<Item>({
         contentContainerClassName={`px-screen pt-2 ${bottomInset ? "pb-24" : "pb-6"}`}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        initialNumToRender={12}
-        maxToRenderPerBatch={12}
-        windowSize={11}
-        removeClippedSubviews={false}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        windowSize={7}
+        removeClippedSubviews={Platform.OS === "android"}
         refreshControl={refreshControl as never}
       />
     </SafeAreaView>
@@ -576,7 +578,7 @@ export function Avatar({
       <Text
         style={{
           color: labelColor,
-          fontFamily: "AtkinsonHyperlegible_700Bold",
+          fontFamily: "SourceSans3_700Bold",
           fontSize: Math.round(pixels * 0.36),
         }}
       >
@@ -660,7 +662,7 @@ export function AvatarStack({
           <Text
             style={{
               color: tokens.colors.stone,
-              fontFamily: "AtkinsonHyperlegible_700Bold",
+              fontFamily: "SourceSans3_700Bold",
               fontSize: Math.round(pixels * 0.32),
             }}
           >

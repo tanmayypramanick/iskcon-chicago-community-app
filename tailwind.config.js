@@ -13,10 +13,10 @@ module.exports = {
       spacing: tokens.spacing,
       borderRadius: tokens.radii,
       fontFamily: {
-        display: ["Lora_600SemiBold"],
-        "display-italic": ["Lora_500Medium_Italic"],
-        sans: ["AtkinsonHyperlegible_400Regular"],
-        "sans-bold": ["AtkinsonHyperlegible_700Bold"]
+        display: ["EBGaramond_600SemiBold"],
+        "display-italic": ["EBGaramond_500Medium_Italic"],
+        sans: ["SourceSans3_400Regular"],
+        "sans-bold": ["SourceSans3_700Bold"]
       }
     }
   },

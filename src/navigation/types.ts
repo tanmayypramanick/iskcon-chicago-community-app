@@ -60,6 +60,22 @@ export type HomeStackParamList = {
   AllDonations: undefined;
   /** The devotee's seva profile, and the congregation's leaderboard. */
   SevaYatra: undefined;
+  /** Chicago-specific Ekadasis, parana windows, festivals and holy days. */
+  VaisnavaCalendar: undefined;
+  /** The week of darshan, one entry per day. Every devotee. */
+  DailyDarshan: undefined;
+  /**
+   * Everything posted on one day. The day travels with the id so the screen can
+   * name itself before the week's list has been read again — and so a
+   * notification that opens straight onto a day still has a heading.
+   */
+  DarshanDay: { darshanId: string; darshanOn: string };
+  /**
+   * Composing a day of darshan. Registered for everyone because a notification
+   * or a stale link can reach any route; the screen itself, and the server
+   * behind it, answer only the three roles that may post.
+   */
+  PostDarshan: undefined;
   /** Act by act, behind one link off the profile. */
   SevaHistory: undefined;
   /**
@@ -89,7 +105,11 @@ export type ServicesStackParamList = {
    * Chicago wall clock, in the shapes the RPC stores: "2026-08-13", "16:30:00".
    */
   CreateService: { date?: string; startTime?: string } | undefined;
-  FindSeva: { scan?: boolean } | undefined;
+  /**
+   * One calm entry form with two honest purposes: plan seva that is starting
+   * now or later, or record seva that has already been completed.
+   */
+  FindSeva: { mode?: "plan" | "completed" } | undefined;
   RecurringServices: undefined;
   /** `templateId` edits an existing weekly seva; the rest prefill a new one. */
   CreateRecurringService:
@@ -182,6 +202,7 @@ export type ProfileStackParamList = {
   ManageAccess: undefined;
   PrivacyVisibility: undefined;
   TermsOfService: undefined;
+  ChangePassword: undefined;
   NotificationSettings: undefined;
   MyDonations: undefined;
   /** The temple-wide giving record; the server returns nothing to anyone else. */

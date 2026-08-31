@@ -36,6 +36,7 @@ export const appNotificationKinds = [
   "sanga_admin_transferred",
   "sanga_deleted",
   "announcement_posted",
+  "darshan_posted",
   "feedback_reviewed",
   "care_reply",
   "birthday_today",
@@ -47,6 +48,11 @@ export const appNotificationKinds = [
   "announcement_commented",
   "announcement_comment_replied",
   "seva_award_earned",
+  "vaisnava_tomorrow",
+  "vaisnava_today",
+  "vaisnava_parana",
+  "message_received",
+  "sanga_message_received",
   "remote",
 ] as const;
 
@@ -86,6 +92,7 @@ export type AppNotificationRow = {
     | "sanga_admin_transferred"
     | "sanga_deleted"
     | "announcement_posted"
+    | "darshan_posted"
     | "feedback_reviewed"
     | "care_reply"
     | "birthday_today"
@@ -97,6 +104,11 @@ export type AppNotificationRow = {
     | "announcement_commented"
     | "announcement_comment_replied"
     | "seva_award_earned"
+    | "vaisnava_tomorrow"
+    | "vaisnava_today"
+    | "vaisnava_parana"
+    | "message_received"
+    | "sanga_message_received"
     | "remote";
   title: string;
   body: string;

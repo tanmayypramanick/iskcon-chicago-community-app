@@ -82,5 +82,5 @@ export const cannedFeedbackReplies = [
   "We have read this and are looking into it. Thank you.",
   "Thank you for telling us — this has been passed on.",
   "Thank you. We hear you, and we are sorry for the trouble.",
-  "Hare Krsna, thank you for taking the time to write this.",
+  "Hare Kṛṣṇa, thank you for taking the time to write this.",
 ] as const;

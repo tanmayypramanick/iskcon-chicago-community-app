@@ -37,6 +37,22 @@ export function getSupabaseClient() {
         autoRefreshToken: true,
         persistSession: true,
         detectSessionInUrl: false,
+        // Implicit, not the library's default PKCE, and this is the whole
+        // reason email links work.
+        //
+        // PKCE keeps a code_verifier in THIS device's storage and sends the
+        // devotee back with `?code=...`, which is only redeemable on the phone
+        // that asked for the link. A devotee who requests a reset on their
+        // phone and opens the mail on an iPad gets nothing. Worse, the link
+        // then carries no access_token at all, so the handler found nothing to
+        // do and returned quietly -- a tap that did nothing and said nothing.
+        //
+        // Implicit returns the session in the URL fragment instead, so the
+        // link opens wherever the devotee happens to read their mail. The
+        // trade is that tokens ride in the fragment; on a custom scheme handed
+        // straight to the app that is a small exposure, and being unable to
+        // reset your password at all is a larger one.
+        flowType: "implicit",
       },
     },
   );

@@ -54,19 +54,15 @@ export function SangaJoinedScreen({ navigation }: Props) {
   // A sanga the devotee is actually in opens on its conversation — that thread
   // is what being in a circle means, and a page about it first is a step in the
   // way. One they only proposed, or are merely overseeing, keeps its overview.
+  // `initial: false` keeps DevoteesHome under the sanga, so a devotee arriving
+  // from this tab has a way back. Without it React Navigation makes the sanga
+  // the Devotees stack's initial route and the header has no back button.
   const openSanga = (sanga: MySangaSummary) =>
-    tabs?.navigate(
-      "Devotees",
-      sanga.is_member
-        ? {
-            screen: "SangaChat",
-            params: { sangaId: sanga.id, name: sanga.name },
-          }
-        : {
-            screen: "SangaDetail",
-            params: { sangaId: sanga.id, name: sanga.name },
-          },
-    );
+    tabs?.navigate("Devotees", {
+      screen: sanga.is_member ? "SangaChat" : "SangaDetail",
+      params: { sangaId: sanga.id, name: sanga.name },
+      initial: false,
+    } as never);
 
   const browseSangas = () =>
     tabs?.navigate("Devotees", {

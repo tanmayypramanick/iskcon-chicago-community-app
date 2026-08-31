@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { Text, View } from "react-native";
 
 import tokens from "../../design-tokens.json";
+import { CommunityEmailLink } from "../components/CommunityEmailLink";
 import { Screen, ScreenTitle, SectionHeader } from "../components/ui";
 import type { ProfileStackParamList } from "../navigation/types";
 
@@ -65,9 +66,9 @@ export function TermsOfServiceScreen(_: Props) {
 
       <Card icon="people-outline" title="Community access">
         <Paragraph>
-          The app is intended for devotees and well-wishers participating in
-          the ISKCON Chicago community. Every person must use their own account,
-          and access levels are assigned according to temple responsibilities.
+          The app is intended for devotees and well-wishers participating in the
+          ISKCON Chicago community. Every person must use their own account, and
+          access levels are assigned according to temple responsibilities.
         </Paragraph>
         <Paragraph>
           ISKCON Chicago may approve, decline, change, suspend or revoke access
@@ -123,9 +124,9 @@ export function TermsOfServiceScreen(_: Props) {
           as needed to operate its community features and records.
         </Paragraph>
         <Paragraph>
-          Share only content you are entitled to share. Exercise particular
-          care with personal information and images of other devotees,
-          especially children.
+          Share only content you are entitled to share. Exercise particular care
+          with personal information and images of other devotees, especially
+          children.
         </Paragraph>
       </Card>
 
@@ -147,25 +148,31 @@ export function TermsOfServiceScreen(_: Props) {
         <Paragraph>
           Donation and sponsorship payments are completed on Zeffy, a
           third-party payment service. Zeffy's own terms and privacy practices
-          apply to payment information submitted there. The app does not
-          collect or store card details.
+          apply to payment information submitted there. The app does not collect
+          or store card details.
         </Paragraph>
       </Card>
 
-      <Card icon="shield-checkmark-outline" title="Moderation and account closure">
+      <Card
+        icon="shield-checkmark-outline"
+        title="Moderation and account closure"
+      >
         <Paragraph>
           Authorised temple leadership may moderate content, restrict features,
           suspend access or close an account when these terms are breached or
           when reasonably required for community safety and temple operations.
-          Users cannot delete their own account in the app; account questions
-          or closure requests must be directed to an authorised administrator.
+          Users cannot delete their own account in the app; account questions or
+          closure requests must be directed to an authorised administrator.
         </Paragraph>
       </Card>
 
-      <Card icon="cloud-offline-outline" title="Availability and urgent matters">
+      <Card
+        icon="cloud-offline-outline"
+        title="Availability and urgent matters"
+      >
         <Paragraph>
-          The app is provided for community coordination and may occasionally
-          be unavailable, delayed or contain errors. It is not an emergency
+          The app is provided for community coordination and may occasionally be
+          unavailable, delayed or contain errors. It is not an emergency
           service. For urgent matters, contact the temple directly rather than
           relying on an app message or notification.
         </Paragraph>
@@ -186,8 +193,9 @@ export function TermsOfServiceScreen(_: Props) {
           question about these Terms of Service, your account or the temple's
           records.
         </Paragraph>
+        <CommunityEmailLink subject="Terms of Service question" />
         <Text className="mt-4 font-sans text-xs uppercase tracking-wider text-stoneMuted">
-          Effective 12 August 2026
+          Effective 31 August 2026
         </Text>
       </View>
     </Screen>

@@ -30,11 +30,27 @@ function constraintKinds(): string[] {
       continue;
     }
 
+    // A later migration may EXTEND the constraint instead of restating it:
+    // it reads the kinds already allowed out of pg_constraint, unions its own,
+    // and reinstalls the result. That keeps the migration safe whichever order
+    // it applies in, but it means the file never names the full list -- only
+    // the handful it is adding. So carry forward what earlier migrations
+    // established and add these.
+    const added = sql.match(/v_new text\[\] := array\[([\s\S]*?)\]/);
+    if (added && /check \(kind in \(%s\)\)/.test(sql)) {
+      const extra = [...added[1].matchAll(/'([a-z_]+)'/g)].map((m) => m[1]);
+      kinds = [...new Set([...kinds, ...extra])];
+      continue;
+    }
+
     const literal = sql.match(
       /app_notifications_kind_check check \(\s*kind in \(([\s\S]*?)\)\s*\)/,
     );
+    // The two generated forms above both leave a `%s` here, so a match that
+    // yields nothing is that template rather than a real list.
     if (literal) {
-      kinds = [...literal[1].matchAll(/'([a-z_]+)'/g)].map((m) => m[1]);
+      const named = [...literal[1].matchAll(/'([a-z_]+)'/g)].map((m) => m[1]);
+      if (named.length > 0) kinds = named;
     }
   }
   return kinds;

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<title>Confirm your new email</title>
+<!-- Apple Mail honours this; Gmail strips it and falls back to Georgia /
+     Helvetica, which is why every stack below names a real fallback. -->
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,600;1,500&family=Source+Sans+3:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  body { margin:0; padding:0; background:#FBF7EF; -webkit-text-size-adjust:100%; }
+  a { text-decoration:none; }
+  @media only screen and (max-width:600px) {
+    .wrap { width:100% !important; }
+    .pad  { padding-left:24px !important; padding-right:24px !important; }
+    .h1   { font-size:26px !important; line-height:33px !important; }
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;background:#FBF7EF;">
+<div style="display:none;font-size:1px;color:#FBF7EF;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">Confirm the new email address on your temple account.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FBF7EF;">
+  <tr><td align="center" style="padding:32px 16px;">
+    <table role="presentation" class="wrap" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;">
+
+      <tr><td align="center" style="padding:0 0 20px 0;">
+        <span style="font-family:'Source Sans 3',-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#1F6F67;">ISKCON Chicago</span>
+      </td></tr>
+
+      <tr><td style="background:#FFFFFF;border:1px solid #DED2BF;border-radius:16px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+
+          <tr><td style="height:4px;background:#E8971C;border-radius:16px 16px 0 0;line-height:4px;font-size:4px;">&nbsp;</td></tr>
+
+          <tr><td class="pad" align="center" style="padding:30px 40px 0 40px;">
+            <p style="margin:0;font-family:'EB Garamond',Georgia,'Times New Roman',serif;font-style:italic;font-size:17px;line-height:24px;color:#1F6F67;">Hare Kṛṣṇa</p>
+          </td></tr>
+
+          <tr><td class="pad" align="center" style="padding:10px 40px 0 40px;">
+            <h1 class="h1" style="margin:0;font-family:'EB Garamond',Georgia,'Times New Roman',serif;font-weight:600;font-size:30px;line-height:37px;color:#3A342B;">Confirm your new address</h1>
+          </td></tr>
+
+          <tr><td class="pad" align="center" style="padding:14px 40px 0 40px;">
+            <p style="margin:0;font-family:'Source Sans 3',-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:26px;color:#766D61;">This account asked to change the email it uses to {{ .Email }}. Confirm it below and the change takes effect. Until then, the old address still signs you in.</p>
+          </td></tr>
+
+          <tr><td class="pad" align="center" style="padding:28px 40px 0 40px;">
+            <!--[if mso]>
+            <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word"
+              href="{{ .ConfirmationURL }}" style="height:48px;v-text-anchor:middle;width:280px;" arcsize="50%" stroke="f" fillcolor="#E8971C">
+              <w:anchorlock/>
+              <center style="color:#2B3A67;font-family:Helvetica,Arial,sans-serif;font-size:16px;font-weight:bold;">Confirm this address</center>
+            </v:roundrect>
+            <![endif]-->
+            <!--[if !mso]><!-- -->
+            <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#E8971C;color:#2B3A67;font-family:'Source Sans 3',-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;line-height:48px;padding:0 34px;border-radius:999px;">Confirm this address</a>
+            <!--<![endif]-->
+          </td></tr>
+
+          <tr><td class="pad" align="center" style="padding:22px 40px 0 40px;">
+            <p style="margin:0;font-family:'Source Sans 3',-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:21px;color:#766D61;">
+              If the button does not open, copy this link into your browser:<br>
+              <span style="color:#2B3A67;word-break:break-all;">{{ .ConfirmationURL }}</span>
+            </p>
+          </td></tr>
+
+          <tr><td class="pad" style="padding:22px 40px 0 40px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr><td align="center" style="border-top:1px solid #DED2BF;padding-top:18px;">
+                <p style="margin:0;font-family:'Source Sans 3',-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:21px;color:#766D61;">If you did not ask for this, ignore this message and nothing will change.</p>
+              </td></tr>
+            </table>
+          </td></tr>
+
+          <tr><td class="pad" align="center" style="padding:22px 40px 32px 40px;">
+            <p style="margin:0;font-family:'EB Garamond',Georgia,'Times New Roman',serif;font-style:italic;font-size:15px;line-height:23px;color:#766D61;">Your servant,<br>ISKCON Chicago</p>
+          </td></tr>
+
+        </table>
+      </td></tr>
+
+      <tr><td align="center" style="padding:24px 24px 0 24px;">
+        <p style="margin:0;font-family:'EB Garamond',Georgia,'Times New Roman',serif;font-style:italic;font-size:15px;line-height:24px;color:#766D61;">Hare Kṛṣṇa Hare Kṛṣṇa &middot; Kṛṣṇa Kṛṣṇa Hare Hare<br>Hare Rāma Hare Rāma &middot; Rāma Rāma Hare Hare</p>
+      </td></tr>
+
+      <tr><td align="center" style="padding:18px 24px 0 24px;">
+        <p style="margin:0;font-family:'Source Sans 3',-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:19px;color:#766D61;">
+          ISKCON Chicago &middot; <a href="mailto:tech@iskconchicago.com" style="color:#2B3A67;">tech@iskconchicago.com</a><br>
+          This message was sent to {{ .Email }}.
+        </p>
+      </td></tr>
+
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>

@@ -1177,7 +1177,7 @@ export function ChatScreen({ route, navigation }: Props) {
                   No messages yet
                 </Text>
                 <Text className="mt-1 text-center font-sans text-sm text-stoneMuted">
-                  Say Hare Krsna to {name}.
+                  Say Hare Kṛṣṇa to {name}.
                 </Text>
               </View>
             )

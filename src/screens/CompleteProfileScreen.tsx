@@ -219,7 +219,7 @@ export function CompleteProfileScreen({
         <ScreenTitle eyebrow="Welcome">A little about you</ScreenTitle>
 
         <Text className="mb-section font-sans text-base leading-6 text-stoneMuted">
-          Hare Krsna. Before you come in, the temple asks six things — no more.
+          Hare Kṛṣṇa. Before you come in, the temple asks six things — no more.
           Everything else on your profile is yours to fill in whenever you like.
         </Text>
 

@@ -3,6 +3,7 @@
 import { getSupabaseClient } from "../../../lib/supabase";
 import {
   requestSevaVerification,
+  logCompletedSeva,
   completeMyServiceAssignment,
   createServiceRequirement,
   createRecurringService,
@@ -52,36 +53,25 @@ describe("services API", () => {
     });
   });
 
-  it("sends a seva for a chosen member to verify, by QR or from the catalog", async () => {
+  it("keeps planned and completed seva as separate protected operations", async () => {
     await requestSevaVerification({
-      serviceTypeId: null,
+      serviceTypeId: "type-1",
       customName: null,
-      qrToken: "temple-qr-token",
       startAt: "2026-08-03T23:00:00.000Z",
       endAt: "2026-08-04T00:00:00.000Z",
       locationText: "ISKCON Chicago Temple",
       verifierId: "tanmay",
     });
-    await requestSevaVerification({
-      serviceTypeId: "type-1",
-      customName: null,
-      qrToken: null,
-      startAt: "2026-08-03T23:00:00.000Z",
-      endAt: "2026-08-04T00:00:00.000Z",
+    await logCompletedSeva({
+      serviceTypeId: null,
+      customName: "Festival cleanup",
+      startAt: "2026-08-02T23:00:00.000Z",
+      endAt: "2026-08-03T00:00:00.000Z",
       locationText: "ISKCON Chicago Temple",
       verifierId: "tanmay",
     });
 
     expect(rpc).toHaveBeenNthCalledWith(1, "request_seva_verification", {
-      p_service_type_id: null,
-      p_custom_name: null,
-      p_start_at: "2026-08-03T23:00:00.000Z",
-      p_end_at: "2026-08-04T00:00:00.000Z",
-      p_location_text: "ISKCON Chicago Temple",
-      p_verifier_id: "tanmay",
-      p_qr_token: "temple-qr-token",
-    });
-    expect(rpc).toHaveBeenNthCalledWith(2, "request_seva_verification", {
       p_service_type_id: "type-1",
       p_custom_name: null,
       p_start_at: "2026-08-03T23:00:00.000Z",
@@ -89,6 +79,14 @@ describe("services API", () => {
       p_location_text: "ISKCON Chicago Temple",
       p_verifier_id: "tanmay",
       p_qr_token: null,
+    });
+    expect(rpc).toHaveBeenNthCalledWith(2, "log_completed_seva", {
+      p_service_type_id: null,
+      p_custom_name: "Festival cleanup",
+      p_start_at: "2026-08-02T23:00:00.000Z",
+      p_end_at: "2026-08-03T00:00:00.000Z",
+      p_location_text: "ISKCON Chicago Temple",
+      p_verifier_id: "tanmay",
     });
     await completeMyServiceAssignment("instance-1");
     expect(rpc).toHaveBeenNthCalledWith(3, "complete_my_service_assignment", {

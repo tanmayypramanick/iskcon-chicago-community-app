@@ -370,7 +370,7 @@ function PostNewsletterModal({
       <SectionHeader title="Title" />
       <TextInput
         className="min-h-touch rounded-button border border-border bg-white px-4 font-sans text-base text-stone"
-        placeholder="Sri Sri Kishore Kishori Gazette"
+        placeholder="Śrī Śrī Kiśora-Kiśorī Gazette"
         placeholderTextColor={tokens.colors.stoneMuted}
         value={title}
         onChangeText={setTitle}

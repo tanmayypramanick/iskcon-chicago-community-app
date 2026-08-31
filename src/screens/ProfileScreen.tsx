@@ -1,10 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import {
-  useIsFocused,
   useNavigation,
   type NavigationProp,
 } from "@react-navigation/native";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
 
 import tokens from "../../design-tokens.json";
@@ -40,6 +39,7 @@ import { FormError } from "../features/services/components";
 import { useServiceDashboard } from "../features/services/hooks";
 import type { ProfileStackParamList } from "../navigation/types";
 import { usePrototypeSession } from "../store/usePrototypeSession";
+import { useRefreshOnFocus } from "../lib/useRefreshOnFocus";
 
 type RolePresentation = {
   shortLabel: string;
@@ -255,7 +255,6 @@ function RoleSelector({
 }
 
 export function ProfileScreen({ onSignOut }: { onSignOut: () => void }) {
-  const isFocused = useIsFocused();
   const navigation = useNavigation<NavigationProp<ProfileStackParamList>>();
   const previewRole = usePrototypeSession((state) => state.previewRole);
   const setPreviewRole = usePrototypeSession((state) => state.setPreviewRole);
@@ -276,21 +275,11 @@ export function ProfileScreen({ onSignOut }: { onSignOut: () => void }) {
   const createAccessRequest = useCreateAccessRequest(activeUserId);
   const reviewAccessRequest = useReviewAccessRequest(activeUserId);
 
-  useEffect(() => {
-    if (!isFocused || !activeUserId) return;
-    void Promise.all([
-      presenceQuery.refetch(),
-      servicesQuery.refetch(),
-      profileQuery.refetch(),
-      accessRequestsQuery.refetch(),
-    ]);
-  }, [
-    accessRequestsQuery.refetch,
-    activeUserId,
-    isFocused,
-    presenceQuery.refetch,
-    profileQuery.refetch,
-    servicesQuery.refetch,
+  useRefreshOnFocus([
+    presenceQuery,
+    servicesQuery,
+    profileQuery,
+    accessRequestsQuery,
   ]);
   const updatePhoto = useUpdateDevoteePhoto(activeUserId);
   const removePhoto = useRemoveDevoteePhoto(activeUserId);
@@ -413,6 +402,12 @@ export function ProfileScreen({ onSignOut }: { onSignOut: () => void }) {
       icon: "notifications-outline",
       label: "Notifications",
       onPress: () => navigation.navigate("NotificationSettings"),
+    },
+    {
+      icon: "lock-closed-outline",
+      label: "Change password",
+      detail: "Set a new one here, without email",
+      onPress: () => navigation.navigate("ChangePassword"),
     },
     {
       icon: "shield-checkmark-outline",

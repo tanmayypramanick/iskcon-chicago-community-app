@@ -1,0 +1,151 @@
+/*
+ * The auth landing page's styles.
+ *
+ * Lifted out of the <style> block the edge function used to inline, because a
+ * static host cannot mint a per-request nonce and this page must not fall back
+ * to style-src 'unsafe-inline' while it has a live session in hand. Its own
+ * file is covered by style-src 'self'.
+ */
+
+:root {
+  --marigold:#E8971C; --marigold-soft:#F8D791; --indigo:#2B3A67;
+  --vermilion:#C1440E; --vermilion-soft:#FAE7DF; --ivory:#FBF7EF;
+  --stone:#3A342B; --stone-muted:#766D61; --peacock:#1F6F67;
+  --peacock-soft:#DCECE8; --border:#DED2BF; --white:#FFFFFF;
+  --serif:'EB Garamond',Georgia,'Times New Roman',serif;
+  --sans:'Source Sans 3',-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;
+}
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--ivory); color:var(--stone);
+  font-family:var(--sans); font-size:16px; line-height:26px;
+  -webkit-text-size-adjust:100%;
+  /* One layout for 375px and 1440px: the card simply stops growing. The
+     page is centred vertically only when there is room for it, so a long
+     recovery form on a short phone still scrolls from the top. */
+  display:flex; align-items:center; justify-content:center;
+  min-height:100vh; padding:32px 16px;
+}
+.wrap { width:100%; max-width:600px; }
+.eyebrow {
+  text-align:center; font-size:11px; font-weight:700; letter-spacing:1.6px;
+  text-transform:uppercase; color:var(--peacock); line-height:16px;
+  margin:0 0 20px 0;
+}
+.card {
+  background:var(--white); border:1px solid var(--border);
+  border-radius:16px; overflow:hidden;
+}
+.rule { height:4px; background:var(--marigold); }
+.body { padding:30px 40px 32px 40px; text-align:center; }
+.greeting {
+  margin:0; font-family:var(--serif); font-style:italic; font-size:17px;
+  line-height:24px; color:var(--peacock);
+}
+h1 {
+  margin:10px 0 0 0; font-family:var(--serif); font-weight:600;
+  /* Reads at 375px and does not become a banner at 1440px. */
+  font-size:clamp(26px,5vw,30px); line-height:1.24; color:var(--stone);
+}
+p.lede { margin:14px 0 0 0; color:var(--stone-muted); }
+.mark {
+  width:64px; height:64px; margin:0 auto 4px auto; border-radius:999px;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--peacock-soft); color:var(--peacock);
+}
+.mark.warn { background:var(--vermilion-soft); color:var(--vermilion); }
+.mark svg { width:32px; height:32px; }
+
+form { margin:24px 0 0 0; text-align:left; }
+label {
+  display:block; font-size:13px; font-weight:600; line-height:20px;
+  color:var(--stone); margin:0 0 6px 2px;
+}
+.field { position:relative; margin:0 0 12px 0; }
+input, select {
+  width:100%; min-height:48px; padding:11px 14px; font-family:var(--sans);
+  font-size:16px; line-height:24px; color:var(--stone);
+  background:var(--white); border:1px solid var(--border);
+  border-radius:16px; appearance:none;
+}
+/* appearance:none takes the native arrow with it, and a select that looks
+   like a text box does not get opened. Drawn rather than fetched, so the CSP
+   has no host to allow. */
+select {
+  padding-right:44px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23766D61' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 14px center;
+  background-size:18px 18px;
+}
+input[type=password], input#reveal-target { padding-right:78px; }
+input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible {
+  outline:2px solid var(--indigo); outline-offset:2px;
+}
+.reveal {
+  position:absolute; top:0; right:0; height:100%; padding:0 14px;
+  background:none; border:0; color:var(--stone-muted);
+  font-family:var(--sans); font-size:13px; font-weight:600; cursor:pointer;
+  min-width:auto;
+}
+
+button.primary, a.primary, button.secondary, a.secondary {
+  display:flex; align-items:center; justify-content:center; width:100%;
+  min-height:48px; padding:10px 24px; border-radius:999px; border:1px solid transparent;
+  font-family:var(--sans); font-size:16px; font-weight:700; line-height:24px;
+  text-decoration:none; cursor:pointer; margin-top:12px;
+}
+button.primary, a.primary { background:var(--marigold); color:var(--indigo); }
+button.secondary, a.secondary {
+  background:var(--white); color:var(--indigo); border-color:var(--border);
+}
+button[disabled] { opacity:.55; cursor:default; }
+
+.note {
+  margin:22px 0 0 0; padding:18px 0 0 0; border-top:1px solid var(--border);
+  font-size:13px; line-height:21px; color:var(--stone-muted);
+}
+.message {
+  margin:12px 0 0 0; font-size:14px; line-height:22px; text-align:left;
+}
+.message.bad { color:var(--vermilion); }
+.message.good { color:var(--peacock); }
+.detail {
+  margin:14px 0 0 0; padding:12px 16px; border-radius:16px;
+  background:var(--ivory); border:1px solid var(--border);
+  font-size:14px; line-height:22px; color:var(--stone-muted);
+  text-align:left; word-break:break-word;
+}
+
+/* The hand-off to the app. Never hidden — a devotee on a laptop may still
+   want it on the phone in their hand — but it earns the loud styling only
+   where it can actually work. */
+.handoff {
+  margin:22px 0 0 0; padding:18px 0 0 0; border-top:1px solid var(--border);
+}
+.handoff p { margin:0; font-size:13px; line-height:21px; color:var(--stone-muted); }
+.servant {
+  margin:22px 0 0 0; font-family:var(--serif); font-style:italic;
+  font-size:15px; line-height:23px; color:var(--stone-muted);
+}
+.mantra {
+  margin:24px 0 0 0; text-align:center; font-family:var(--serif);
+  font-style:italic; font-size:15px; line-height:24px; color:var(--stone-muted);
+}
+.footer {
+  margin:18px 0 0 0; text-align:center; font-size:12px; line-height:19px;
+  color:var(--stone-muted);
+}
+.footer a, .mantra a { color:var(--indigo); }
+[hidden] { display:none !important; }
+
+@media (max-width:600px) {
+  body { align-items:flex-start; padding:24px 12px 40px 12px; }
+  .body { padding:26px 24px 28px 24px; }
+}
+/* Larger than a phone: the primary action does not need to span the card. */
+@media (min-width:601px) {
+  button.primary, a.primary, button.secondary, a.secondary {
+    width:auto; min-width:280px; margin-left:auto; margin-right:auto;
+  }
+  form button.primary { width:100%; }
+}

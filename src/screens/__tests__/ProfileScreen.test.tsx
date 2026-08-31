@@ -104,6 +104,8 @@ describe("ProfileScreen", () => {
       queryByText("Hours you have offered, and what you offered them to."),
     ).toBeNull();
     expect(getByText("My seva and history")).toBeTruthy();
+    expect(getByText("Change password")).toBeTruthy();
+    expect(getByText("Set a new one here, without email")).toBeTruthy();
   });
 
   it("returns to sign in from the profile", async () => {

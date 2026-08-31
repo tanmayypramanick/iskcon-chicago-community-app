@@ -146,5 +146,5 @@ export const cannedStoryReplies = [
   "Thank you — we have read this and are keeping it for a coming issue.",
   "Beautiful, thank you. This will go in the next newsletter.",
   "Thank you for sending this in. We may come back to you about it.",
-  "Hare Krsna, thank you for taking the time to write this.",
+  "Hare Kṛṣṇa, thank you for taking the time to write this.",
 ] as const;

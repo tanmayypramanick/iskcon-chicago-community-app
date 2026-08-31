@@ -77,7 +77,6 @@ Run each row in both directions where applicable.
 | Auth | Email/password, Google, sign out/in | Correct account and role restored |
 | Profile | Mandatory phone, email, gender, DOB | Required fields enforced; public fields visible |
 | Presence | Toggle on one phone | Other phone updates immediately |
-| QR | Scan a real printed seva QR | Correct seva opens/starts once |
 | Seva | Assign/accept/decline/counter | Only intended devotee and roles are notified |
 | Weekly Seva | Report unavailable and replace | Correct period changes; schedule updates |
 | Messages | Send text/photo | Realtime delivery/read states are accurate |

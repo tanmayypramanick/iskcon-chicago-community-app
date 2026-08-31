@@ -34,7 +34,7 @@ export function ServicesStack() {
         headerStyle: { backgroundColor: tokens.colors.ivory },
         headerTintColor: tokens.colors.indigo,
         headerTitleStyle: {
-          fontFamily: "AtkinsonHyperlegible_700Bold",
+          fontFamily: "SourceSans3_700Bold",
         },
         contentStyle: { backgroundColor: tokens.colors.ivory },
       }}
@@ -57,7 +57,12 @@ export function ServicesStack() {
       <Stack.Screen
         name="FindSeva"
         component={FindSevaScreen}
-        options={{ title: "Find a way to help" }}
+        options={({ route }) => ({
+          title:
+            route.params?.mode === "completed"
+              ? "Log your seva"
+              : "Find a way to help",
+        })}
       />
       <Stack.Screen
         name="RecurringServices"
