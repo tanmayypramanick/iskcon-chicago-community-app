@@ -406,7 +406,6 @@ export function ProfileScreen({ onSignOut }: { onSignOut: () => void }) {
     {
       icon: "lock-closed-outline",
       label: "Change password",
-      detail: "Set a new one here, without email",
       onPress: () => navigation.navigate("ChangePassword"),
     },
     {

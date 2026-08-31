@@ -2,14 +2,18 @@
 
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
 
-import { requestReplacementLink } from "../../services/auth";
+import { requestReplacementLink, verifyEmailCode } from "../../services/auth";
 import { AuthLinkProblemScreen } from "../AuthLinkProblemScreen";
 
 jest.mock("../../services/auth", () => ({
+  EMAIL_CODE_LENGTH: 6,
+  PASSWORD_MIN_LENGTH: 6,
   requestReplacementLink: jest.fn(),
+  verifyEmailCode: jest.fn(),
 }));
 
 const mockRequestReplacementLink = jest.mocked(requestReplacementLink);
+const mockVerifyEmailCode = jest.mocked(verifyEmailCode);
 
 const EXPIRED = {
   title: "That link has expired",
@@ -27,6 +31,10 @@ describe("when an email link does not open", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRequestReplacementLink.mockResolvedValue(undefined);
+    mockVerifyEmailCode.mockResolvedValue({
+      ok: true,
+      session: { user: { id: "devotee-1" } } as never,
+    });
   });
 
   it("says what happened and puts a new link one tap away", async () => {
@@ -35,6 +43,7 @@ describe("when an email link does not open", () => {
         problem={EXPIRED}
         linkKind="recovery"
         onDismiss={jest.fn()}
+        onVerified={jest.fn()}
       />,
     );
 
@@ -66,6 +75,7 @@ describe("when an email link does not open", () => {
         problem={EXPIRED}
         linkKind="signup"
         onDismiss={jest.fn()}
+        onVerified={jest.fn()}
       />,
     );
 
@@ -91,6 +101,7 @@ describe("when an email link does not open", () => {
         problem={OFFLINE}
         linkKind="recovery"
         onDismiss={jest.fn()}
+        onVerified={jest.fn()}
       />,
     );
 
@@ -104,6 +115,7 @@ describe("when an email link does not open", () => {
         problem={EXPIRED}
         linkKind="signup"
         onDismiss={jest.fn()}
+        onVerified={jest.fn()}
       />,
     );
 
@@ -119,6 +131,7 @@ describe("when an email link does not open", () => {
         problem={EXPIRED}
         linkKind="recovery"
         onDismiss={onDismiss}
+        onVerified={jest.fn()}
       />,
     );
 
@@ -126,5 +139,78 @@ describe("when an email link does not open", () => {
       screen.getByRole("button", { name: "Back to sign in" }),
     );
     expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+  describe("the code, for a link that will not open at all", () => {
+    const CODE_FIELD = "6-digit code from your email";
+
+    it("offers the code and hands a verified reset back as a recovery", async () => {
+      const onVerified = jest.fn();
+      const screen = await render(
+        <AuthLinkProblemScreen
+          problem={EXPIRED}
+          linkKind="recovery"
+          onDismiss={jest.fn()}
+          onVerified={onVerified}
+        />,
+      );
+
+      // The address typed for a replacement link is carried across, so the
+      // screen a devotee reached because something failed does not ask twice.
+      await fireEvent.changeText(
+        screen.getByLabelText("Email address for a new link"),
+        "devotee@example.com",
+      );
+      await fireEvent.press(
+        screen.getByRole("button", { name: "Enter a code instead" }),
+      );
+      expect(
+        screen.queryByLabelText("Email address the code was sent to"),
+      ).toBeNull();
+
+      await fireEvent.changeText(screen.getByLabelText(CODE_FIELD), "123456");
+
+      await waitFor(() =>
+        expect(mockVerifyEmailCode).toHaveBeenCalledWith(
+          expect.objectContaining({
+            email: "devotee@example.com",
+            purpose: "recovery",
+          }),
+        ),
+      );
+      await waitFor(() => expect(onVerified).toHaveBeenCalledWith("recovery"));
+    });
+
+    it("asks for the address when the devotee arrived without typing one", async () => {
+      const screen = await render(
+        <AuthLinkProblemScreen
+          problem={EXPIRED}
+          linkKind="signup"
+          onDismiss={jest.fn()}
+          onVerified={jest.fn()}
+        />,
+      );
+
+      await fireEvent.press(
+        screen.getByRole("button", { name: "Enter a code instead" }),
+      );
+
+      expect(screen.getByText(/Tell us which address/)).toBeTruthy();
+    });
+
+    it("does not offer a code for a link that never said what it was", async () => {
+      // Guessing the OTP type would report a perfectly good code as wrong.
+      const screen = await render(
+        <AuthLinkProblemScreen
+          problem={EXPIRED}
+          linkKind="unknown"
+          onDismiss={jest.fn()}
+          onVerified={jest.fn()}
+        />,
+      );
+
+      expect(
+        screen.queryByRole("button", { name: "Enter a code instead" }),
+      ).toBeNull();
+    });
   });
 });

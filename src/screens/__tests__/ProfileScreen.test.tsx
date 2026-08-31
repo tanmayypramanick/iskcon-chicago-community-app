@@ -105,7 +105,9 @@ describe("ProfileScreen", () => {
     ).toBeNull();
     expect(getByText("My seva and history")).toBeTruthy();
     expect(getByText("Change password")).toBeTruthy();
-    expect(getByText("Set a new one here, without email")).toBeTruthy();
+    // The row carries no subtitle: the label already says what it does, and
+    // describing the mechanism there was noise on a page of plain settings rows.
+    expect(queryByText("Set a new one here, without email")).toBeNull();
   });
 
   it("returns to sign in from the profile", async () => {

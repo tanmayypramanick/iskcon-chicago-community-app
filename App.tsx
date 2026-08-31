@@ -366,6 +366,13 @@ export default function App() {
         problem={linkOutcome.problem}
         linkKind={linkOutcome.linkKind}
         onDismiss={() => setLinkOutcome(null)}
+        // A code accepted here means exactly what the link would have meant, so
+        // it is fed back through the same gate: recovery raises "Choose a new
+        // password", anything else simply drops the screen onto a session that
+        // now exists.
+        onVerified={(outcome) =>
+          setLinkOutcome(outcome === "recovery" ? { kind: "recovery" } : null)
+        }
       />
     ) : linkOutcome?.kind === "verified" && !linkOutcome.hadSession ? (
       // Arriving from the inbox with nothing on screen to lose: the
@@ -420,6 +427,13 @@ export default function App() {
                         authenticate();
                         navigation.replace("MainTabs");
                       }}
+                      // A reset code leaves the devotee in the same state a
+                      // tapped reset link does — signed in, still not knowing
+                      // their password — so it raises the same gate rather than
+                      // navigating anywhere. Both paths end on one screen.
+                      onRecoveryVerified={() =>
+                        setLinkOutcome({ kind: "recovery" })
+                      }
                     />
                   )}
                 </Stack.Screen>

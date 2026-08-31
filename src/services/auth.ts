@@ -82,6 +82,152 @@ export function getAuthEmailRedirectUri(): string {
  */
 export const PASSWORD_MIN_LENGTH = 6;
 
+/**
+ * The six digits Supabase puts in every auth email as `{{ .Token }}`.
+ *
+ * The templates print it beside the button because a button is not enough:
+ * Gmail and Outlook open links in their own embedded browser, and an embedded
+ * browser will not hand `iskconchicago://` to an app. A code needs no hosting,
+ * no scheme and no browser — the devotee reads it and types it.
+ */
+export const EMAIL_CODE_LENGTH = 6;
+
+/**
+ * How long a mailed code stays good, mirroring `mailer_otp_exp` (3600s) on the
+ * temple's project. Raise both together if that setting ever changes.
+ *
+ * This is here because it is the only way the app can tell an expired code from
+ * a mistyped one. GoTrue answers a wrong code, a spent code and an hours-old
+ * code with the identical `otp_expired` / "Token has expired or is invalid"
+ * pair, so the server cannot be asked which it was. When the app knows when the
+ * email was requested it can answer that itself.
+ */
+export const EMAIL_CODE_TTL_MS = 3_600_000;
+
+/** Which email the code came out of, and so which OTP the server must check. */
+export type EmailCodePurpose = "recovery" | "signup" | "magicLink";
+
+const EMAIL_OTP_TYPES: Record<
+  EmailCodePurpose,
+  "recovery" | "signup" | "magiclink"
+> = {
+  recovery: "recovery",
+  signup: "signup",
+  magicLink: "magiclink",
+};
+
+/**
+ * Why a code was not accepted, as a closed set rather than an error — for the
+ * same reason `PasswordChangeFailure` is one: a screen that is never handed a
+ * Supabase string can never draw one.
+ */
+export type EmailCodeFailure =
+  | "noAddress"
+  | "malformed"
+  /** Known from this app's own clock to be past its hour; never sent. */
+  | "expiredCode"
+  /** Refused while still inside its hour, so it was mistyped or already spent. */
+  | "wrongCode"
+  /** Refused, and the app cannot know which of the three reasons it was. */
+  | "codeNotAccepted"
+  | "tooManyAttempts"
+  | "network"
+  | "noSession"
+  | "unknown";
+
+export type EmailCodeResult =
+  { ok: true; session: Session } | { ok: false; reason: EmailCodeFailure };
+
+function classifyEmailCodeFailure(
+  error: unknown,
+  requestedAt: number | null | undefined,
+): EmailCodeFailure {
+  const raw = messageOf(error);
+  const status = (error as { status?: number } | null | undefined)?.status;
+
+  if (isNetworkFailure(raw)) return "network";
+  if (
+    status === 429 ||
+    /rate.?limit|too many|over_request|over_email/i.test(raw)
+  ) {
+    return "tooManyAttempts";
+  }
+
+  if (/otp_expired|expired|invalid|not found|token/i.test(raw)) {
+    // One server answer, three possible causes. Knowing the email is still
+    // inside its hour rules the third out, and lets the screen say something
+    // more useful than a list of everything that might have happened.
+    const withinTheHour =
+      typeof requestedAt === "number" &&
+      Date.now() - requestedAt <= EMAIL_CODE_TTL_MS;
+    return withinTheHour ? "wrongCode" : "codeNotAccepted";
+  }
+
+  return "unknown";
+}
+
+/**
+ * Exchanges the six digits from an auth email for a session.
+ *
+ * This is the same hop the tapped link makes, arriving by hand instead: for
+ * recovery it produces exactly the session the deep link produces, so both
+ * paths can end on the same "Choose a new password" screen rather than becoming
+ * two half-finished flows.
+ *
+ * `requestedAt` is when this app asked for the email, when it knows — it is
+ * only ever used to sharpen the wording of a failure, never to allow anything.
+ */
+export async function verifyEmailCode(input: {
+  email: string;
+  code: string;
+  purpose: EmailCodePurpose;
+  requestedAt?: number | null;
+}): Promise<EmailCodeResult> {
+  const email = input.email.trim();
+  // Devotees copy the code with a stray space, or out of a "code: 123456"
+  // line. Stripping is kinder than refusing.
+  const code = input.code.replace(/\D/g, "");
+
+  if (!email) return { ok: false, reason: "noAddress" };
+  if (code.length !== EMAIL_CODE_LENGTH) {
+    return { ok: false, reason: "malformed" };
+  }
+
+  // Refused here rather than sent. The server would answer a stale code with
+  // the string it also uses for a mistyped one, and the devotee would be told
+  // to check their typing when the remedy is a fresh email.
+  if (
+    typeof input.requestedAt === "number" &&
+    Date.now() - input.requestedAt > EMAIL_CODE_TTL_MS
+  ) {
+    return { ok: false, reason: "expiredCode" };
+  }
+
+  try {
+    const { data, error } = await getSupabaseClient().auth.verifyOtp({
+      email,
+      token: code,
+      type: EMAIL_OTP_TYPES[input.purpose],
+    });
+
+    if (error) {
+      return {
+        ok: false,
+        reason: classifyEmailCodeFailure(error, input.requestedAt),
+      };
+    }
+    // A recovery with no session cannot set a password, so an accepted code
+    // that produced nothing is a failure here rather than a quiet success.
+    if (!data?.session) return { ok: false, reason: "noSession" };
+    return { ok: true, session: data.session };
+  } catch (error) {
+    return {
+      ok: false,
+      reason: classifyEmailCodeFailure(error, input.requestedAt),
+    };
+  }
+}
+
 export type AuthProviderAvailability = {
   email: boolean;
   google: boolean;

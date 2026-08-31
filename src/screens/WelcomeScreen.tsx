@@ -28,7 +28,9 @@ import {
   signInWithGoogle,
   signUpWithEmail,
   type AuthProviderAvailability,
+  type EmailCodePurpose,
 } from "../services/auth";
+import { EmailCodeScreen } from "./EmailCodeScreen";
 
 type AuthView = "signIn" | "createAccount" | "resetPassword";
 
@@ -302,10 +304,39 @@ function FinePrint() {
   );
 }
 
+/**
+ * The way past a link that will not open, offered only once we have actually
+ * sent an email with a code in it. Kept small and quiet: tapping the button in
+ * the email is still the better path where it works, and this must not compete
+ * with it.
+ */
+function CodeInsteadLink({ onPress }: { onPress: () => void }) {
+  return (
+    <Pressable
+      className="h-7 items-center justify-center"
+      accessibilityRole="button"
+      accessibilityLabel="Enter a code instead"
+      hitSlop={10}
+      onPress={onPress}
+    >
+      <Text className="font-sans-bold text-xs text-indigo">
+        Enter a code instead
+      </Text>
+    </Pressable>
+  );
+}
+
 export function WelcomeScreen({
   onAuthenticated,
+  onRecoveryVerified,
 }: {
   onAuthenticated: () => void;
+  /**
+   * A reset code was accepted, so the devotee is signed in but still does not
+   * know their password. App.tsx answers this by raising the same "Choose a new
+   * password" gate a tapped reset link raises, so both paths end in one place.
+   */
+  onRecoveryVerified: () => void;
 }) {
   const { height } = useWindowDimensions();
   const compactHeight = height < 760;
@@ -324,6 +355,15 @@ export function WelcomeScreen({
   // tap away instead of stranding them on a sign-in that will not work yet.
   const [awaitingConfirmation, setAwaitingConfirmation] = useState("");
   const [resending, setResending] = useState(false);
+  // What the last email we sent contains a code for, and where it went. Held
+  // rather than re-asked, because the devotee typed the address a moment ago
+  // and the code screen is already the second-best path.
+  const [codeOffer, setCodeOffer] = useState<{
+    purpose: EmailCodePurpose;
+    email: string;
+    requestedAt: number;
+  } | null>(null);
+  const [enteringCode, setEnteringCode] = useState(false);
   const [providers, setProviders] = useState<AuthProviderAvailability | null>(
     null,
   );
@@ -443,6 +483,11 @@ export function WelcomeScreen({
         setView("signIn");
         setPassword("");
         setAwaitingConfirmation(email.trim());
+        setCodeOffer({
+          purpose: "signup",
+          email: email.trim(),
+          requestedAt: Date.now(),
+        });
         showSuccess(
           `Welcome. Open the private verification link sent from ${COMMUNITY_EMAIL} on this phone, then return here to sign in.`,
         );
@@ -464,6 +509,11 @@ export function WelcomeScreen({
     setSubmitting(true);
     try {
       await requestPasswordReset(email);
+      setCodeOffer({
+        purpose: "recovery",
+        email: email.trim(),
+        requestedAt: Date.now(),
+      });
       showSuccess(
         `If an account uses this email, a secure link will arrive from ${COMMUNITY_EMAIL}. Open it on this phone to choose a new password.`,
       );
@@ -486,6 +536,12 @@ export function WelcomeScreen({
     setResending(true);
     try {
       await requestReplacementLink(awaitingConfirmation, "signup");
+      // The fresh email carries a fresh code, and the old one is now dead.
+      setCodeOffer({
+        purpose: "signup",
+        email: awaitingConfirmation,
+        requestedAt: Date.now(),
+      });
       showSuccess(
         `If that address is with us, another link is on its way from ${COMMUNITY_EMAIL}. Open it on this phone.`,
       );
@@ -522,6 +578,24 @@ export function WelcomeScreen({
 
   const isSignIn = view === "signIn";
   const isCreateAccount = view === "createAccount";
+
+  // Stands in place of this screen rather than beside it: a devotee typing a
+  // code has one thing to do, and the sign-in form behind it is not it.
+  if (enteringCode && codeOffer) {
+    return (
+      <EmailCodeScreen
+        purpose={codeOffer.purpose}
+        email={codeOffer.email}
+        requestedAt={codeOffer.requestedAt}
+        onCancel={() => setEnteringCode(false)}
+        onVerified={(outcome) => {
+          setEnteringCode(false);
+          if (outcome === "recovery") onRecoveryVerified();
+          else onAuthenticated();
+        }}
+      />
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-ivory" edges={["top", "bottom"]}>
@@ -644,6 +718,11 @@ export function WelcomeScreen({
                               : "Send the confirmation link again"}
                           </Text>
                         </Pressable>
+                        {codeOffer?.purpose === "signup" ? (
+                          <CodeInsteadLink
+                            onPress={() => setEnteringCode(true)}
+                          />
+                        ) : null}
                       </View>
                     ) : null}
 
@@ -804,8 +883,12 @@ export function WelcomeScreen({
                     </ActionButton>
                     <Text className="font-sans text-[11px] leading-4 text-stoneMuted">
                       If the link opens a browser rather than the app, open the
-                      same email in Mail or Safari and tap it there.
+                      same email in Mail or Safari and tap it there — or use the
+                      six-digit code printed beside the button.
                     </Text>
+                    {codeOffer?.purpose === "recovery" ? (
+                      <CodeInsteadLink onPress={() => setEnteringCode(true)} />
+                    ) : null}
                     <Pressable
                       className="h-7 items-center justify-center"
                       accessibilityRole="button"

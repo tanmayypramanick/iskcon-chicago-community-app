@@ -181,6 +181,30 @@ file and save:
 | Magic link | `Your sign-in link — ISKCON Chicago` |
 | Change email | `Confirm your new address — ISKCON Chicago` |
 
+### About the six-digit code in three of them
+
+`01-confirm-signup.html`, `02-reset-password.html` and `03-magic-link.html`
+print `{{ .Token }}` — the six-digit OTP Supabase generates for every auth email
+— underneath the button, with one line telling the devotee to tap **Enter a code
+instead** on the app's sign-in screen.
+
+It is there because the button cannot reach everybody. Gmail and Outlook open
+links in their own embedded browser, and an embedded browser will not hand a
+custom scheme to an app; on a laptop there is no app at all. The code needs no
+browser, no scheme and no hosting. **It is a fallback, not a replacement** — the
+button is still one tap where it works, and the code is deliberately quieter.
+
+`04-change-email.html` deliberately has **no** code. The app has nowhere to type
+one: an email change is started from inside the app, and Supabase's secure email
+change wants a token from each of the two addresses. Printing a code with no
+screen behind it would be worse than printing none.
+
+`mailer_otp_exp` is `3600` on this project, and the copy says "good for one
+hour". `EMAIL_CODE_TTL_MS` in `src/services/auth.ts` mirrors it — it is how the
+app tells an expired code from a mistyped one, since GoTrue answers both with
+the same "Token has expired or is invalid". If you ever change that setting,
+change the constant and this line in the same commit.
+
 ### About the fonts in these emails
 
 The templates ask for EB Garamond and Source Sans 3 the way the app does, but

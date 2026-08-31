@@ -9,6 +9,7 @@ import {
   signInWithEmail,
   signInWithGoogle,
   signUpWithEmail,
+  verifyEmailCode,
 } from "../../services/auth";
 import { WelcomeScreen } from "../WelcomeScreen";
 
@@ -16,7 +17,9 @@ jest.mock("../../services/auth", () => ({
   // Mirrors the project's password_min_length; the screen states this number
   // in its own copy, so a mock that omitted it would print "undefined".
   PASSWORD_MIN_LENGTH: 6,
+  EMAIL_CODE_LENGTH: 6,
   getAuthProviderAvailability: jest.fn(),
+  verifyEmailCode: jest.fn(),
   requestPasswordReset: jest.fn(),
   requestReplacementLink: jest.fn(),
   signInWithEmail: jest.fn(),
@@ -32,6 +35,7 @@ const mockSignInWithGoogle = jest.mocked(signInWithGoogle);
 const mockSignUpWithEmail = jest.mocked(signUpWithEmail);
 const mockRequestPasswordReset = jest.mocked(requestPasswordReset);
 const mockRequestReplacementLink = jest.mocked(requestReplacementLink);
+const mockVerifyEmailCode = jest.mocked(verifyEmailCode);
 
 describe("WelcomeScreen", () => {
   beforeEach(() => {
@@ -46,11 +50,20 @@ describe("WelcomeScreen", () => {
     mockSignUpWithEmail.mockResolvedValue({} as never);
     mockRequestPasswordReset.mockResolvedValue(undefined);
     mockRequestReplacementLink.mockResolvedValue(undefined);
+    mockVerifyEmailCode.mockResolvedValue({
+      ok: true,
+      session: { user: { id: "devotee-1" } } as never,
+    });
   });
 
   /** Fills the reset form and returns the one line the screen answers with. */
   const requestResetFor = async (address: string) => {
-    const screen = await render(<WelcomeScreen onAuthenticated={jest.fn()} />);
+    const screen = await render(
+      <WelcomeScreen
+        onAuthenticated={jest.fn()}
+        onRecoveryVerified={jest.fn()}
+      />,
+    );
     await fireEvent.press(
       screen.getByRole("button", { name: "Forgot password?" }),
     );
@@ -69,7 +82,10 @@ describe("WelcomeScreen", () => {
 
   it("shows the ISKCON Chicago spiritual welcome and auth choices", async () => {
     const { getByRole, getByText, queryByText } = await render(
-      <WelcomeScreen onAuthenticated={jest.fn()} />,
+      <WelcomeScreen
+        onAuthenticated={jest.fn()}
+        onRecoveryVerified={jest.fn()}
+      />,
     );
 
     expect(getByText("Home of Śrī Śrī Kiśora-Kiśorī")).toBeTruthy();
@@ -94,7 +110,10 @@ describe("WelcomeScreen", () => {
   it("validates an email sign-in before opening the app", async () => {
     const onAuthenticated = jest.fn();
     const { getByPlaceholderText, getByRole, getByText } = await render(
-      <WelcomeScreen onAuthenticated={onAuthenticated} />,
+      <WelcomeScreen
+        onAuthenticated={onAuthenticated}
+        onRecoveryVerified={jest.fn()}
+      />,
     );
 
     await fireEvent.press(getByRole("button", { name: "Sign in" }));
@@ -124,7 +143,10 @@ describe("WelcomeScreen", () => {
       emailConfirmationRequired: true,
     });
     const { getByRole } = await render(
-      <WelcomeScreen onAuthenticated={onAuthenticated} />,
+      <WelcomeScreen
+        onAuthenticated={onAuthenticated}
+        onRecoveryVerified={jest.fn()}
+      />,
     );
 
     await waitFor(() =>
@@ -142,7 +164,12 @@ describe("WelcomeScreen", () => {
 
   it("switches to account creation and password reset", async () => {
     const { getByPlaceholderText, getByRole, getByText, queryByText } =
-      await render(<WelcomeScreen onAuthenticated={jest.fn()} />);
+      await render(
+        <WelcomeScreen
+          onAuthenticated={jest.fn()}
+          onRecoveryVerified={jest.fn()}
+        />,
+      );
 
     await fireEvent.press(getByRole("button", { name: "Create an account" }));
     await waitFor(() =>
@@ -164,7 +191,10 @@ describe("WelcomeScreen", () => {
   it("creates an account with name, email, and password only", async () => {
     const onAuthenticated = jest.fn();
     const { getByPlaceholderText, getByRole } = await render(
-      <WelcomeScreen onAuthenticated={onAuthenticated} />,
+      <WelcomeScreen
+        onAuthenticated={onAuthenticated}
+        onRecoveryVerified={jest.fn()}
+      />,
     );
 
     await fireEvent.press(getByRole("button", { name: "Create an account" }));
@@ -196,7 +226,10 @@ describe("WelcomeScreen", () => {
   it("asks an email-confirmation signup to confirm before signing in", async () => {
     mockSignUpWithEmail.mockResolvedValueOnce(null);
     const { getByPlaceholderText, getByRole, getByText } = await render(
-      <WelcomeScreen onAuthenticated={jest.fn()} />,
+      <WelcomeScreen
+        onAuthenticated={jest.fn()}
+        onRecoveryVerified={jest.fn()}
+      />,
     );
 
     await fireEvent.press(getByRole("button", { name: "Create an account" }));
@@ -240,7 +273,12 @@ describe("WelcomeScreen", () => {
     // Gmail's in-app browser often refuses to hand a custom scheme to the app,
     // so the sign-in they were sent back to would fail with no way forward.
     mockSignUpWithEmail.mockResolvedValueOnce(null);
-    const screen = await render(<WelcomeScreen onAuthenticated={jest.fn()} />);
+    const screen = await render(
+      <WelcomeScreen
+        onAuthenticated={jest.fn()}
+        onRecoveryVerified={jest.fn()}
+      />,
+    );
 
     await fireEvent.press(
       screen.getByRole("button", { name: "Create an account" }),
@@ -281,7 +319,12 @@ describe("WelcomeScreen", () => {
   it("claims nothing was verified on an ordinary sign-in", async () => {
     // The verified confirmation belongs only to a consumed email link. Sign-in
     // must never borrow it.
-    const screen = await render(<WelcomeScreen onAuthenticated={jest.fn()} />);
+    const screen = await render(
+      <WelcomeScreen
+        onAuthenticated={jest.fn()}
+        onRecoveryVerified={jest.fn()}
+      />,
+    );
 
     await fireEvent.changeText(
       screen.getByPlaceholderText("Email address"),
@@ -296,5 +339,142 @@ describe("WelcomeScreen", () => {
     await waitFor(() => expect(mockSignInWithEmail).toHaveBeenCalled());
     expect(screen.queryByText("Your email is verified")).toBeNull();
     expect(screen.queryByText(/verified/i)).toBeNull();
+  });
+  describe("the six-digit code, for the devotees the button cannot reach", () => {
+    const CODE_FIELD = "6-digit code from your email";
+
+    const askForAReset = async (onRecoveryVerified = jest.fn()) => {
+      const screen = await render(
+        <WelcomeScreen
+          onAuthenticated={jest.fn()}
+          onRecoveryVerified={onRecoveryVerified}
+        />,
+      );
+      await fireEvent.press(
+        screen.getByRole("button", { name: "Forgot password?" }),
+      );
+      await fireEvent.changeText(
+        screen.getByPlaceholderText("Email address"),
+        "devotee@example.com",
+      );
+      await fireEvent.press(
+        screen.getByRole("button", { name: "Send reset link" }),
+      );
+      await waitFor(() => expect(mockRequestPasswordReset).toHaveBeenCalled());
+      return screen;
+    };
+
+    it("is not offered until an email with a code in it has been sent", async () => {
+      const screen = await render(
+        <WelcomeScreen
+          onAuthenticated={jest.fn()}
+          onRecoveryVerified={jest.fn()}
+        />,
+      );
+
+      await fireEvent.press(
+        screen.getByRole("button", { name: "Forgot password?" }),
+      );
+      expect(
+        screen.queryByRole("button", { name: "Enter a code instead" }),
+      ).toBeNull();
+    });
+
+    it("carries the address the devotee just typed, rather than asking twice", async () => {
+      const screen = await askForAReset();
+
+      await fireEvent.press(
+        screen.getByRole("button", { name: "Enter a code instead" }),
+      );
+
+      expect(screen.getByText(/devotee@example\.com/)).toBeTruthy();
+      expect(
+        screen.queryByLabelText("Email address the code was sent to"),
+      ).toBeNull();
+    });
+
+    it("ends a reset code on Choose a new password, exactly where the link ends", async () => {
+      const onRecoveryVerified = jest.fn();
+      const screen = await askForAReset(onRecoveryVerified);
+
+      await fireEvent.press(
+        screen.getByRole("button", { name: "Enter a code instead" }),
+      );
+      await fireEvent.changeText(screen.getByLabelText(CODE_FIELD), "123456");
+
+      await waitFor(() =>
+        expect(mockVerifyEmailCode).toHaveBeenCalledWith(
+          expect.objectContaining({
+            email: "devotee@example.com",
+            code: "123456",
+            purpose: "recovery",
+          }),
+        ),
+      );
+      // Not into the app: they are signed in but still do not know their
+      // password, which is the whole reason the link raises the same gate.
+      await waitFor(() => expect(onRecoveryVerified).toHaveBeenCalledTimes(1));
+    });
+
+    it("never reaches the password screen on a code the server refused", async () => {
+      mockVerifyEmailCode.mockResolvedValue({
+        ok: false,
+        reason: "wrongCode" as never,
+      });
+      const onRecoveryVerified = jest.fn();
+      const screen = await askForAReset(onRecoveryVerified);
+
+      await fireEvent.press(
+        screen.getByRole("button", { name: "Enter a code instead" }),
+      );
+      await fireEvent.changeText(screen.getByLabelText(CODE_FIELD), "123456");
+
+      await waitFor(() => expect(mockVerifyEmailCode).toHaveBeenCalled());
+      expect(onRecoveryVerified).not.toHaveBeenCalled();
+      expect(screen.getByText(/were not right/)).toBeTruthy();
+    });
+
+    it("signs a devotee in on a confirmation code from the sign-up they just made", async () => {
+      mockSignUpWithEmail.mockResolvedValueOnce(null);
+      const onAuthenticated = jest.fn();
+      const screen = await render(
+        <WelcomeScreen
+          onAuthenticated={onAuthenticated}
+          onRecoveryVerified={jest.fn()}
+        />,
+      );
+
+      await fireEvent.press(
+        screen.getByRole("button", { name: "Create an account" }),
+      );
+      await fireEvent.changeText(
+        screen.getByPlaceholderText("Full name"),
+        "Gauranga Sharma",
+      );
+      await fireEvent.changeText(
+        screen.getByPlaceholderText("Email address"),
+        "devotee@example.com",
+      );
+      await fireEvent.changeText(
+        screen.getByPlaceholderText("Create password"),
+        "haribol8",
+      );
+      await fireEvent.press(
+        screen.getByRole("button", { name: "Create account" }),
+      );
+
+      const enterCode = await waitFor(() =>
+        screen.getByRole("button", { name: "Enter a code instead" }),
+      );
+      await fireEvent.press(enterCode);
+      await fireEvent.changeText(screen.getByLabelText(CODE_FIELD), "123456");
+
+      await waitFor(() =>
+        expect(mockVerifyEmailCode).toHaveBeenCalledWith(
+          expect.objectContaining({ purpose: "signup" }),
+        ),
+      );
+      await waitFor(() => expect(onAuthenticated).toHaveBeenCalledTimes(1));
+    });
   });
 });
