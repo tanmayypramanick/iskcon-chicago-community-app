@@ -397,7 +397,16 @@ export function ServingList({
                 </View>
               ) : null}
             </View>
-            {canRecord ? (
+            {/*
+              Never on your own row. A self-added seva creates its instance
+              with posted_by = the devotee, so "did you post this?" says yes to
+              them for their own seva, and the buttons appeared on the one row
+              they must never answer. The server refuses it outright
+              (202608310095) — this is so the control is not offered in the
+              first place, which is also what makes a self-added seva have no
+              "mark served" step at all: its only participant is you.
+            */}
+            {canRecord && devotee.id !== currentUserId ? (
               <View className="mt-2.5 flex-row gap-2">
                 {ATTENDANCE_CHOICES.map((choice) => {
                   const chosen = assignment.attendance === choice.value;

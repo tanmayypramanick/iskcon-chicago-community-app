@@ -7,6 +7,7 @@ import tokens from "../../design-tokens.json";
 import { Button, InitialAvatar, Screen, SectionHeader } from "../components/ui";
 import { useCurrentAccessProfile } from "../features/access/hooks";
 import { hasAccessPermission } from "../features/access/model";
+import { registrationInstanceIds } from "../features/services/registrations";
 import {
   ClashWarningSheet,
   FormError,
@@ -87,8 +88,28 @@ export function ServiceDetailScreen({ navigation, route }: Props) {
   );
   // 0023: closing a seva request belongs to whoever posted it, plus the two
   // levels that override anything.
+  /**
+   * A seva the devotee only REGISTERED is not a seva they close out.
+   *
+   * Approving a self-added or logged seva creates its instance with posted_by
+   * = the devotee (202608040025), so the "did you post this?" test says yes to
+   * them for their own seva and handed them the coordinator's controls over
+   * it. The temple's rule is the other way round: whoever posted a seva says
+   * whether it was served, and a devotee just serves. A self-added seva has no
+   * "mark served" step at all — the member who was asked to verify it settles
+   * it.
+   *
+   * The server refuses the write either way (202608310095); this is so the
+   * controls are not offered.
+   */
+  const isMyRegistration = Boolean(
+    service &&
+      dashboard.data &&
+      registrationInstanceIds(dashboard.data).has(service.id),
+  );
   const canCloseThisSeva = Boolean(
     service &&
+      !isMyRegistration &&
       (service.posted_by === activeUserId ||
         hasAccessPermission(effectiveRole, "app.view_all")),
   );
