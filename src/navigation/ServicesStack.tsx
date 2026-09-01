@@ -22,6 +22,7 @@ import { ServicesScreen } from "../screens/ServicesScreen";
 import { SevaListScreen } from "../screens/SevaListScreen";
 import { WeeklySevaAnswersScreen } from "../screens/WeeklySevaAnswersScreen";
 import { WeeklySevaDetailScreen } from "../screens/WeeklySevaDetailScreen";
+import { WeeklySevaUpdatesScreen } from "../screens/WeeklySevaUpdatesScreen";
 import type { ServicesStackParamList } from "./types";
 
 const Stack = createNativeStackNavigator<ServicesStackParamList>();
@@ -144,6 +145,11 @@ export function ServicesStack() {
         name="WeeklySevaAnswers"
         component={WeeklySevaAnswersScreen}
         options={{ title: "Did you serve?" }}
+      />
+      <Stack.Screen
+        name="WeeklySevaUpdates"
+        component={WeeklySevaUpdatesScreen}
+        options={{ title: "Weekly seva updates" }}
       />
       {/* The title is set by the screen: whose timetable it is decides it. */}
       <Stack.Screen

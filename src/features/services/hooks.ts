@@ -742,7 +742,9 @@ export function useDeleteSevaRegistration() {
 
 export const weeklyAnswerKeys = {
   mine: ["services", "weekly-answers", "mine"] as const,
-  rota: ["services", "weekly-answers", "rota"] as const,
+  /** The prefix, so an answer invalidates every window that is cached. */
+  allRota: ["services", "weekly-answers", "rota"] as const,
+  rota: (days: number) => ["services", "weekly-answers", "rota", days] as const,
 };
 
 /**
@@ -760,11 +762,17 @@ export function useMyWeeklySevaToAnswer(enabled = true) {
   });
 }
 
-/** What devotees answered, for whoever set the rota up plus Tech and President. */
-export function useWeeklySevaAnswers(enabled = true) {
+/**
+ * What devotees answered, for whoever set the rota up plus Tech and President.
+ *
+ * The window is a parameter because the two places that read this want
+ * different things: the weekly board wants the last fortnight, and Weekly seva
+ * updates is a record you search, so it reaches back a season.
+ */
+export function useWeeklySevaAnswers(enabled = true, days = 14) {
   return useQuery({
-    queryKey: weeklyAnswerKeys.rota,
-    queryFn: fetchWeeklySevaAnswers,
+    queryKey: weeklyAnswerKeys.rota(days),
+    queryFn: () => fetchWeeklySevaAnswers(days),
     enabled,
     staleTime: 60_000,
   });
@@ -800,7 +808,9 @@ export function useAnswerMyWeeklySeva() {
     }) => answerMyWeeklySeva(assignmentId, served),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: weeklyAnswerKeys.mine });
-      void queryClient.invalidateQueries({ queryKey: weeklyAnswerKeys.rota });
+      void queryClient.invalidateQueries({
+        queryKey: weeklyAnswerKeys.allRota,
+      });
       void queryClient.invalidateQueries({
         queryKey: serviceKeys.all,
         refetchType: "all",

@@ -147,6 +147,8 @@ export type ServicesStackParamList = {
   SevaList: { kind: SevaListKind };
   /** The weekly "did you serve?" question, in full. */
   WeeklySevaAnswers: undefined;
+  /** What devotees said about their rota days, for whoever set the rota up. */
+  WeeklySevaUpdates: undefined;
 };
 
 /**

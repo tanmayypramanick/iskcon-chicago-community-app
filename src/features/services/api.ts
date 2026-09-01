@@ -1042,10 +1042,12 @@ export function answerMyWeeklySeva(assignmentId: string, served: boolean) {
 }
 
 /** What devotees answered, for whoever set the rota up, plus Tech and President. */
-export async function fetchWeeklySevaAnswers(): Promise<WeeklySevaAnswer[]> {
+export async function fetchWeeklySevaAnswers(
+  days = 14,
+): Promise<WeeklySevaAnswer[]> {
   const { data, error } = await getSupabaseClient().rpc(
     "list_weekly_seva_answers",
-    { p_days: 14 },
+    { p_days: days },
   );
   reportReachability(!error || !isConnectionProblem(error));
   if (error) {

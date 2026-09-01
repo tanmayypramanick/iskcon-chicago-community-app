@@ -2,16 +2,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
 
 import tokens from "../../../design-tokens.json";
-import { Avatar, SectionHeader } from "../../components/ui";
+import { SectionHeader } from "../../components/ui";
 import { FormError } from "./components";
 import { errorMessage, formatServiceDate } from "./format";
 import {
   useAnswerMyWeeklySeva,
   useDismissMyWeeklySevaAnswer,
   useMyWeeklySevaToAnswer,
-  useWeeklySevaAnswers,
 } from "./hooks";
-import type { WeeklySevaAnswer, WeeklySevaToAnswer } from "./types";
+import type { WeeklySevaToAnswer } from "./types";
 
 /*
  * Kept out of components.tsx on purpose.
@@ -183,84 +182,5 @@ export function WeeklySevaAnswerList() {
       ))}
       {failure ? <FormError message={failure} /> : null}
     </View>
-  );
-}
-
-/** One answered day, for whoever set the rota up. */
-function AnsweredRow({ row }: { row: WeeklySevaAnswer }) {
-  const served = row.answer === "served";
-  return (
-    <View className="flex-row items-center border-t border-border py-2.5">
-      <Avatar
-        name={row.devotee_name?.trim() || "A devotee"}
-        photoUrl={row.devotee_photo_url}
-        size="small"
-        tone={served ? "peacock" : "marigold"}
-      />
-      <View className="ml-3 min-w-0 flex-1">
-        <Text className="font-sans text-sm text-stone" numberOfLines={1}>
-          {row.devotee_name?.trim() || "A devotee"}
-        </Text>
-        <Text className="font-sans text-xs text-stoneMuted" numberOfLines={1}>
-          {row.seva_name} · {formatServiceDate(row.occurred_on)}
-        </Text>
-      </View>
-      <Text
-        className={`ml-2 flex-shrink-0 font-sans-bold text-xs ${
-          served ? "text-peacock" : "text-stone"
-        }`}
-      >
-        {served ? "Served" : "Missed"}
-      </Text>
-    </View>
-  );
-}
-
-/**
- * What devotees said about their own weekly seva, for whoever set the rota up
- * plus the Tech Admin and the President.
- *
- * Missed days first: they are the reason this exists. A day that was served is
- * shown too, quietly, so the list does not read as a register of failures.
- */
-export function WeeklySevaAnswersSection({
-  onSeeAll,
-  limit = PREVIEW,
-}: {
-  onSeeAll?: () => void;
-  limit?: number;
-}) {
-  const rows = useWeeklySevaAnswers();
-  const answers = [...(rows.data ?? [])].sort((left, right) => {
-    const leftMissed = left.answer !== "served" ? 0 : 1;
-    const rightMissed = right.answer !== "served" ? 0 : 1;
-    if (leftMissed !== rightMissed) return leftMissed - rightMissed;
-    return right.occurred_on.localeCompare(left.occurred_on);
-  });
-
-  if (!answers.length) return null;
-
-  const missed = answers.filter((row) => row.answer !== "served").length;
-
-  return (
-    <>
-      <SectionHeader
-        title="Weekly seva, answered"
-        subtitle={
-          missed
-            ? missed > 1
-              ? `${missed} days went uncovered`
-              : "One day went uncovered"
-            : undefined
-        }
-        action={onSeeAll && answers.length > limit ? "See all" : undefined}
-        onAction={onSeeAll && answers.length > limit ? onSeeAll : undefined}
-      />
-      <View className="mb-section rounded-card border border-border bg-white px-card">
-        {answers.slice(0, limit).map((row) => (
-          <AnsweredRow key={row.assignment_id} row={row} />
-        ))}
-      </View>
-    </>
   );
 }

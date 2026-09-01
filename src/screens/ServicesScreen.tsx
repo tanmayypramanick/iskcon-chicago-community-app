@@ -25,10 +25,7 @@ import {
   SevaCard,
   WeeklySevaCard,
 } from "../features/services/components";
-import {
-  WeeklySevaAnswerSection,
-  WeeklySevaAnswersSection,
-} from "../features/services/weeklyAnswer";
+import { WeeklySevaAnswerSection } from "../features/services/weeklyAnswer";
 import {
   clashWarningMessage,
   clashWarningTitle,
@@ -1156,9 +1153,6 @@ export function ServicesScreen({ navigation }: Props) {
         asked.
       */}
       <WeeklySevaAnswerSection
-        onSeeAll={() => navigation.navigate("WeeklySevaAnswers")}
-      />
-      <WeeklySevaAnswersSection
         onSeeAll={() => navigation.navigate("WeeklySevaAnswers")}
       />
 

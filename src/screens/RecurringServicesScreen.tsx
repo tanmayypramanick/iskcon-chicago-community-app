@@ -10,6 +10,7 @@ import { WeeklySevaCard } from "../features/services/components";
 import {
   useServiceDashboard,
   useSetRecurringServiceActive,
+  useWeeklySevaAnswers,
 } from "../features/services/hooks";
 import { weeklyRoster } from "../features/services/selectors";
 import type { ServicesStackParamList } from "../navigation/types";
@@ -33,6 +34,15 @@ export function RecurringServicesScreen({ navigation }: Props) {
   );
   const templates = dashboard.data?.recurringTemplates ?? [];
 
+  // The server already decides who may read these — it answers with nothing
+  // for anybody else — so the row appears when there is something to read, and
+  // for a coordinator always, so they can find it before there is.
+  const answers = useWeeklySevaAnswers();
+  const missed = (answers.data ?? []).filter(
+    (row) => row.answer !== "served",
+  ).length;
+  const showUpdates = canManage || (answers.data?.length ?? 0) > 0;
+
   return (
     <Screen topInset={false}>
       <ScreenTitle eyebrow="Standing weekly seva">
@@ -48,6 +58,52 @@ export function RecurringServicesScreen({ navigation }: Props) {
             Create weekly service
           </Button>
         </View>
+      ) : null}
+
+      {/*
+        A rota runs by itself, so this is the one thing about it that ever
+        needs reading: the days a devotee said they missed. It sits here rather
+        than on the seva board because it belongs to whoever set the rota up,
+        and only they can do anything about it.
+      */}
+      {showUpdates ? (
+        <Pressable
+          className="mb-section min-h-touch flex-row items-center rounded-card border border-border bg-white px-card py-4"
+          accessibilityRole="button"
+          accessibilityLabel="Weekly seva updates"
+          accessibilityHint="What devotees said about the rota days they held"
+          onPress={() => navigation.navigate("WeeklySevaUpdates")}
+        >
+          <View className="h-11 w-11 items-center justify-center rounded-pill bg-peacockSoft">
+            <Ionicons
+              name="chatbox-ellipses-outline"
+              size={20}
+              color={tokens.colors.peacock}
+            />
+          </View>
+          <View className="ml-3 min-w-0 flex-1">
+            <Text className="font-sans-bold text-base text-stone">
+              Weekly seva updates
+            </Text>
+            <Text className="font-sans text-sm text-stoneMuted" numberOfLines={1}>
+              {missed
+                ? missed > 1
+                  ? `${missed} days went uncovered`
+                  : "One day went uncovered"
+                : "What devotees said about their days"}
+            </Text>
+          </View>
+          {missed ? (
+            <View className="ml-2 min-w-7 items-center justify-center rounded-pill bg-vermilion px-2 py-0.5">
+              <Text className="font-sans-bold text-xs text-white">{missed}</Text>
+            </View>
+          ) : null}
+          <Ionicons
+            name="chevron-forward"
+            size={20}
+            color={tokens.colors.indigo}
+          />
+        </Pressable>
       ) : null}
 
       {dashboard.isLoading ? (
