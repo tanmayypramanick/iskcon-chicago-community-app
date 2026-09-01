@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seva Flows — ISKCON Chicago</title>
+<meta name="description" content="How posted, self-added and weekly seva are settled: every permutation, who may do what, and what is still open.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Source+Sans+3:wght@400;600;700&display=swap">
+
+<style>
+  :root {
+    --ground: #FBF7EF;
+    --surface: #FFFFFF;
+    --surface-sunk: #F5EFE3;
+    --border: #DED2BF;
+    --border-soft: #EADFCC;
+    --ink: #3A342B;
+    --ink-muted: #766D61;
+
+    --posted: #2B3A67;
+    --posted-wash: #E7EAF3;
+    --registration: #1F6F67;
+    --registration-wash: #DCECE8;
+    --weekly: #B0700D;
+    --weekly-wash: #F8E7C4;
+
+    --open: #C1440E;
+    --open-wash: #FAE7DF;
+
+    --shadow: 0 1px 2px rgba(58, 52, 43, .06), 0 8px 24px -16px rgba(58, 52, 43, .28);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #211D18;
+      --surface: #2A251E;
+      --surface-sunk: #322C24;
+      --border: #453D32;
+      --border-soft: #3A332B;
+      --ink: #F1E8D9;
+      --ink-muted: #B3A794;
+
+      --posted: #9BADE0;
+      --posted-wash: #2A3149;
+      --registration: #63C4B3;
+      --registration-wash: #1E3B37;
+      --weekly: #F0B455;
+      --weekly-wash: #40331C;
+
+      --open: #F08A5F;
+      --open-wash: #40261D;
+
+      --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px -16px rgba(0, 0, 0, .6);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #211D18;
+    --surface: #2A251E;
+    --surface-sunk: #322C24;
+    --border: #453D32;
+    --border-soft: #3A332B;
+    --ink: #F1E8D9;
+    --ink-muted: #B3A794;
+
+    --posted: #9BADE0;
+    --posted-wash: #2A3149;
+    --registration: #63C4B3;
+    --registration-wash: #1E3B37;
+    --weekly: #F0B455;
+    --weekly-wash: #40331C;
+
+    --open: #F08A5F;
+    --open-wash: #40261D;
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px -16px rgba(0, 0, 0, .6);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+  }
+
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--registration);
+    margin: 0 0 6px;
+  }
+
+  h1 {
+    font-family: "EB Garamond", Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(34px, 5vw, 48px);
+    line-height: 1.1;
+    margin: 0 0 14px;
+    text-wrap: balance;
+  }
+
+  h2 {
+    font-family: "EB Garamond", Georgia, serif;
+    font-weight: 600;
+    font-size: 27px;
+    line-height: 1.2;
+    margin: 0 0 4px;
+    text-wrap: balance;
+  }
+
+  h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: .01em;
+  }
+
+  p { margin: 0; max-width: 68ch; }
+  .lede { font-size: 18px; color: var(--ink-muted); max-width: 66ch; }
+  .section-note { color: var(--ink-muted); margin-bottom: 22px; max-width: 68ch; }
+
+  section { display: flex; flex-direction: column; }
+
+  /* ---- the three flows ---- */
+
+  .flows {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(268px, 1fr));
+    gap: 18px;
+  }
+
+  .flow {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 0 0 20px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .flow-rule { height: 5px; }
+  .flow[data-flow="posted"] .flow-rule { background: var(--posted); }
+  .flow[data-flow="registration"] .flow-rule { background: var(--registration); }
+  .flow[data-flow="weekly"] .flow-rule { background: var(--weekly); }
+
+  .flow-body { padding: 18px 20px 0; display: flex; flex-direction: column; gap: 14px; }
+
+  .flow-name {
+    font-family: "EB Garamond", Georgia, serif;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.15;
+  }
+  .flow[data-flow="posted"] .flow-name { color: var(--posted); }
+  .flow[data-flow="registration"] .flow-name { color: var(--registration); }
+  .flow[data-flow="weekly"] .flow-name { color: var(--weekly); }
+
+  .verdict {
+    display: inline-flex;
+    align-self: flex-start;
+    padding: 4px 11px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  .flow[data-flow="posted"] .verdict { background: var(--posted-wash); color: var(--posted); }
+  .flow[data-flow="registration"] .verdict { background: var(--registration-wash); color: var(--registration); }
+  .flow[data-flow="weekly"] .verdict { background: var(--weekly-wash); color: var(--weekly); }
+
+  dl { margin: 0; display: flex; flex-direction: column; gap: 11px; }
+  dt {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin-bottom: 1px;
+  }
+  dd { margin: 0; font-size: 15px; line-height: 1.5; }
+
+  .refused {
+    margin-top: 2px;
+    padding: 11px 13px;
+    border-radius: 12px;
+    background: var(--surface-sunk);
+    border: 1px solid var(--border-soft);
+    font-size: 14px;
+    line-height: 1.45;
+  }
+  .refused strong { font-weight: 700; }
+
+  /* ---- tables ---- */
+
+  .scroller { overflow-x: auto; border-radius: 16px; border: 1px solid var(--border); background: var(--surface); }
+
+  table { border-collapse: collapse; width: 100%; min-width: 620px; font-size: 15px; }
+  caption { text-align: left; padding: 0 0 10px; color: var(--ink-muted); font-size: 15px; }
+
+  th, td { text-align: left; padding: 11px 16px; border-bottom: 1px solid var(--border-soft); vertical-align: top; }
+  thead th {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    background: var(--surface-sunk);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td.who { white-space: nowrap; font-weight: 600; }
+
+  .earns { font-weight: 700; color: var(--registration); white-space: nowrap; }
+  .nothing { font-weight: 700; color: var(--ink-muted); white-space: nowrap; }
+  .refuse { font-weight: 700; color: var(--open); white-space: nowrap; }
+
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13px;
+    background: var(--surface-sunk);
+    border: 1px solid var(--border-soft);
+    border-radius: 5px;
+    padding: 1px 5px;
+  }
+
+  /* ---- status ---- */
+
+  .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 20px 22px;
+    box-shadow: var(--shadow);
+  }
+  .panel h3 { margin-bottom: 12px; font-size: 16px; }
+  .panel[data-tone="open"] { border-color: color-mix(in srgb, var(--open) 34%, var(--border)); }
+
+  ul.ticks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+  ul.ticks li { position: relative; padding-left: 22px; font-size: 15px; line-height: 1.5; }
+  ul.ticks li::before {
+    content: "";
+    position: absolute;
+    left: 0; top: .55em;
+    width: 9px; height: 9px;
+    border-radius: 999px;
+    background: var(--registration);
+  }
+  .panel[data-tone="open"] ul.ticks li::before { background: var(--open); }
+
+  .rule { height: 1px; background: var(--border); border: none; margin: 0; }
+
+  footer { color: var(--ink-muted); font-size: 14px; }
+  footer strong { color: var(--ink); font-weight: 600; }
+
+  a { color: var(--posted); }
+  a:focus-visible, th:focus-visible { outline: 2px solid var(--posted); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">ISKCON Chicago</p>
+    <h1>How seva is settled</h1>
+    <p class="lede">
+      There are three kinds of seva and they are settled by different people in
+      different ways. Nothing here is aspirational — every rule below is
+      enforced by the database and proven by a test that runs whenever the
+      schema is applied.
+    </p>
+  </header>
+
+  <section>
+    <h2>The three flows</h2>
+    <p class="section-note">
+      The one distinction everything else follows from: a posted seva is
+      <em>servable</em>, a self-added seva is <em>verifiable</em>, and a weekly
+      rota is neither — it runs by itself.
+    </p>
+
+    <div class="flows">
+
+      <article class="flow" data-flow="posted">
+        <div class="flow-rule"></div>
+        <div class="flow-body">
+          <h3 class="flow-name">Posted seva</h3>
+          <span class="verdict">Servable</span>
+          <dl>
+            <div>
+              <dt>Who posts it</dt>
+              <dd>President, Tech Admin, Community Head or Volunteer.</dd>
+            </div>
+            <div>
+              <dt>Who serves it</dt>
+              <dd>Any devotee joins an open seva; named devotees accept an invite‑only one.</dd>
+            </div>
+            <div>
+              <dt>Who settles it</dt>
+              <dd>Whoever posted it, or a Tech Admin or the President — they mark each place served, absent or excused, then complete the seva.</dd>
+            </div>
+          </dl>
+          <p class="refused">
+            <strong>Not verifiable.</strong> The person who would verify it is
+            the person who posted it, so marking somebody served <em>is</em> the
+            verification.
+          </p>
+        </div>
+      </article>
+
+      <article class="flow" data-flow="registration">
+        <div class="flow-rule"></div>
+        <div class="flow-body">
+          <h3 class="flow-name">Self‑added seva</h3>
+          <span class="verdict">Verifiable</span>
+          <dl>
+            <div>
+              <dt>Who adds it</dt>
+              <dd>The devotee — either planned ahead, or logged after they have done it.</dd>
+            </div>
+            <div>
+              <dt>Who confirms it</dt>
+              <dd>The Community Head, Tech Admin or President the devotee named. They cannot name themselves.</dd>
+            </div>
+            <div>
+              <dt>When</dt>
+              <dd>Only after the seva has ended. Nothing is verified before it happens. Declining is allowed at any time.</dd>
+            </div>
+          </dl>
+          <p class="refused">
+            <strong>Not servable.</strong> There is no “mark served” step —
+            not for the devotee, not for a Community Head, not for the
+            President. Verifying it is what says it happened.
+          </p>
+        </div>
+      </article>
+
+      <article class="flow" data-flow="weekly">
+        <div class="flow-rule"></div>
+        <div class="flow-body">
+          <h3 class="flow-name">Weekly seva</h3>
+          <span class="verdict">Automatic</span>
+          <dl>
+            <div>
+              <dt>Who shapes it</dt>
+              <dd>Community Head, Tech Admin or President — the days, the places, and who stands on the rota.</dd>
+            </div>
+            <div>
+              <dt>How it settles</dt>
+              <dd>It completes on its day and counts on completion alone. Nobody presses anything.</dd>
+            </div>
+            <div>
+              <dt>When somebody can’t go</dt>
+              <dd>They ask for coverage. That names a substitute, opens the day, or asks another devotee.</dd>
+            </div>
+          </dl>
+          <p class="refused">
+            <strong>No served or absent.</strong> Marking a rota settled
+            nothing — the day still had nobody on it. Coverage is the mechanism
+            that actually fills it.
+          </p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>Who may do what</h2>
+    <p class="section-note">
+      Every one of these is checked on the server, so the answer is the same
+      whatever the screen offers.
+    </p>
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Action</th>
+            <th scope="col">Posted</th>
+            <th scope="col">Self‑added</th>
+            <th scope="col">Weekly</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="who">Mark served / absent</td>
+            <td>Poster, Tech, President</td>
+            <td class="refuse">Refused — nobody</td>
+            <td class="refuse">Refused — nobody</td>
+          </tr>
+          <tr>
+            <td class="who">Mark your own attendance</td>
+            <td class="refuse">Refused</td>
+            <td class="refuse">Refused</td>
+            <td class="refuse">Refused</td>
+          </tr>
+          <tr>
+            <td class="who">Verify it</td>
+            <td class="refuse">Nothing to verify</td>
+            <td>The named member, Tech, President</td>
+            <td class="refuse">Nothing to verify</td>
+          </tr>
+          <tr>
+            <td class="who">Verify your own</td>
+            <td>—</td>
+            <td class="refuse">Refused, even for the President</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td class="who">Complete it</td>
+            <td>Poster, Tech, President</td>
+            <td>Settled by verifying</td>
+            <td>Automatic, on the day</td>
+          </tr>
+          <tr>
+            <td class="who">Arrange coverage</td>
+            <td>—</td>
+            <td>—</td>
+            <td>The devotee asks; poster, Tech or President arranges</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Every way a seva ends</h2>
+    <p class="section-note">
+      A one‑off act earns points when it is completed <em>and</em> verified
+      <em>and</em> served — all three. A weekly act earns on completion alone.
+      Being marked absent, excused, withdrawn or a no‑show earns nothing, in
+      either kind.
+    </p>
+
+    <div class="scroller">
+      <table>
+        <caption>Posted seva</caption>
+        <thead>
+          <tr>
+            <th scope="col">What happened</th>
+            <th scope="col">Result</th>
+            <th scope="col">Earns</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Devotee joined, coordinator marked them served, seva completed</td>
+            <td>Counted</td>
+            <td class="earns">Full hours</td>
+          </tr>
+          <tr>
+            <td>Marked absent, or excused</td>
+            <td>Not served</td>
+            <td class="nothing">Nothing</td>
+          </tr>
+          <tr>
+            <td>Nobody answered for them</td>
+            <td>Awaiting verification</td>
+            <td class="nothing">Nothing</td>
+          </tr>
+          <tr>
+            <td>Some served, one marked absent</td>
+            <td>Seva still completes</td>
+            <td class="earns">Only those who served</td>
+          </tr>
+          <tr>
+            <td>Everybody on it marked absent</td>
+            <td>Seva becomes cancelled — it did not happen</td>
+            <td class="nothing">Nothing</td>
+          </tr>
+          <tr>
+            <td>Marked served, then corrected to absent</td>
+            <td>The correction is the last word</td>
+            <td class="nothing">Nothing, and points already given are taken back</td>
+          </tr>
+          <tr>
+            <td>Arrived by QR scan, then marked served</td>
+            <td>The scan is kept — a stronger record is never overwritten</td>
+            <td class="earns">Full hours</td>
+          </tr>
+          <tr>
+            <td>Coordinator served a seva they posted themselves</td>
+            <td>Refused — somebody else has to say so</td>
+            <td class="nothing">Nothing until another member records it</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="height:18px"></div>
+
+    <div class="scroller">
+      <table>
+        <caption>Self‑added seva</caption>
+        <thead>
+          <tr>
+            <th scope="col">What happened</th>
+            <th scope="col">Result</th>
+            <th scope="col">Earns</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Logged after the seva, the named member verified it</td>
+            <td>Counted — verifying records that it was served</td>
+            <td class="earns">Full hours</td>
+          </tr>
+          <tr>
+            <td>Added, nobody has answered yet</td>
+            <td>Exists only as a request — no seva record at all</td>
+            <td class="nothing">Nothing</td>
+          </tr>
+          <tr>
+            <td>The member declined it</td>
+            <td>Nothing is created, and nothing is left behind</td>
+            <td class="nothing">Nothing</td>
+          </tr>
+          <tr>
+            <td>Planned ahead, member tries to verify before it happens</td>
+            <td class="refuse">Refused until the seva has ended</td>
+            <td class="nothing">Nothing yet</td>
+          </tr>
+          <tr>
+            <td>Devotee tries to verify their own</td>
+            <td class="refuse">Refused</td>
+            <td class="nothing">Nothing</td>
+          </tr>
+          <tr>
+            <td>Devotee tries to mark themselves served</td>
+            <td class="refuse">Refused — this flow has no attendance step</td>
+            <td class="nothing">Nothing</td>
+          </tr>
+          <tr>
+            <td>Two registrations that overlap in time</td>
+            <td>Both accepted; the clash is a warning, never a bar</td>
+            <td class="earns">Both, if both are verified</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="height:18px"></div>
+
+    <div class="scroller">
+      <table>
+        <caption>Weekly seva and coverage</caption>
+        <thead>
+          <tr>
+            <th scope="col">What happened</th>
+            <th scope="col">Result</th>
+            <th scope="col">Earns</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>The day came and the occurrence completed</td>
+            <td>Counted, with nobody pressing anything</td>
+            <td class="earns">Full hours</td>
+          </tr>
+          <tr>
+            <td>Anybody tries to mark served or absent</td>
+            <td class="refuse">Refused — ask for coverage instead</td>
+            <td class="earns">Still counts on completion</td>
+          </tr>
+          <tr>
+            <td>Devotee says they cannot make one day</td>
+            <td>A coverage request opens for that date</td>
+            <td class="nothing">Nothing for them that day</td>
+          </tr>
+          <tr>
+            <td>Cannot make a run of days</td>
+            <td>A date‑range release, limited to the days they hold</td>
+            <td class="nothing">Nothing for them on those days</td>
+          </tr>
+          <tr>
+            <td>Coordinator asks a specific devotee to cover</td>
+            <td>They accept or decline; a decline reopens the day</td>
+            <td class="earns">The substitute, for the day they take</td>
+          </tr>
+          <tr>
+            <td>Coordinator opens the day to everyone</td>
+            <td>The first devotee to take it fills it</td>
+            <td class="earns">Whoever takes it</td>
+          </tr>
+          <tr>
+            <td>The substitute suggests a different time</td>
+            <td>The poster, Tech or President answers the counter‑offer</td>
+            <td class="earns">On the agreed time</td>
+          </tr>
+          <tr>
+            <td>Nobody covers it</td>
+            <td>The day stays open and visible in the coverage inbox</td>
+            <td class="nothing">Nothing</td>
+          </tr>
+          <tr>
+            <td>A swap is accepted</td>
+            <td>The standing rota is unchanged; the seva returns after the swap ends</td>
+            <td class="earns">The substitute, only for the days covered</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>When things may happen</h2>
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Step</th>
+            <th scope="col">Earliest it is allowed</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="who">Record attendance</td><td>Once the seva has <strong>started</strong> — people are marked in as they arrive</td></tr>
+          <tr><td class="who">Complete a seva</td><td>Once it has <strong>ended</strong></td></tr>
+          <tr><td class="who">Verify a self‑added seva</td><td>Once it has <strong>ended</strong></td></tr>
+          <tr><td class="who">Count towards hours and points</td><td>Once it has ended, or been marked completed — a seva that finished early is not withheld</td></tr>
+          <tr><td class="who">Correct attendance</td><td>Any time. It reopens and recounts the Seva Mala week even after it has been frozen</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="section-note" style="margin-top:14px;margin-bottom:0">
+      Every one of these is decided in Chicago time, so the answer is the same
+      for a devotee reading the app in Mayapur.
+    </p>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <h2>Where this stands</h2>
+    <p class="section-note">
+      Everything on the left is live on the temple’s database and covered by a
+      test. Everything on the right is known and not yet done.
+    </p>
+
+    <div class="status-grid">
+      <div class="panel">
+        <h3>Working, and proven</h3>
+        <ul class="ticks">
+          <li>The three flows are separated by the database, not by the screen</li>
+          <li>Nobody records their own attendance, at any level</li>
+          <li>Verification waits until the seva has ended</li>
+          <li>Weekly seva cannot be marked served or absent</li>
+          <li>A posted seva earns when the coordinator says it was served</li>
+          <li>A self‑added seva earns when the named member verifies it</li>
+          <li>Absence removes points even after the week has been frozen</li>
+          <li>Nothing is credited before it has happened</li>
+          <li>Clash warnings inform and never block a registration</li>
+          <li>A seva nobody served reads as cancelled, never completed</li>
+          <li>Partial absence still completes, crediting only those who served</li>
+        </ul>
+      </div>
+
+      <div class="panel" data-tone="open">
+        <h3>Still to do</h3>
+        <ul class="ticks">
+          <li>Walk the weekly coverage permutations end to end — offered, accepted, declined, expired, reopened and reassigned — the way the one‑off flows now are</li>
+          <li>The exported hours report still derives some rows from the registration rather than the seva record</li>
+          <li>Roughly 35 tap targets across the seva screens are under 44pt</li>
+          <li>“This service could not be found” covers three different situations, including a load that simply failed</li>
+          <li>The seva list blames the filters when the fetch failed</li>
+          <li>Seva history older than 180 days is outside the window the app reads</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <strong>How to read a claim here.</strong> Each rule is enforced in the
+    database and exercised by <code>seva_flow_matrix.sql</code>, which drives
+    posted, self‑added and weekly seva through the real functions and checks
+    what a devotee actually earns. Three of its expectations were wrong when it
+    was written, and the database was right each time.
+  </footer>
+
+</div>
+</body>
+</html>

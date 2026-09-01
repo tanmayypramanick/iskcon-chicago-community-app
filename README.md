@@ -26,6 +26,14 @@ Implemented areas include:
 
 Courses and Forum are represented in the UI but are not implemented yet.
 
+**How seva is settled** — the three flows (posted, self-added and weekly),
+every permutation, who may do what, and what is still open, is written up in
+[`docs/seva-flows.html`](docs/seva-flows.html). Open it in a browser, or read
+it at
+<https://tanmayypramanick.github.io/iskcon-chicago-community-app/seva-flows.html>.
+The rules it describes are enforced in the database and exercised by
+`supabase/verification/seva_flow_matrix.sql`.
+
 ## Local environment
 
 Create `.env.local` (never commit it):
