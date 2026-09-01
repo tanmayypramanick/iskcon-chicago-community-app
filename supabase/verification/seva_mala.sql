@@ -964,10 +964,21 @@ begin
     raise exception 'The Seva garland went to % devotees rather than three.', v_garlands;
   end if;
 
+  -- The three garlands that say what a garland is FOR, and only those.
+  --
+  -- 202608040063 widened garland_kind from those three to ten, adding the
+  -- temple's seven Deity garlands — which say WHOSE garland it is and are
+  -- lateral both among themselves and against these three. Counting every
+  -- distinct kind therefore stopped meaning "were all three given" the day
+  -- 0063 landed, and said nothing until a closed month existed to run it
+  -- against: this branch returns early while the month is still running, so it
+  -- first ran on the first of a month and reported four where it wanted three.
   select count(distinct definitions.garland_kind) into v_kinds
   from public.devotee_awards awards
   join public.award_definitions definitions on definitions.id = awards.award_definition_id
-  where awards.period_id = v_period and definitions.tier = 'garland';
+  where awards.period_id = v_period
+    and definitions.tier = 'garland'
+    and definitions.garland_kind in ('seva', 'dana', 'samatva');
   if v_kinds <> 3 then
     raise exception 'Only % of the three garlands were given.', v_kinds;
   end if;

@@ -333,6 +333,22 @@ begin
 
     insert into public.seva_pe_acts (key, assignment_id) values (v_case.key, v_assignment);
 
+    -- Say again that the occurrence is finished.
+    --
+    -- The insert above already asked for 'completed', but adding an assignment
+    -- that holds no live place — a no_show, a withdrawal — makes the seva
+    -- recompute its own status back to 'open', because a place has come free.
+    -- That is right for a seva still ahead of us and wrong for these fixtures,
+    -- which describe seva that is over.
+    --
+    -- It matters since 202608310083: an act counts once its seva has ENDED or
+    -- is marked completed, and these run 00:00-02:00 today. Left as 'open',
+    -- the whole fixture vanished from the board between midnight and two in
+    -- the morning — which is exactly when this file first failed.
+    update public.service_instances
+    set status = 'completed'
+    where id = v_instance;
+
     -- The timer nobody switched off.
     if v_case.key = 'timer' then
       insert into public.service_qr_sessions (

@@ -1561,7 +1561,6 @@ begin
     select
       windows.from_on,
       windows.to_on,
-      windows.whole,
       -- The narrowest containing period, found by span rather than by the name
       -- of the kind, so this is an independent statement of the same rule.
       (select periods.period_kind
@@ -1570,13 +1569,30 @@ begin
          and periods.ends_on >= windows.to_on
          and periods.computed_at is not null
        order by periods.ends_on - periods.starts_on, periods.starts_on desc
-       limit 1) as kind
+       limit 1) as kind,
+      -- Whether the window is the WHOLE of that period, worked out rather than
+      -- written down.
+      --
+      -- It used to be a hardcoded true for the month-to-date row, which is
+      -- right for most of a month and wrong for the first week of one: on the
+      -- 1st, "this month so far" is a single day, so the narrowest period
+      -- containing it is the WEEK, and a window that starts mid-week is not
+      -- the whole of it. The test therefore failed every month on the 1st and
+      -- passed on the 2nd, which is the worst way for a test to be wrong.
+      (select windows.from_on <= periods.starts_on
+                and windows.to_on >= least(periods.ends_on, v_today)
+       from public.seva_mala_periods periods
+       where periods.starts_on <= windows.from_on
+         and periods.ends_on >= windows.to_on
+         and periods.computed_at is not null
+       order by periods.ends_on - periods.starts_on, periods.starts_on desc
+       limit 1) as whole
     from (values
-      (public.seva_mala_week_start(v_today), v_today, true),
-      (date_trunc('month', v_today::timestamp)::date, v_today, true),
-      (date '1970-01-01', v_today, true),
-      (v_today - 400, v_today, false)
-    ) as windows(from_on, to_on, whole)
+      (public.seva_mala_week_start(v_today), v_today),
+      (date_trunc('month', v_today::timestamp)::date, v_today),
+      (date '1970-01-01', v_today),
+      (v_today - 400, v_today)
+    ) as windows(from_on, to_on)
   loop
     select points.scaled_against, points.is_whole_period into v_got, v_whole
     from public.seva_mala_window_points(
