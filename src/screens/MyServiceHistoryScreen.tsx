@@ -143,7 +143,16 @@ export function MyServiceHistoryScreen({ navigation }: Props) {
         <>
           <SectionHeader
             title="Waiting to be verified"
-            subtitle="Your hours are counted already. This is only the confirmation."
+            subtitle={
+              // Only true of seva already completed and awaiting the
+              // confirmation. A registration nobody has answered yet has no
+              // assignment, no instance and no hours anywhere, so the old
+              // wording — "your hours are counted already" — was a promise to
+              // the one devotee it was least true for.
+              awaitingConfirmation.length && !registeredWaiting.length
+                ? "Your hours are counted already. This is only the confirmation."
+                : "Nothing here counts until the member you asked confirms it."
+            }
           />
           <View className="mb-section gap-3">
             {awaitingConfirmation.map((service) => (

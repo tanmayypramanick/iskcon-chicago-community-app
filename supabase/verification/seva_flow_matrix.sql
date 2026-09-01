@@ -637,6 +637,166 @@ begin
 end;
 $$;
 
+-- ---------------------------------------------------------------------------
+-- 9. The two one-off flows never borrow each other's controls.
+--
+--    A posted seva is SERVABLE and not verifiable. A registration is
+--    VERIFIABLE and not servable — 202608310096 gives the instance an origin
+--    so the database decides this rather than the interface.
+-- ---------------------------------------------------------------------------
+
+do $$
+declare
+  v_head uuid := (select id from sfm_ids where key = 'head');
+  v_head2 uuid := (select id from sfm_ids where key = 'head2');
+  v_logger uuid := (select id from sfm_ids where key = 'logger');
+  v_type uuid := (select id from public.service_types where name = 'Flow Matrix Seva');
+  v_req public.service_verifications;
+  v_inst uuid;
+  v_asg uuid;
+  v_refused boolean;
+begin
+  -- A registration, verified so that the instance exists.
+  perform set_config('request.jwt.claim.sub', v_logger::text, true);
+  v_req := public.log_completed_seva(
+    v_type, null, now() - interval '9 hours', now() - interval '8 hours',
+    'ISKCON Chicago Temple', v_head
+  );
+  perform set_config('request.jwt.claim.sub', v_head::text, true);
+  perform public.respond_to_seva_verification(v_req.id, true, null);
+
+  select verifications.service_instance_id into v_inst
+  from public.service_verifications verifications
+  where verifications.id = v_req.id;
+
+  if (select instances.origin from public.service_instances instances
+      where instances.id = v_inst) <> 'registration' then
+    raise exception 'a verified registration was not recorded as one';
+  end if;
+  if public.seva_is_servable(v_inst) then
+    raise exception 'a registration reads as servable';
+  end if;
+
+  select assignments.id into v_asg
+  from public.service_assignments assignments
+  where assignments.service_instance_id = v_inst;
+
+  -- Not even the President records attendance on it. There is no such step.
+  v_refused := false;
+  begin
+    perform public.record_seva_attendance(v_asg, 'served');
+  exception when others then
+    v_refused := true;
+  end;
+  if not v_refused then
+    raise exception 'the President recorded attendance on a registration';
+  end if;
+
+  v_refused := false;
+  begin
+    perform public.record_unanswered_seva_attendance(v_inst, 'served');
+  exception when others then
+    v_refused := true;
+  end;
+  if not v_refused then
+    raise exception 'the one-tap form answered a registration';
+  end if;
+
+  -- A Tech Admin is refused for the same reason, not merely the President.
+  perform set_config('request.jwt.claim.sub', v_head2::text, true);
+  v_refused := false;
+  begin
+    perform public.record_seva_attendance(v_asg, 'absent');
+  exception when others then
+    v_refused := true;
+  end;
+  perform set_config('request.jwt.claim.sub', '', true);
+  if not v_refused then
+    raise exception 'a Tech Admin recorded attendance on a registration';
+  end if;
+
+  -- And it still counts, because verifying it was the whole of it.
+  perform pg_temp.sfm_expect(
+    'registration: verified and not servable', v_inst, 'logger', 'counted', true);
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- 10. A posted seva stays servable, and says so.
+-- ---------------------------------------------------------------------------
+
+do $$
+declare
+  v_head uuid := (select id from sfm_ids where key = 'head');
+  v_inst uuid;
+  v_asg uuid;
+begin
+  v_inst := pg_temp.sfm_post(1);
+  v_asg := pg_temp.sfm_join(v_inst, 'served');
+
+  if (select instances.origin from public.service_instances instances
+      where instances.id = v_inst) <> 'posted' then
+    raise exception 'a posted seva was not recorded as posted';
+  end if;
+  if not public.seva_is_servable(v_inst) then
+    raise exception 'a posted seva does not read as servable';
+  end if;
+
+  perform set_config('request.jwt.claim.sub', v_head::text, true);
+  perform public.record_seva_attendance(v_asg, 'served');
+  perform public.complete_service_instance(v_inst);
+  perform set_config('request.jwt.claim.sub', '', true);
+
+  perform pg_temp.sfm_expect(
+    'posted: servable and not verified by anyone', v_inst, 'served',
+    'counted', true);
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- 11. Nothing is verified before it happens.
+--
+--     A devotee may add seva ahead of time, but verifying it is a member
+--     saying "yes, they did this", and nobody can say that about a seva that
+--     has not happened. Declining stays open: refusing to vouch for something
+--     is not a claim about whether it happened.
+-- ---------------------------------------------------------------------------
+
+do $$
+declare
+  v_head uuid := (select id from sfm_ids where key = 'head');
+  v_dev uuid := (select id from sfm_ids where key = 'scanner');
+  v_type uuid := (select id from public.service_types where name = 'Flow Matrix Seva');
+  v_req public.service_verifications;
+  v_refused boolean := false;
+begin
+  perform set_config('request.jwt.claim.sub', v_dev::text, true);
+  v_req := public.request_seva_verification(
+    v_type, null, now() + interval '2 hours', now() + interval '3 hours',
+    'ISKCON Chicago Temple', v_head, null
+  );
+
+  perform set_config('request.jwt.claim.sub', v_head::text, true);
+  begin
+    perform public.respond_to_seva_verification(v_req.id, true, null);
+  exception when others then
+    v_refused := true;
+  end;
+  if not v_refused then
+    raise exception 'a seva that had not happened yet was verified';
+  end if;
+
+  -- Declining early is allowed.
+  perform public.respond_to_seva_verification(v_req.id, false, 'Not this one.');
+  perform set_config('request.jwt.claim.sub', '', true);
+
+  if (select verifications.status from public.service_verifications verifications
+      where verifications.id = v_req.id) <> 'declined' then
+    raise exception 'a verifier could not decline a request before its seva ran';
+  end if;
+end;
+$$;
+
 do $$
 begin
   raise notice 'every seva flow settles the way the temple says it does';

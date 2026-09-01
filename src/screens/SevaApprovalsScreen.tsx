@@ -55,11 +55,19 @@ export function SevaApprovalsScreen() {
   // A Tech Admin or the President may verify anything, whoever the devotee
   // originally named. Everyone else sees only what was addressed to them.
   const canOverrideAnyone = hasAccessPermission(effectiveRole, "app.view_all");
-  const verifications = canOverrideAnyone
-    ? (dashboard.data?.verifications ?? []).filter(
-        (row) => row.status === "pending",
-      )
-    : (dashboard.data?.verificationInbox ?? []);
+  const verifications = (
+    canOverrideAnyone
+      ? (dashboard.data?.verifications ?? []).filter(
+          (row) => row.status === "pending",
+        )
+      : (dashboard.data?.verificationInbox ?? [])
+  ).filter(
+    // Never your own. app.view_all reaches every registration in the temple
+    // including the holder's, and the server refuses it — "your own seva has
+    // to be verified by somebody else" — so leaving it in the list only offers
+    // a Tech Admin or President two buttons that can do nothing but error.
+    (row) => row.devotee_id !== activeUserId,
+  );
   const counters = (dashboard.data?.offerCounters ?? []).filter(
     (counter) => counter.status === "pending",
   );

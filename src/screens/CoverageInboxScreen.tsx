@@ -4,7 +4,13 @@ import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import tokens from "../../design-tokens.json";
-import { Screen, ScreenTitle, SectionHeader } from "../components/ui";
+import {
+  LoadFailure,
+  Screen,
+  ScreenTitle,
+  SectionHeader,
+} from "../components/ui";
+import { useServerReachable } from "../lib/connectivity";
 import { useCurrentAccessProfile } from "../features/access/hooks";
 import { hasAccessPermission } from "../features/access/model";
 import {
@@ -38,6 +44,7 @@ export function CoverageInboxScreen({ navigation }: Props) {
   const previewRole = usePrototypeSession((state) => state.previewRole);
   const profile = useCurrentAccessProfile(activeUserId);
   const dashboard = useServiceDashboard(activeUserId);
+  const reachable = useServerReachable();
   // Same rule as every other Seva screen. Without it the role preview showed a
   // Devotee this inbox and a Community Head none of it, which is the opposite
   // of what it is for.
@@ -251,7 +258,21 @@ export function CoverageInboxScreen({ navigation }: Props) {
         </View>
       ) : null}
 
-      {!canResolve ? null : dashboard.isLoading ? (
+      {!canResolve ? null : dashboard.isError && !dashboard.data ? (
+        /*
+          An error used to fall through to the empty state, so a failed load
+          told the coordinator "every weekly seva is covered" — the one
+          sentence that must never be guessed at.
+        */
+        <LoadFailure
+          reachable={reachable}
+          message={errorMessage(
+            dashboard.error,
+            "Coverage needs could not be loaded.",
+          )}
+          onRetry={() => void dashboard.refetch()}
+        />
+      ) : dashboard.isLoading ? (
         <View className="rounded-card border border-border bg-white p-card">
           <Text className="font-sans text-base text-stoneMuted">
             Loading coverage needs…

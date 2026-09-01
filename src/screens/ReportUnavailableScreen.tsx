@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 
 import tokens from "../../design-tokens.json";
@@ -20,6 +20,7 @@ import {
 } from "../features/services/hooks";
 import type { CoverageScope } from "../features/services/types";
 import type { ServicesStackParamList } from "../navigation/types";
+import { weeklyRoster } from "../features/services/selectors";
 import { usePrototypeSession } from "../store/usePrototypeSession";
 
 type Props = NativeStackScreenProps<ServicesStackParamList, "ReportUnavailable">;
@@ -55,6 +56,22 @@ export function ReportUnavailableScreen({ navigation, route }: Props) {
 
   // Prefill exactly once. Keying this off `daysOfWeek.length` meant clearing
   // the last weekday counted as "not filled in yet", so unticking it silently
+  /**
+   * The days THIS devotee actually holds, not every day the rota runs.
+   *
+   * Releasing a day is releasing your own commitment. Offering the template's
+   * whole week let a Thursday-only assignee raise a release covering the
+   * Mondays somebody else holds — the server only checks the day belongs to
+   * the template, so nothing downstream would have caught it.
+   */
+  const myDays = useMemo(() => {
+    if (!template || !dashboard.data || !activeUserId) return [];
+    const mine = weeklyRoster(dashboard.data, template).find(
+      (assignee) => assignee.id === activeUserId,
+    );
+    return mine ? mine.assignedDays : [];
+  }, [activeUserId, dashboard.data, template]);
+
   // reticked every day and threw away the dates the devotee had chosen.
   useEffect(() => {
     if (!service || !template || initialized) return;
@@ -63,9 +80,9 @@ export function ReportUnavailableScreen({ navigation, route }: Props) {
     const end = new Date(occurrenceDate);
     end.setDate(end.getDate() + 28);
     setToDate(end);
-    setDaysOfWeek(template.days_of_week);
+    setDaysOfWeek(myDays.length ? myDays : template.days_of_week);
     setInitialized(true);
-  }, [initialized, service, template]);
+  }, [initialized, myDays, service, template]);
 
   if (!service || !template) {
     return (
@@ -178,7 +195,7 @@ export function ReportUnavailableScreen({ navigation, route }: Props) {
         <View className="mt-section">
           <SectionHeader title="Which weekly days?" />
           <View className="flex-row flex-wrap gap-2">
-            {template.days_of_week.map((day) => {
+            {(myDays.length ? myDays : template.days_of_week).map((day) => {
               const selected = daysOfWeek.includes(day);
               return (
                 <Pressable

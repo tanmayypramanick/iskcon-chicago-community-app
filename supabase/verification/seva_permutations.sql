@@ -310,6 +310,14 @@ begin
     format('select public.request_seva_verification(null, %L, now() + interval ''90 minutes'', now() + interval ''3 hours'', %L, %L, null)',
       'Perm overlap', 'Temple room', '50000000-0000-0000-0000-000000000003'));
 
+  -- Nothing is verified before it happens (202608310097), and what follows is
+  -- about WHO may answer rather than when, so the registration under test is
+  -- moved into the past first.
+  update public.service_verifications
+  set start_at = now() - interval '3 hours',
+      end_at = now() - interval '2 hours'
+  where id = v_registration.id;
+
   -- Only the named member, a Tech Admin or the President may answer.
   perform pg_temp.expect_refused(
     '50000000-0000-0000-0000-000000000006', 'An uninvolved devotee verifies',
@@ -342,7 +350,13 @@ begin
     format('select public.respond_to_seva_verification(%L, true, null)',
       (select id from public.service_verifications
        where devotee_id = '50000000-0000-0000-0000-000000000001' limit 1)));
-  -- The member actually named still can.
+  -- The member actually named still can, once the seva is over: nothing is
+  -- verified before it happens (202608310097), and this case is about WHO.
+  update public.service_verifications
+  set start_at = now() - interval '3 hours',
+      end_at = now() - interval '2 hours'
+  where id = v_own.id;
+
   perform pg_temp.expect_allowed(
     '50000000-0000-0000-0000-000000000003', 'The named member verifies it',
     format('select public.respond_to_seva_verification(%L, true, null)', v_own.id));

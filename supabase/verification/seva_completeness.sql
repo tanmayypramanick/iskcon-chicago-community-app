@@ -59,7 +59,28 @@ declare
   v_reviewed public.service_verifications;
   v_status text;
   v_settled integer;
+  v_refused boolean := false;
+  v_attendance text;
 begin
+  -- 202608310097: nothing is verified before it happens. This registration is
+  -- for two hours' time, so the member cannot vouch for it yet.
+  begin
+    perform public.respond_to_seva_verification(
+      (select id from completeness_ids where key = 'registration'), true, null
+    );
+  exception when others then
+    v_refused := true;
+  end;
+  if not v_refused then
+    raise exception 'A seva that had not happened yet was verified.';
+  end if;
+
+  -- Once it is over, the member verifies it and that settles it: the instance
+  -- is created completed, and the verification IS the attendance.
+  update public.service_verifications
+  set start_at = now() - interval '3 hours', end_at = now() - interval '2 hours'
+  where id = (select id from completeness_ids where key = 'registration');
+
   v_reviewed := public.respond_to_seva_verification(
     (select id from completeness_ids where key = 'registration'), true, null
   );
@@ -70,24 +91,8 @@ begin
 
   select status into v_status from public.service_instances
   where id = v_reviewed.service_instance_id;
-  if v_status <> 'closed' then
-    raise exception 'A seva still ahead of us should not read as finished, got %', v_status;
-  end if;
-
-  -- The seva now finishes. Before 0020 this record stayed 'closed' for good.
-  update public.service_verifications
-  set start_at = now() - interval '2 hours', end_at = now() - interval '1 hour'
-  where id = v_reviewed.id;
-
-  v_settled := public.settle_finished_verified_seva();
-  if v_settled < 1 then
-    raise exception 'Finished verified seva was not settled.';
-  end if;
-
-  select status into v_status from public.service_instances
-  where id = v_reviewed.service_instance_id;
   if v_status <> 'completed' then
-    raise exception 'Settled seva did not become completed, got %', v_status;
+    raise exception 'A finished, verified seva should be completed, got %', v_status;
   end if;
 
   if not exists (
@@ -95,9 +100,76 @@ begin
     where service_instance_id = v_reviewed.service_instance_id
       and devotee_id = '30000000-0000-0000-0000-000000000003'
       and status = 'completed'
+      and attendance = 'served'
       and completed_at is not null
   ) then
-    raise exception 'Settling did not finish the devotee''s own record.';
+    raise exception 'Verifying did not finish the devotee''s own record.';
+  end if;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- 1b. The settle still repairs a row approved before that was refused.
+--
+--     Those rows exist: an instance left 'closed' with no attendance, which
+--     earns nothing and has no step in its flow to finish it. The shape is
+--     built directly here because the RPC will no longer produce it.
+-- ---------------------------------------------------------------------------
+
+do $$
+declare
+  v_instance uuid;
+  v_verification uuid;
+  v_settled integer;
+  v_status text;
+  v_attendance text;
+begin
+  insert into public.service_instances
+    (service_type_id, custom_name, date, start_time, duration_minutes,
+     slots_needed, participation_mode, posted_by, status)
+  values (
+    null, 'Completeness legacy pre-verified',
+    (now() at time zone 'America/Chicago')::date, time '01:00', 60, 1,
+    'invite_only', '30000000-0000-0000-0000-000000000004', 'closed'
+  )
+  returning id into v_instance;
+
+  insert into public.service_assignments
+    (service_instance_id, devotee_id, assignment_method, assigned_by,
+     status, verification)
+  values (
+    v_instance, '30000000-0000-0000-0000-000000000004', 'member_verified',
+    '30000000-0000-0000-0000-000000000001', 'confirmed', 'member_verified'
+  );
+
+  insert into public.service_verifications
+    (devotee_id, verifier_id, custom_name, start_at, end_at, status,
+     responded_at, service_instance_id)
+  values (
+    '30000000-0000-0000-0000-000000000004',
+    '30000000-0000-0000-0000-000000000001',
+    'Completeness legacy pre-verified',
+    now() - interval '6 hours', now() - interval '5 hours', 'verified',
+    now() - interval '5 hours', v_instance
+  )
+  returning id into v_verification;
+
+  v_settled := public.settle_finished_verified_seva();
+  if v_settled < 1 then
+    raise exception 'Finished verified seva was not settled.';
+  end if;
+
+  select status into v_status from public.service_instances where id = v_instance;
+  select attendance into v_attendance from public.service_assignments
+  where service_instance_id = v_instance;
+
+  if v_status <> 'completed' then
+    raise exception 'Settled seva did not become completed, got %', v_status;
+  end if;
+  if v_attendance is distinct from 'served' then
+    raise exception
+      'Settling left attendance as %, so it would earn nothing',
+      coalesce(v_attendance, 'null');
   end if;
 end;
 $$;
