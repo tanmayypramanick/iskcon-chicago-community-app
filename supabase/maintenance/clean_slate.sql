@@ -6,16 +6,18 @@
 -- #   does.                                                                 #
 -- #                                                                         #
 -- #   KEPT   tanmayp0612@gmail.com, arpitajadhav24k@gmail.com and their     #
--- #          profiles and profile photos; roles and permissions; the 14     #
--- #          service types; award definitions; the Vaisnava calendar and    #
--- #          its publications; the temple programme, deities and            #
--- #          sponsorship types; app settings.                               #
+-- #          profiles; roles and permissions; the 14 service types; award   #
+-- #          definitions; the Vaisnava calendar and its publications; the   #
+-- #          temple programme, deities and sponsorship types; app settings. #
 -- #                                                                         #
 -- #   GONE   every other account, all seva of every kind, Seva Mala         #
 -- #          periods scores and awards, announcements, sangas, chats,       #
 -- #          giving, sponsorship bookings, care posts, feedback, access     #
 -- #          requests, presence, notifications, push tokens, and the demo   #
 -- #          ledger itself.                                                 #
+-- #                                                                         #
+-- #   NOT HERE  Uploaded files. Storage refuses SQL deletion by design;     #
+-- #          see supabase/maintenance/README.md for the one command.        #
 -- ###########################################################################
 
 begin;
@@ -87,21 +89,19 @@ delete from public.vaisnava_calendar_reminders_sent;
 delete from public.app_notifications;
 delete from public.device_push_tokens;
 
--- Chat pictures, whose messages have just gone. The two profile photos stay,
--- because the two profiles do.
-delete from storage.objects where bucket_id = 'message-images';
-delete from storage.objects where bucket_id = 'newsletter-files';
+-- Uploaded files are NOT deleted here, and cannot be: storage.objects and
+-- storage.buckets both carry a protect_delete trigger that refuses SQL
+-- outright, because a row deleted here would leave the file itself behind in
+-- the bucket forever. They go through the Storage API instead, and
+-- supabase/maintenance/README.md has the one command for it.
+--
+-- Nothing below cascades into them either — no storage table has a foreign key
+-- to auth.users — so removing the accounts leaves their files untouched rather
+-- than half-deleted.
 
 -- ---------------------------------------------------------------------------
 -- 3. Every account but the two live ones.
 -- ---------------------------------------------------------------------------
-delete from storage.objects
-where bucket_id = 'devotee-photos'
-  and owner not in (
-    select id from auth.users
-    where email in ('tanmayp0612@gmail.com', 'arpitajadhav24k@gmail.com')
-  );
-
 delete from auth.users
 where email is distinct from 'tanmayp0612@gmail.com'
   and email is distinct from 'arpitajadhav24k@gmail.com';
