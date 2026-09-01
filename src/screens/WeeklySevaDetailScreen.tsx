@@ -56,7 +56,6 @@ function initials(name: string) {
 
 export function WeeklySevaDetailScreen({ navigation, route }: Props) {
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
-  const previewRole = usePrototypeSession((state) => state.previewRole);
   const profile = useCurrentAccessProfile(activeUserId);
   const dashboard = useServiceDashboard(activeUserId);
   const joinWeekly = useJoinWeeklyService();
@@ -65,9 +64,7 @@ export function WeeklySevaDetailScreen({ navigation, route }: Props) {
     (item) => item.id === route.params.templateId,
   );
   const role =
-    __DEV__ && previewRole
-      ? previewRole
-      : (profile.data?.role ?? "devotee");
+    (profile.data?.role ?? "devotee");
   const canManage = hasAccessPermission(role, "services.manage_recurring");
   // Same rule as the server: the coordinator who created it, a Community Head,
   // a Tech Admin, or the President.

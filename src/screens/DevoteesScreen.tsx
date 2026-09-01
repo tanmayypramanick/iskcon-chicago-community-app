@@ -251,9 +251,7 @@ export function DevoteesScreen({ navigation, route }: Props) {
   // Realtime none of them showed without leaving the tab and coming back.
   useSangaListRealtime(section === "sanga");
   const profile = useCurrentAccessProfile(activeUserId);
-  const previewRole = usePrototypeSession((state) => state.previewRole);
-  const actualRole = profile.data?.role ?? "devotee";
-  const role = __DEV__ && previewRole ? previewRole : actualRole;
+  const role = profile.data?.role ?? "devotee";
   // The President and the Tech Admin decide whether the temple has a sanga at
   // all, and may open any of them without joining. Nobody else is shown either
   // door.

@@ -23,13 +23,12 @@ type Props = NativeStackScreenProps<
 
 export function RecurringServicesScreen({ navigation }: Props) {
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
-  const previewRole = usePrototypeSession((state) => state.previewRole);
   const profile = useCurrentAccessProfile(activeUserId);
   const dashboard = useServiceDashboard(activeUserId);
   const setActive = useSetRecurringServiceActive();
   // Same rule as every other Seva screen, so the role preview is honest here.
   const canManage = hasAccessPermission(
-    __DEV__ && previewRole ? previewRole : (profile.data?.role ?? "devotee"),
+    (profile.data?.role ?? "devotee"),
     "services.manage_recurring",
   );
   const templates = dashboard.data?.recurringTemplates ?? [];

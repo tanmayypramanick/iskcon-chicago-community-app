@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as WebBrowser from "expo-web-browser";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -18,7 +19,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import tokens from "../../design-tokens.json";
-import { COMMUNITY_EMAIL } from "../config/contact";
+import {
+  COMMUNITY_EMAIL,
+  PRIVACY_POLICY_URL,
+  TERMS_OF_SERVICE_URL,
+} from "../config/contact";
 import {
   describeSignInFailure,
   getAuthProviderAvailability,
@@ -297,10 +302,40 @@ function ActionButton({
   );
 }
 
+/**
+ * One phrase of the fine print, opened in the phone's browser rather than in a
+ * WebView — the same choice the donation page makes, and the one the stores
+ * expect for a document a reviewer must be able to reach without an account.
+ * Held at the same 10px muted size as the sentence around it: the underline is
+ * what says it can be tapped, and the colour is what says it is being tapped.
+ */
+function FinePrintLink({ label, url }: { label: string; url: string }) {
+  const [pressed, setPressed] = useState(false);
+
+  return (
+    <Text
+      className={`font-sans text-[10px] underline ${
+        pressed ? "text-indigo" : "text-stoneMuted"
+      }`}
+      accessibilityRole="link"
+      accessibilityLabel={label}
+      onPressIn={() => setPressed(true)}
+      onPressOut={() => setPressed(false)}
+      onPress={() => {
+        void WebBrowser.openBrowserAsync(url);
+      }}
+    >
+      {label}
+    </Text>
+  );
+}
+
 function FinePrint() {
   return (
     <Text className="text-center font-sans text-[10px] text-stoneMuted">
-      By continuing, you agree to our Terms of Service &amp; Privacy Policy.
+      By continuing, you agree to our{" "}
+      <FinePrintLink label="Terms of Service" url={TERMS_OF_SERVICE_URL} /> &amp;{" "}
+      <FinePrintLink label="Privacy Policy" url={PRIVACY_POLICY_URL} />.
     </Text>
   );
 }

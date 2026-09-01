@@ -76,6 +76,20 @@ ISKCON_PGPORT=55435 ./scripts/preflight-clean-slate.sh
 Needs a local Postgres 14+ (`brew install postgresql@17`). It never touches the
 hosted database.
 
+## Making somebody a Tech Admin
+
+[`make_tanmay_tech_admin.sql`](make_tanmay_tech_admin.sql) moves
+`tanmayp0612@gmail.com` from President to Tech Admin. It refuses to run until
+`202609010103_a_tech_admin_holds_every_key.sql` has been applied, because
+without that migration the two levels hold identical permissions and the move
+would gain him nothing.
+
+It leaves the temple with no President. Nothing depends on the office existing,
+and a Tech Admin can appoint one from inside the app — Profile → Manage access.
+
+Run it in the **Supabase SQL Editor**. It is one `begin; … commit;` and it ends
+by printing every account and the level it holds.
+
 ## Removing the demo instead
 
 If you want the demo gone but everything the temple did kept, do not use the

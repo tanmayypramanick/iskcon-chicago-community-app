@@ -10,6 +10,7 @@ export type AccessRole = (typeof accessRoles)[number];
 
 export type AccessPermission =
   | "access.review_requests"
+  | "access.manage_any"
   | "app.view_all"
   | "services.view_all"
   | "services.participate"
@@ -61,6 +62,9 @@ export const permissionsByRole: Record<AccessRole, AccessPermission[]> = {
   ],
   tech: [
     "access.review_requests",
+    // 202609010103: the one level that can appoint or revoke every other one,
+    // the President and Tech Admin included. Deliberately not the President's.
+    "access.manage_any",
     "app.view_all",
     ...recurringCoordinatorPermissions,
     "services.delete_any",
@@ -93,6 +97,8 @@ export const accessRoleLabels: Record<AccessRole, string> = {
 export const accessPermissionSummaries: Record<AccessPermission, string> = {
   "access.review_requests":
     "Approve or decline access requests from other devotees",
+  "access.manage_any":
+    "Give or take back any access level, including President and Tech Admin",
   "app.view_all": "Reach every part of the app",
   "services.view_all":
     "See the whole temple’s seva schedule, not only your own",
@@ -127,6 +133,35 @@ export const grantableRoleSummaries: Record<GrantableAccessRole, string> = {
     "A devotee who posts what the temple needs and asks others to help with it.",
   core: "A coordinator who keeps the temple’s weekly seva running, arranges cover when a devotee cannot make theirs, and closes seva once it is done.",
 };
+
+/**
+ * Every level the app can appoint somebody to. The bottom two are open to any
+ * coordinator; the top two need `access.manage_any`, which only the Tech Admin
+ * holds. Devotee is absent on purpose — revoking is the road back down, and it
+ * writes down that access was taken away rather than merely given differently.
+ */
+export type AppointableAccessRole = Exclude<AccessRole, "devotee">;
+
+export const appointableAccessRoles: AppointableAccessRole[] = [
+  "volunteer",
+  "core",
+  "tech",
+  "president",
+];
+
+export const appointableRoleSummaries: Record<AppointableAccessRole, string> = {
+  ...grantableRoleSummaries,
+  tech: "The person who keeps the app running — and the only level that can give or take back any other, this one included.",
+  president:
+    "The temple's leadership view: everything a Community Head can do, plus every part of the app.",
+};
+
+/** The ladder to offer, given what the server said this coordinator may reach. */
+export function appointableAccessRolesFor(
+  mayAppointAny: boolean,
+): AppointableAccessRole[] {
+  return mayAppointAny ? appointableAccessRoles : grantableAccessRoles;
+}
 
 /** What moving up to `to` would add to somebody who holds `from` today. */
 export function accessPermissionsGained(from: AccessRole, to: AccessRole) {

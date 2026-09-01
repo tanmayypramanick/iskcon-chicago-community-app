@@ -251,10 +251,9 @@ export function FeedbackScreen() {
   const navigation = useNavigation();
   const tabs = navigation.getParent<NavigationProp<MainTabParamList>>();
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
-  const previewRole = usePrototypeSession((state) => state.previewRole);
   const profile = useCurrentAccessProfile(activeUserId);
   const role =
-    __DEV__ && previewRole ? previewRole : (profile.data?.role ?? "devotee");
+    (profile.data?.role ?? "devotee");
   // list_all_feedback answers with an empty set to anyone else anyway; this is
   // the client saying the same thing so the section never even flickers.
   const canReviewAll = hasAccessPermission(role, "app.view_all");

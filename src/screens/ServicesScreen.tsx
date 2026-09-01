@@ -101,7 +101,6 @@ function whenLine(service: ServiceListItem) {
 
 export function ServicesScreen({ navigation }: Props) {
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
-  const previewRole = usePrototypeSession((state) => state.previewRole);
   const profileQuery = useCurrentAccessProfile(activeUserId);
   const dashboardQuery = useServiceDashboard(activeUserId);
   const respondToOffer = useRespondToServiceOffer();
@@ -114,8 +113,7 @@ export function ServicesScreen({ navigation }: Props) {
 
   useRefreshOnFocus([dashboardQuery]);
 
-  const actualRole = profileQuery.data?.role ?? "devotee";
-  const effectiveRole = __DEV__ && previewRole ? previewRole : actualRole;
+  const effectiveRole = profileQuery.data?.role ?? "devotee";
   const canPost = hasAccessPermission(
     effectiveRole,
     "services.post_requirement",
@@ -583,22 +581,6 @@ export function ServicesScreen({ navigation }: Props) {
   return (
     <Screen>
       <ScreenTitle eyebrow="Seva together">Seva</ScreenTitle>
-
-
-      {__DEV__ && previewRole ? (
-        <View className="mb-4 flex-row rounded-button bg-sandalwood px-4 py-3">
-          <Ionicons
-            name="flask-outline"
-            size={20}
-            color={tokens.colors.indigo}
-          />
-          <Text className="ml-3 flex-1 font-sans text-sm leading-5 text-stoneMuted">
-            Previewing {effectiveRole} presentation. Supabase still enforces
-            your real
-            {` ${actualRole}`} access.
-          </Text>
-        </View>
-      ) : null}
 
       <View className="mb-section gap-3">
         <Pressable

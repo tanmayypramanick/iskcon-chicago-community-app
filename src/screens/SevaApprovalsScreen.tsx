@@ -38,15 +38,13 @@ function formatWindow(startAt: string, endAt: string) {
  */
 export function SevaApprovalsScreen() {
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
-  const previewRole = usePrototypeSession((state) => state.previewRole);
   const profile = useCurrentAccessProfile(activeUserId);
   const dashboard = useServiceDashboard(activeUserId);
   const respondVerification = useRespondToSevaVerification();
   const respondCounter = useRespondToWeeklyOfferCounter();
   const [note, setNote] = useState("");
 
-  const actualRole = profile.data?.role ?? "devotee";
-  const effectiveRole = __DEV__ && previewRole ? previewRole : actualRole;
+  const effectiveRole = profile.data?.role ?? "devotee";
   const canManage = hasAccessPermission(
     effectiveRole,
     "services.manage_recurring",

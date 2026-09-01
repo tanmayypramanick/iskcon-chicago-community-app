@@ -62,30 +62,44 @@ jest.mock("../../features/services/hooks", () => ({
 
 describe("ProfileScreen", () => {
   beforeEach(() => {
-    usePrototypeSession.setState({
-      isAuthenticated: true,
-      previewRole: "devotee",
-      accessRequests: [],
-    });
+    usePrototypeSession.setState({ isAuthenticated: true });
   });
 
-  it("previews a different access-level profile", async () => {
-    const { getByRole, getAllByText, getByText } = await render(
+  /**
+   * The role-preview control and the card that described the level are gone.
+   * The badge beside the devotee's name is all that is left of them, and it
+   * says what the server says rather than what a developer picked.
+   */
+  it("shows the real access level and offers no way to preview another", async () => {
+    const { getAllByText, queryByRole, queryByText } = await render(
       <ProfileScreen onSignOut={jest.fn()} />,
     );
 
-    expect(getAllByText("Devotee")).toHaveLength(3);
+    expect(getAllByText("Devotee")).toHaveLength(1);
+    expect(
+      queryByRole("button", { name: "Preview President access" }),
+    ).toBeNull();
+    expect(queryByText("Test access levels")).toBeNull();
+    expect(queryByText("Verified Supabase access")).toBeNull();
+  });
 
-    await fireEvent.press(
-      getByRole("button", { name: "Preview President access" }),
+  /**
+   * The page ends at Weekly seva. Two things stay below it, and both are
+   * things a devotee must always be able to reach: signing out, and ending
+   * the account — the second because Apple requires an app that can create an
+   * account to let you end it from inside the app (5.1.1(v)), so hiding it
+   * behind a support address would be a deliberate failure.
+   */
+  it("ends at Weekly seva, with sign out and leaving still below it", async () => {
+    const { getByRole, getByText } = await render(
+      <ProfileScreen onSignOut={jest.fn()} />,
     );
 
-    expect(usePrototypeSession.getState().previewRole).toBe("president");
-    expect(getAllByText("President")).toHaveLength(3);
+    expect(getByText("Weekly seva")).toBeTruthy();
+    expect(getByText("Want to offer weekly seva?")).toBeTruthy();
+    expect(getByRole("button", { name: "Sign out" })).toBeTruthy();
     expect(
-      getByText(
-        "A clear leadership view for temple-wide service, communication, and oversight.",
-      ),
+      getByRole("button", { name: "Leaving, or deleting your account" }),
     ).toBeTruthy();
   });
 
@@ -117,32 +131,5 @@ describe("ProfileScreen", () => {
     await fireEvent.press(getByRole("button", { name: "Sign out" }));
 
     expect(onSignOut).toHaveBeenCalledTimes(1);
-  });
-
-  it("previews an access request and President approval", async () => {
-    const { getByRole, getByText, queryByText } = await render(
-      <ProfileScreen onSignOut={jest.fn()} />,
-    );
-
-    await fireEvent.press(
-      getByRole("button", { name: "Request Volunteer access" }),
-    );
-    expect(getByText("Volunteer request pending")).toBeTruthy();
-
-    await fireEvent.press(
-      getByRole("button", { name: "Preview President access" }),
-    );
-    await fireEvent.press(
-      getByRole("button", {
-        name: "Approve Gauranga Sharma's access request",
-      }),
-    );
-
-    expect(usePrototypeSession.getState().accessRequests[0]).toMatchObject({
-      requestedRole: "volunteer",
-      status: "approved",
-      reviewedByRole: "president",
-    });
-    expect(queryByText("Volunteer request pending")).toBeNull();
   });
 });

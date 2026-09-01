@@ -44,7 +44,6 @@ type Props = NativeStackScreenProps<ServicesStackParamList, "CreateService">;
 
 export function CreateServiceScreen({ navigation, route }: Props) {
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
-  const previewRole = usePrototypeSession((state) => state.previewRole);
   const profile = useCurrentAccessProfile(activeUserId);
   const dashboard = useServiceDashboard(activeUserId);
   const createRequirement = useCreateServiceRequirement();
@@ -68,7 +67,7 @@ export function CreateServiceScreen({ navigation, route }: Props) {
     useState<JoinAudience>("open");
   const [inviteeIds, setInviteeIds] = useState<string[]>([]);
   const [formError, setFormError] = useState<string | null>(null);
-  const role = __DEV__ && previewRole ? previewRole : (profile.data?.role ?? "devotee");
+  const role = (profile.data?.role ?? "devotee");
   const canAskDirectly = hasAccessPermission(role, "services.offer_assignment");
 
   const toggleInvitee = (id: string) => {

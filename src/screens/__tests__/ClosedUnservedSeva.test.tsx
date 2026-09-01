@@ -121,7 +121,6 @@ async function renderSevaTab(role: AccessRole) {
   mockRole = role;
   usePrototypeSession.setState({
     activeUserId: "closed-unserved-test-user",
-    previewRole: null,
   });
   return render(
     <SafeAreaProvider initialMetrics={AREA}>

@@ -64,10 +64,9 @@ function WeekSkeleton() {
  */
 export function DailyDarshanScreen({ navigation }: Props) {
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
-  const previewRole = usePrototypeSession((state) => state.previewRole);
   const profile = useCurrentAccessProfile(activeUserId);
   const role =
-    __DEV__ && previewRole ? previewRole : (profile.data?.role ?? "devotee");
+    (profile.data?.role ?? "devotee");
   const canPost = canPostDailyDarshan(role);
 
   const reachable = useServerReachable();

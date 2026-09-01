@@ -174,7 +174,7 @@ describe("See all lists a weekly seva once", () => {
     mockDashboard.recurringTemplates = [];
     mockDashboard.devotees = [ME];
     mockProgramme = [];
-    usePrototypeSession.setState({ activeUserId: ME.id, previewRole: null });
+    usePrototypeSession.setState({ activeUserId: ME.id });
   });
 
   it("shows one card for a weekly seva, not one per generated date", async () => {
@@ -302,7 +302,7 @@ describe("the temple programme on the community schedule", () => {
         sort_order: 40,
       }),
     ];
-    usePrototypeSession.setState({ activeUserId: ME.id, previewRole: null });
+    usePrototypeSession.setState({ activeUserId: ME.id });
   });
 
   async function renderSchedule() {

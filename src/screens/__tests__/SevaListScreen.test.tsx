@@ -75,7 +75,7 @@ const RADHA = {
 
 async function renderList(kind: string, role: AccessRole = "president") {
   mockRole = role;
-  usePrototypeSession.setState({ activeUserId: ACTIVE_USER, previewRole: null });
+  usePrototypeSession.setState({ activeUserId: ACTIVE_USER });
   return render(
     <SevaListScreen
       navigation={navigation as never}

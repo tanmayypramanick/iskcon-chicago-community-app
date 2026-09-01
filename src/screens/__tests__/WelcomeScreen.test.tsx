@@ -1,7 +1,12 @@
 /// <reference types="jest" />
 
 import { fireEvent, render, waitFor } from "@testing-library/react-native";
+import * as WebBrowser from "expo-web-browser";
 
+import {
+  PRIVACY_POLICY_URL,
+  TERMS_OF_SERVICE_URL,
+} from "../../config/contact";
 import {
   getAuthProviderAvailability,
   requestPasswordReset,
@@ -12,6 +17,12 @@ import {
   verifyEmailCode,
 } from "../../services/auth";
 import { WelcomeScreen } from "../WelcomeScreen";
+
+jest.mock("expo-web-browser", () => ({
+  maybeCompleteAuthSession: jest.fn(),
+  openBrowserAsync: jest.fn(async () => ({ type: "opened" })),
+  openAuthSessionAsync: jest.fn(),
+}));
 
 jest.mock("../../services/auth", () => ({
   // Mirrors the project's password_min_length; the screen states this number
@@ -105,6 +116,36 @@ describe("WelcomeScreen", () => {
     ).toBeTruthy();
     expect(queryByText("Preview the app")).toBeNull();
     expect(queryByText(/visual prototype/i)).toBeNull();
+  });
+
+  it("opens the published Terms and Privacy Policy from the fine print", async () => {
+    const openBrowserAsync = jest.mocked(WebBrowser.openBrowserAsync);
+    const screen = await render(
+      <WelcomeScreen
+        onAuthenticated={jest.fn()}
+        onRecoveryVerified={jest.fn()}
+      />,
+    );
+
+    const terms = screen.getAllByRole("link", { name: "Terms of Service" })[0];
+    const privacy = screen.getAllByRole("link", { name: "Privacy Policy" })[0];
+    expect(terms).toBeTruthy();
+    expect(privacy).toBeTruthy();
+
+    await fireEvent.press(terms);
+    expect(openBrowserAsync).toHaveBeenLastCalledWith(
+      "https://tanmayypramanick.github.io/iskcon-chicago-community-app/terms-of-service.html",
+    );
+
+    await fireEvent.press(privacy);
+    expect(openBrowserAsync).toHaveBeenLastCalledWith(
+      "https://tanmayypramanick.github.io/iskcon-chicago-community-app/privacy-policy.html",
+    );
+
+    // The sentence must open the same URLs the rest of the app links to, so a
+    // renamed document cannot leave it pointing at a 404.
+    expect(openBrowserAsync).toHaveBeenNthCalledWith(1, TERMS_OF_SERVICE_URL);
+    expect(openBrowserAsync).toHaveBeenNthCalledWith(2, PRIVACY_POLICY_URL);
   });
 
   it("validates an email sign-in before opening the app", async () => {

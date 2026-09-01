@@ -49,3 +49,7 @@ supabase/.temp/
 # Firebase config for Android push. Not secret (it ships inside the APK) but
 # it is per-project setup, not source.
 google-services.json
+
+# Store signing and submission credentials. The Google Play service-account
+# JSON eas.json points at lives here; it must never be committed.
+credentials/

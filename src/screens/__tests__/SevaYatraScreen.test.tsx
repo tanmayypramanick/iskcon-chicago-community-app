@@ -240,7 +240,7 @@ beforeEach(() => {
   mockSupporters.mockReset();
   mockGarland.mockImplementation(() => mockScene.garland);
   mockSupporters.mockImplementation(() => mockScene.supporters);
-  usePrototypeSession.setState({ activeUserId: ARPITA, previewRole: null });
+  usePrototypeSession.setState({ activeUserId: ARPITA });
 });
 
 // Explicit rather than left to the auto-cleanup: a screen left mounted goes on

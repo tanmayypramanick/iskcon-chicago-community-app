@@ -77,7 +77,7 @@ const mockDashboard: any = {
 };
 
 async function open() {
-  usePrototypeSession.setState({ activeUserId: ME.id, previewRole: null });
+  usePrototypeSession.setState({ activeUserId: ME.id });
   return render(
     <MyServiceHistoryScreen
       navigation={{ navigate: jest.fn() } as never}

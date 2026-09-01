@@ -728,12 +728,9 @@ function BoardNotice({
 export function SevaYatraScreen() {
   const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
-  const previewRole = usePrototypeSession((state) => state.previewRole);
   const accessProfile = useCurrentAccessProfile(activeUserId);
   const role =
-    __DEV__ && previewRole
-      ? previewRole
-      : (accessProfile.data?.role ?? "devotee");
+    (accessProfile.data?.role ?? "devotee");
   const mayViewAll = hasAccessPermission(role, "app.view_all");
   const reachable = useServerReachable();
 

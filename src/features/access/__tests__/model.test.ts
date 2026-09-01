@@ -1,6 +1,7 @@
 /// <reference types="jest" />
 
 import {
+  appointableAccessRolesFor,
   canRequestAccessRole,
   getRequestableAccessRoles,
   hasAccessPermission,
@@ -16,6 +17,26 @@ describe("access model", () => {
     expect(hasAccessPermission("volunteer", "access.review_requests")).toBe(
       false,
     );
+  });
+
+  /**
+   * 202609010103. The two offices held identical permissions until this one,
+   * and the asymmetry is the point: somebody has to be able to replace the
+   * President, and it cannot be the President.
+   */
+  it("gives only the Tech Admin the power to appoint every level", () => {
+    expect(hasAccessPermission("tech", "access.manage_any")).toBe(true);
+    for (const role of ["president", "core", "volunteer", "devotee"] as const) {
+      expect(hasAccessPermission(role, "access.manage_any")).toBe(false);
+    }
+
+    expect(appointableAccessRolesFor(true)).toEqual([
+      "volunteer",
+      "core",
+      "tech",
+      "president",
+    ]);
+    expect(appointableAccessRolesFor(false)).toEqual(["volunteer", "core"]);
   });
 
   it("lets a volunteer post and invite, while coverage stays with coordinators", () => {

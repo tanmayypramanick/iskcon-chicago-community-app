@@ -41,7 +41,6 @@ type Props = NativeStackScreenProps<ServicesStackParamList, "CoverageInbox">;
 
 export function CoverageInboxScreen({ navigation }: Props) {
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
-  const previewRole = usePrototypeSession((state) => state.previewRole);
   const profile = useCurrentAccessProfile(activeUserId);
   const dashboard = useServiceDashboard(activeUserId);
   const reachable = useServerReachable();
@@ -49,7 +48,7 @@ export function CoverageInboxScreen({ navigation }: Props) {
   // Devotee this inbox and a Community Head none of it, which is the opposite
   // of what it is for.
   const role =
-    __DEV__ && previewRole ? previewRole : (profile.data?.role ?? "devotee");
+    (profile.data?.role ?? "devotee");
   const canResolve = hasAccessPermission(role, "services.resolve_coverage");
   const pending = (dashboard.data?.coverageRequests ?? []).filter(
     ({ exception }) => exception.status === "pending",

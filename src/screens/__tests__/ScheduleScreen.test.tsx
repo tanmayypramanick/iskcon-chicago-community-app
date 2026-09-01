@@ -145,7 +145,7 @@ async function renderSchedule(params?: {
   devoteeId?: string;
   name?: string;
 }) {
-  usePrototypeSession.setState({ activeUserId: ME, previewRole: null });
+  usePrototypeSession.setState({ activeUserId: ME });
   return render(
     // The bottom sheet measures the home indicator before it slides, so the
     // screen needs the same provider the app gives it.

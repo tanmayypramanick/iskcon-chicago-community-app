@@ -11,7 +11,6 @@ import {
   Avatar,
   AvatarViewer,
   Button,
-  GarlandDivider,
   InitialAvatar,
   Screen,
   ScreenTitle,
@@ -41,161 +40,44 @@ import type { ProfileStackParamList } from "../navigation/types";
 import { usePrototypeSession } from "../store/usePrototypeSession";
 import { useRefreshOnFocus } from "../lib/useRefreshOnFocus";
 
+/** How a devotee's own access level is shown on the badge beside their name. */
 type RolePresentation = {
-  shortLabel: string;
   title: string;
-  description: string;
   badgeClass: string;
   badgeTextClass: string;
   icon: keyof typeof Ionicons.glyphMap;
-  access: Array<{
-    icon: keyof typeof Ionicons.glyphMap;
-    title: string;
-    detail: string;
-  }>;
 };
 
 const roles: Record<AccessRole, RolePresentation> = {
   president: {
-    shortLabel: "President",
     title: "President",
-    description:
-      "A clear leadership view for temple-wide service, communication, and oversight.",
     badgeClass: "bg-marigoldSoft",
     badgeTextClass: "text-stone",
     icon: "shield-checkmark",
-    access: [
-      {
-        icon: "heart-outline",
-        title: "Complete service coordination",
-        detail: "Post, assign, cover, and manage weekly seva.",
-      },
-      {
-        icon: "checkmark-circle-outline",
-        title: "Review access requests",
-        detail: "Approve or deny Volunteer and Community Head requests.",
-      },
-      {
-        icon: "calendar-outline",
-        title: "See every service schedule",
-        detail: "View upcoming and completed services for the community.",
-      },
-      {
-        icon: "grid-outline",
-        title: "Full app visibility",
-        detail: "Access every authorized area as features are released.",
-      },
-    ],
   },
   tech: {
-    shortLabel: "Tech Admin",
     title: "Tech Admin",
-    description:
-      "A focused technical workspace for keeping the app reliable and supporting its users.",
     badgeClass: "bg-indigoSoft",
     badgeTextClass: "text-indigo",
     icon: "code-slash",
-    access: [
-      {
-        icon: "heart-outline",
-        title: "Complete service coordination",
-        detail: "Post, assign, cover, and manage weekly seva.",
-      },
-      {
-        icon: "checkmark-circle-outline",
-        title: "Review access requests",
-        detail: "Approve or deny Volunteer and Community Head requests.",
-      },
-      {
-        icon: "grid-outline",
-        title: "Full app visibility",
-        detail: "See every authorized area and support app operations.",
-      },
-    ],
   },
   core: {
-    shortLabel: "Community Head",
     title: "Community Head",
-    description:
-      "Practical coordination tools for trusted members helping with daily community life.",
     badgeClass: "bg-peacockSoft",
     badgeTextClass: "text-peacock",
     icon: "people",
-    access: [
-      {
-        icon: "add-circle-outline",
-        title: "Post and coordinate seva",
-        detail: "Post requirements and ask a devotee to help.",
-      },
-      {
-        icon: "repeat-outline",
-        title: "Manage weekly seva",
-        detail: "Arrange coverage when an assigned devotee is unavailable.",
-      },
-      {
-        icon: "calendar-outline",
-        title: "See every service schedule",
-        detail: "View upcoming and completed services for the community.",
-      },
-    ],
   },
   volunteer: {
-    shortLabel: "Volunteer",
     title: "Volunteer",
-    description:
-      "A simple service view for posting needs, joining open requirements, and following personal seva.",
     badgeClass: "bg-marigoldSoft",
     badgeTextClass: "text-stone",
     icon: "hand-left",
-    access: [
-      {
-        icon: "add-circle-outline",
-        title: "Post seva requests",
-        detail: "Share an open seva request with the community.",
-      },
-      {
-        icon: "hand-left-outline",
-        title: "Join open requirements",
-        detail: "See and join places where help is currently needed.",
-      },
-      {
-        icon: "heart-outline",
-        title: "Follow personal seva",
-        detail: "See only your own assigned weekly and dated seva.",
-      },
-    ],
   },
   devotee: {
-    shortLabel: "Devotee",
     title: "Devotee",
-    description:
-      "A peaceful personal space for seva, temple connection, and spiritual growth.",
     badgeClass: "bg-sandalwood",
     badgeTextClass: "text-stone",
     icon: "heart",
-    access: [
-      {
-        icon: "hand-left-outline",
-        title: "Offer and track seva",
-        detail:
-          "Join open seva requests, or offer seva for a member to verify.",
-      },
-      {
-        icon: "chatbox-ellipses-outline",
-        title: "Respond to requests",
-        detail: "Accept or decline when a coordinator asks for your help.",
-      },
-      {
-        icon: "alert-circle-outline",
-        title: "Report unavailability",
-        detail: "Let coordinators know when you cannot attend an assignment.",
-      },
-      {
-        icon: "calendar-outline",
-        title: "See every service schedule",
-        detail: "View upcoming and completed services for the community.",
-      },
-    ],
   },
 };
 
@@ -210,63 +92,8 @@ function getInitials(name: string) {
   );
 }
 
-function RoleSelector({
-  selectedRole,
-  onSelect,
-}: {
-  selectedRole: AccessRole;
-  onSelect: (role: AccessRole) => void;
-}) {
-  return (
-    <View className="flex-row flex-wrap justify-between gap-y-2">
-      {(Object.keys(roles) as AccessRole[]).map((role) => {
-        const selected = role === selectedRole;
-
-        return (
-          <Pressable
-            key={role}
-            className={`min-h-touch flex-row items-center justify-center rounded-button border px-2 py-2 ${
-              role === "devotee" ? "w-full" : "w-[49%]"
-            } ${
-              selected ? "border-indigo bg-indigo" : "border-border bg-white"
-            }`}
-            accessibilityRole="button"
-            accessibilityState={{ selected }}
-            accessibilityLabel={`Preview ${roles[role].shortLabel} access`}
-            onPress={() => onSelect(role)}
-          >
-            <Ionicons
-              name={roles[role].icon}
-              size={18}
-              color={selected ? tokens.colors.white : tokens.colors.indigo}
-            />
-            <Text
-              className={`ml-2 font-sans-bold text-sm ${
-                selected ? "text-white" : "text-indigo"
-              }`}
-            >
-              {roles[role].shortLabel}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
-
 export function ProfileScreen({ onSignOut }: { onSignOut: () => void }) {
   const navigation = useNavigation<NavigationProp<ProfileStackParamList>>();
-  const previewRole = usePrototypeSession((state) => state.previewRole);
-  const setPreviewRole = usePrototypeSession((state) => state.setPreviewRole);
-  const prototypeAccessRequests = usePrototypeSession(
-    (state) => state.accessRequests,
-  );
-  const requestPrototypeAccess = usePrototypeSession(
-    (state) => state.requestAccess,
-  );
-  const reviewPrototypeAccessRequest = usePrototypeSession(
-    (state) => state.reviewAccessRequest,
-  );
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
   const presenceQuery = useTemplePresence(activeUserId);
   const servicesQuery = useServiceDashboard(activeUserId);
@@ -306,24 +133,18 @@ export function ProfileScreen({ onSignOut }: { onSignOut: () => void }) {
     });
   };
 
-  const actualRole = profileQuery.data?.role ?? "devotee";
-  const isPreviewing = __DEV__ && previewRole !== null;
-  const role = isPreviewing ? previewRole : actualRole;
+  const role = profileQuery.data?.role ?? "devotee";
   const selectedRole = roles[role];
   const requesterName = profileQuery.data?.name ?? "Your account";
   const profileInitials = getInitials(requesterName);
   const myPhotoUrl = profileQuery.data?.photo_url ?? null;
-  const displayedAccessRequests = isPreviewing
-    ? prototypeAccessRequests
-    : (accessRequestsQuery.data ?? []);
+  const displayedAccessRequests = accessRequestsQuery.data ?? [];
   const requestableRoles = getRequestableAccessRoles(role);
-  const pendingOwnRequest = displayedAccessRequests.find((request) => {
-    if (request.status !== "pending") return false;
-    if (isPreviewing) return request.requesterName === requesterName;
-    return "requesterId" in request
-      ? request.requesterId === profileQuery.data?.id
-      : false;
-  });
+  const pendingOwnRequest = displayedAccessRequests.find(
+    (request) =>
+      request.status === "pending" &&
+      request.requesterId === profileQuery.data?.id,
+  );
   const pendingReviewRequests = displayedAccessRequests.filter(
     (request) => request.status === "pending",
   );
@@ -347,10 +168,6 @@ export function ProfileScreen({ onSignOut }: { onSignOut: () => void }) {
     accessRequestsQuery.error;
 
   const submitAccessRequest = (requestedRole: AccessRole) => {
-    if (isPreviewing) {
-      requestPrototypeAccess(requesterName, role, requestedRole);
-      return;
-    }
     if (requestedRole !== "volunteer" && requestedRole !== "core") return;
     navigation.navigate("RequestAccess", { role: requestedRole });
   };
@@ -451,7 +268,7 @@ export function ProfileScreen({ onSignOut }: { onSignOut: () => void }) {
           {
             icon: "key-outline" as const,
             label: "Manage access",
-            detail: "Appoint or revoke Volunteer and Community Head",
+            detail: "Appoint or take back an access level",
             onPress: () => navigation.navigate("ManageAccess"),
           },
         ]
@@ -486,10 +303,6 @@ export function ProfileScreen({ onSignOut }: { onSignOut: () => void }) {
     decision: "approved" | "denied",
   ) => {
     if (!reviewerRole) return;
-    if (isPreviewing) {
-      reviewPrototypeAccessRequest(requestId, decision, reviewerRole);
-      return;
-    }
     reviewAccessRequest.mutate({ requestId, decision });
   };
 
@@ -718,11 +531,6 @@ export function ProfileScreen({ onSignOut }: { onSignOut: () => void }) {
             </Pressable>
           </View>
 
-          {isPreviewing ? (
-            <Text className="mt-3 font-sans-bold text-[10px] uppercase tracking-wider text-vermilion">
-              Previewing · Real access is {accessRoleLabels[actualRole]}
-            </Text>
-          ) : null}
         </View>
       </View>
 
@@ -834,7 +642,7 @@ export function ProfileScreen({ onSignOut }: { onSignOut: () => void }) {
         <>
           <SectionHeader title="Access requests to review" />
           <View className="mb-section overflow-hidden rounded-card border border-border bg-white">
-            {!isPreviewing && accessRequestsQuery.isLoading ? (
+            {accessRequestsQuery.isLoading ? (
               <View className="items-center px-card py-7">
                 <Text className="font-sans text-base text-stoneMuted">
                   Checking for access requests…
@@ -1001,66 +809,27 @@ export function ProfileScreen({ onSignOut }: { onSignOut: () => void }) {
         ) : null}
       </View>
 
-      <GarlandDivider />
-
-      {__DEV__ ? (
-        <>
-          <SectionHeader title="Test access levels" />
-          <RoleSelector selectedRole={role} onSelect={setPreviewRole} />
-
-          {isPreviewing ? (
-            <Pressable
-              className="mt-3 min-h-touch items-center justify-center"
-              accessibilityRole="button"
-              accessibilityLabel={`Return to real ${accessRoleLabels[actualRole]} access`}
-              onPress={() => setPreviewRole(null)}
-            >
-              <Text className="font-sans-bold text-sm text-indigo">
-                Return to my real {accessRoleLabels[actualRole]} access
-              </Text>
-            </Pressable>
-          ) : null}
-
-          <View className="mt-3 flex-row rounded-button border border-border bg-sandalwood px-3 py-2.5">
-            <Ionicons
-              name="flask-outline"
-              size={18}
-              color={tokens.colors.indigo}
-            />
-            <Text className="ml-3 flex-1 font-sans text-sm leading-5 text-stoneMuted">
-              Testing only: switching this preview changes visible UI, never
-              your real Supabase permissions.
-            </Text>
-          </View>
-        </>
-      ) : null}
-
-      <View className="my-section rounded-card bg-indigo p-card">
-        <View className="flex-row items-center">
-          <View className="h-9 w-9 items-center justify-center rounded-pill bg-white">
-            <Ionicons
-              name={selectedRole.icon}
-              size={19}
-              color={tokens.colors.indigo}
-            />
-          </View>
-          <View className="ml-3 flex-1">
-            <Text className="font-display text-lg text-white">
-              {selectedRole.title}
-            </Text>
-            <Text className="mt-1 font-sans-bold text-sm text-marigoldSoft">
-              {isPreviewing ? "Preview UI access" : "Verified Supabase access"}
-            </Text>
-          </View>
-        </View>
-        <Text className="mt-3 font-sans text-sm leading-5 text-white">
-          {selectedRole.description}
-        </Text>
-      </View>
-
       <Button variant="secondary" icon="log-out-outline" onPress={onSignOut}>
         Sign out
       </Button>
+
+      {/*
+        Deliberately plain, and deliberately here rather than behind a support
+        address. Apple requires a devotee who can make an account to be able to
+        end it from inside the app, and burying it would fail that on purpose.
+        It is quiet because almost nobody wants it — the screen it opens is
+        where the difference between stepping away and being erased is drawn.
+      */}
+      <Pressable
+        className="mt-4 min-h-touch items-center justify-center"
+        accessibilityRole="button"
+        accessibilityLabel="Leaving, or deleting your account"
+        onPress={() => navigation.navigate("LeaveOrForget")}
+      >
+        <Text className="font-sans text-sm text-stoneMuted underline">
+          Leaving, or deleting your account
+        </Text>
+      </Pressable>
     </Screen>
   );
 }

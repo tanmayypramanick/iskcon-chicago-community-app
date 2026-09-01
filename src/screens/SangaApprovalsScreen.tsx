@@ -165,12 +165,10 @@ function PendingSangaCard({
  */
 export function SangaApprovalsScreen() {
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
-  const previewRole = usePrototypeSession((state) => state.previewRole);
   const profile = useCurrentAccessProfile(activeUserId);
   const reachable = useServerReachable();
 
-  const actualRole = profile.data?.role ?? "devotee";
-  const role = __DEV__ && previewRole ? previewRole : actualRole;
+  const role = profile.data?.role ?? "devotee";
   const mayReview = hasAccessPermission(role, "app.view_all");
 
   const pending = usePendingSangas(mayReview);

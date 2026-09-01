@@ -729,9 +729,8 @@ export function DevoteeConversationScreen({ route }: ThreadProps) {
 
 export function DevoteeConversationsScreen({ navigation }: ListProps) {
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
-  const previewRole = usePrototypeSession((state) => state.previewRole);
   const profile = useCurrentAccessProfile(activeUserId);
-  const role = __DEV__ && previewRole ? previewRole : (profile.data?.role ?? "devotee");
+  const role = (profile.data?.role ?? "devotee");
   const canOpen = hasAccessPermission(role, "app.view_all");
 
   const reachable = useServerReachable();

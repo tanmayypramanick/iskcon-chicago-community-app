@@ -103,7 +103,6 @@ async function renderServices(role: AccessRole) {
   mockActualRole = role;
   usePrototypeSession.setState({
     activeUserId: "service-role-test-user",
-    previewRole: null,
   });
 
   return render(

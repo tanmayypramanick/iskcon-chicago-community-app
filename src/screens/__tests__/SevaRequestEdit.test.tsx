@@ -126,7 +126,6 @@ beforeEach(() => {
   mockRole = "president";
   usePrototypeSession.setState({
     activeUserId: ACTIVE_USER,
-    previewRole: null,
   });
   mockDashboard.devotees = [ARPITA, RADHA];
 });

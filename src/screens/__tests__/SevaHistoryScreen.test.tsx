@@ -157,7 +157,7 @@ beforeEach(() => {
       sevaAct("Kitchen Preparation", KITCHEN, "awaiting_verification"),
     ]),
   };
-  usePrototypeSession.setState({ activeUserId: "arpita", previewRole: null });
+  usePrototypeSession.setState({ activeUserId: "arpita" });
 });
 
 afterEach(cleanup);

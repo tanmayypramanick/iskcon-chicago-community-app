@@ -8,10 +8,25 @@ import {
   type AppNotificationKind,
   usePrototypeSession,
 } from "../store/usePrototypeSession";
-import { recordTempleArrivalReminder } from "./notificationInbox";
+import {
+  recordTempleArrivalReminder,
+  templeCheckInReminderCopy,
+} from "./notificationInbox";
 
 const TEMPLE_REMINDERS_CHANNEL = "temple-reminders";
 const COMMUNITY_UPDATES_CHANNEL = "community-updates";
+
+/**
+ * One identifier, reused for the life of the app, so the daily nudge below can
+ * be replaced rather than piled up: scheduling runs on every launch, and
+ * without a fixed identifier a devotee who opened the app ten times would be
+ * reminded ten times at four o'clock.
+ */
+export const DAILY_TEMPLE_CHECK_IN_REMINDER_ID = "temple-check-in-daily";
+
+/** Four in the afternoon, local time — late enough to have arrived. */
+export const DAILY_TEMPLE_CHECK_IN_REMINDER_HOUR = 16;
+export const DAILY_TEMPLE_CHECK_IN_REMINDER_MINUTE = 0;
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -168,6 +183,18 @@ function recordExpoNotification(notification: Notifications.Notification) {
 
   const content = notification.request.content;
   if (typeof content.data?.appNotificationId === "string") return;
+
+  // The daily check-in nudge repeats under one identifier. Filing it by that
+  // identifier would put a single copy in the bell and then dedupe every day
+  // after, so it is filed under the Chicago day it actually arrived on.
+  if (notification.request.identifier === DAILY_TEMPLE_CHECK_IN_REMINDER_ID) {
+    recordTempleArrivalReminder(
+      state.activeUserId,
+      new Date(notification.date),
+    );
+    return;
+  }
+
   const appNotification: AppNotification = {
     id:
       typeof content.data?.appNotificationId === "string"
@@ -214,32 +241,42 @@ export function subscribeToNotifications(
   };
 }
 
-export async function sendTempleArrivalReminder(userId: string) {
-  const notification = recordTempleArrivalReminder(userId);
-  if (!notification) return false;
+/**
+ * Schedules the one daily nudge to check in at the temple, replacing whatever
+ * was scheduled before it. This runs on every launch, so the cancel is what
+ * keeps a devotee from collecting a reminder per launch; the fixed identifier
+ * is what makes the cancel possible.
+ *
+ * The operating system delivers this with the app closed, which is the whole
+ * point of it, and also why it cannot know whether the devotee has already
+ * checked in today. It is worded as an offer rather than a chase for exactly
+ * that reason.
+ */
+export async function scheduleDailyTempleCheckInReminder() {
+  if (Platform.OS === "web") return false;
 
+  // A devotee who has not allowed notifications is not asked again by the back
+  // door; the next launch after they allow them will schedule it.
   const permission = await Notifications.getPermissionsAsync();
-  if (!notificationsAreAllowed(permission)) return true;
+  if (!notificationsAreAllowed(permission)) return false;
 
+  await Notifications.cancelScheduledNotificationAsync(
+    DAILY_TEMPLE_CHECK_IN_REMINDER_ID,
+  );
   await Notifications.scheduleNotificationAsync({
-    identifier: notification.id,
+    identifier: DAILY_TEMPLE_CHECK_IN_REMINDER_ID,
     content: {
-      title: notification.title,
-      body: notification.body,
-      data: {
-        appNotificationId: notification.id,
-        kind: "temple-reminder",
-      },
+      title: templeCheckInReminderCopy.title,
+      body: templeCheckInReminderCopy.body,
+      data: { kind: "temple-reminder" },
       sound: "default",
     },
-    trigger:
-      Platform.OS === "android"
-        ? {
-            type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-            seconds: 1,
-            channelId: TEMPLE_REMINDERS_CHANNEL,
-          }
-        : null,
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DAILY,
+      hour: DAILY_TEMPLE_CHECK_IN_REMINDER_HOUR,
+      minute: DAILY_TEMPLE_CHECK_IN_REMINDER_MINUTE,
+      channelId: TEMPLE_REMINDERS_CHANNEL,
+    },
   });
 
   return true;

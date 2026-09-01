@@ -1,14 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import {
-  useIsFocused,
-  useNavigation,
-  type NavigationProp,
-} from "@react-navigation/native";
-import * as Location from "expo-location";
+import { useNavigation, type NavigationProp } from "@react-navigation/native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AppState,
-  InteractionManager,
   Pressable,
   ScrollView,
   Text,
@@ -67,13 +61,9 @@ import { useNow } from "../lib/useNow";
 import { useRefreshOnFocus } from "../lib/useRefreshOnFocus";
 import type { HomeStackParamList, MainTabParamList } from "../navigation/types";
 import {
-  getCurrentTempleProximity,
-  startTempleGeofencingIfAllowed,
-} from "../services/templeLocation";
-import {
   initializeNotifications,
   registerPushToken,
-  sendTempleArrivalReminder,
+  scheduleDailyTempleCheckInReminder,
 } from "../services/notifications";
 import { usePrototypeSession } from "../store/usePrototypeSession";
 
@@ -605,7 +595,6 @@ function ComingSoonCard({ feature }: { feature: ComingSoonFeature }) {
 
 export function HomeScreen() {
   const navigation = useNavigation<NavigationProp<HomeStackParamList>>();
-  const isFocused = useIsFocused();
   const { dateKey, dateLabel } = useCurrentChicagoDate();
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
   const profile = useCurrentAccessProfile(activeUserId);
@@ -630,10 +619,8 @@ export function HomeScreen() {
   const latestDarshan = useLatestDailyDarshan(Boolean(activeUserId));
   const darshanDayKeys = useDarshanDayKeys();
   const reachable = useServerReachable();
-  const [hasForegroundPermission, setHasForegroundPermission] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const permissionInitialized = useRef(false);
-  const locationCheckInFlight = useRef(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useRefreshOnFocus([
@@ -759,58 +746,21 @@ export function HomeScreen() {
     permissionInitialized.current = true;
     let active = true;
 
-    const requestLocationAccess = async () => {
+    const prepareReminders = async () => {
       try {
         await initializeNotifications(activeUserId);
-        let foregroundPermission =
-          await Location.getForegroundPermissionsAsync();
-
-        if (!foregroundPermission.granted && foregroundPermission.canAskAgain) {
-          foregroundPermission =
-            await Location.requestForegroundPermissionsAsync();
-        }
-
         if (!active) return;
-        setHasForegroundPermission(foregroundPermission.granted);
-        if (!foregroundPermission.granted) return;
-
-        const backgroundPermission =
-          await Location.getBackgroundPermissionsAsync();
-        if (backgroundPermission.granted) {
-          await startTempleGeofencingIfAllowed();
-        }
+        await scheduleDailyTempleCheckInReminder();
       } catch {
-        // Manual check-in remains available if system permissions are denied.
+        // Manual check-in remains available if notifications are refused.
       }
     };
 
-    void requestLocationAccess();
+    void prepareReminders();
     return () => {
       active = false;
     };
   }, [activeUserId]);
-
-  const runLocationCheck = useCallback(async () => {
-    if (!activeUserId || locationCheckInFlight.current) return;
-    locationCheckInFlight.current = true;
-    try {
-      const proximity = await getCurrentTempleProximity();
-      if (!proximity.isAccurateEnough || !proximity.isInside) return;
-      await sendTempleArrivalReminder(activeUserId);
-    } catch {
-      // Location only triggers a reminder; it never silently checks someone in.
-    } finally {
-      locationCheckInFlight.current = false;
-    }
-  }, [activeUserId]);
-
-  useEffect(() => {
-    if (!isFocused || !activeUserId || !hasForegroundPermission) return;
-    const task = InteractionManager.runAfterInteractions(() => {
-      void runLocationCheck();
-    });
-    return () => task.cancel();
-  }, [activeUserId, hasForegroundPermission, isFocused, runLocationCheck]);
 
   const openServices = useCallback(
     (screen: "ServicesHome" | "ServiceDetail", serviceId?: string) => {
@@ -860,15 +810,6 @@ export function HomeScreen() {
       openDevotees({ screen: "DevoteesHome", params: { section: "sanga" } }),
     [openDevotees],
   );
-
-  useEffect(() => {
-    const subscription = AppState.addEventListener("change", (state) => {
-      if (state === "active" && isFocused && hasForegroundPermission) {
-        void runLocationCheck();
-      }
-    });
-    return () => subscription.remove();
-  }, [hasForegroundPermission, isFocused, runLocationCheck]);
 
   const toggleManualPresence = () => {
     if (!activeUserId) return;

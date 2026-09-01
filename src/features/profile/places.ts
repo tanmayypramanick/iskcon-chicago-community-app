@@ -2,15 +2,12 @@
  * Place suggestions without a paid API.
  *
  * A true address autocomplete (Google Places, Mapbox) needs an API key and
- * costs per keystroke. Two things are free and get most of the way there:
+ * costs per keystroke. A bundled list of the places an ISKCON congregation
+ * actually draws from — Indian cities and the major diaspora hubs — searched
+ * offline, gets most of the way there for nothing.
  *
- *  1. A bundled list of the places an ISKCON congregation actually draws from
- *     — Indian cities and the major diaspora hubs — searched offline.
- *  2. The operating system's own geocoder, via expo-location, to turn "where I
- *     am standing" into a written address.
- *
- * Neither pretends to be exhaustive: the field stays free text, and the list
- * only offers. A devotee born somewhere not listed simply types it.
+ * It does not pretend to be exhaustive: the field stays free text, and the
+ * list only offers. A devotee born somewhere not listed simply types it.
  */
 
 /** Common birth places for this congregation, plus world hubs. */
@@ -175,43 +172,4 @@ export function suggestPlaces(query: string, limit = 6): string[] {
     .sort((left, right) => left.at - right.at || left.place.localeCompare(right.place));
 
   return scored.slice(0, limit).map((entry) => entry.place);
-}
-
-/**
- * Turns the device's current position into a written address using the
- * operating system's geocoder. No API key, no per-request cost. Returns null
- * when permission is refused or nothing can be resolved, so the caller can
- * simply leave the field to be typed.
- */
-export async function addressFromCurrentPosition(): Promise<string | null> {
-  let Location: typeof import("expo-location");
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    Location = require("expo-location") as typeof import("expo-location");
-  } catch {
-    return null;
-  }
-
-  const permission = await Location.requestForegroundPermissionsAsync();
-  if (!permission.granted) return null;
-
-  const position = await Location.getCurrentPositionAsync({
-    accuracy: Location.Accuracy.Balanced,
-  });
-  const [place] = await Location.reverseGeocodeAsync({
-    latitude: position.coords.latitude,
-    longitude: position.coords.longitude,
-  });
-  if (!place) return null;
-
-  return [
-    [place.streetNumber, place.street].filter(Boolean).join(" "),
-    place.city ?? place.subregion,
-    place.region,
-    place.postalCode,
-    place.country,
-  ]
-    .map((part) => part?.trim())
-    .filter(Boolean)
-    .join(", ");
 }

@@ -64,14 +64,13 @@ function Row({
 export function SevaRegistrationDetailScreen({ navigation, route }: Props) {
   const { verificationId } = route.params;
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
-  const previewRole = usePrototypeSession((state) => state.previewRole);
   const profile = useCurrentAccessProfile(activeUserId);
   const dashboard = useServiceDashboard(activeUserId);
   const remove = useDeleteSevaRegistration();
   const now = useNow();
 
   const role =
-    __DEV__ && previewRole ? previewRole : (profile.data?.role ?? "devotee");
+    (profile.data?.role ?? "devotee");
   const canManage = hasAccessPermission(role, "services.manage_recurring");
 
   const registration: ServiceVerification | undefined = [

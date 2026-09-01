@@ -14,6 +14,7 @@ import { DevoteeDirectoryScreen } from "../screens/DevoteeDirectoryScreen";
 import { ManageAccessScreen } from "../screens/ManageAccessScreen";
 import { NotificationSettingsScreen } from "../screens/NotificationSettingsScreen";
 import { PrivacyVisibilityScreen } from "../screens/PrivacyVisibilityScreen";
+import { LeaveOrForgetScreen } from "../screens/LeaveOrForgetScreen";
 import { ProfileDetailsScreen } from "../screens/ProfileDetailsScreen";
 import { RequestAccessScreen } from "../screens/RequestAccessScreen";
 import { TermsOfServiceScreen } from "../screens/TermsOfServiceScreen";
@@ -65,6 +66,11 @@ export function ProfileStack({ onSignOut }: { onSignOut: () => void }) {
         name="ProfileDetails"
         component={ProfileDetailsScreen}
         options={{ title: "Your details" }}
+      />
+      <Stack.Screen
+        name="LeaveOrForget"
+        component={LeaveOrForgetScreen}
+        options={{ title: "Leaving" }}
       />
       <Stack.Screen
         name="DevoteeDirectory"

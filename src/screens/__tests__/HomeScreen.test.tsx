@@ -21,13 +21,6 @@ jest.mock("../../features/access/hooks", () => ({
   }),
 }));
 
-jest.mock("expo-location", () => ({
-  getForegroundPermissionsAsync: jest.fn().mockResolvedValue({
-    granted: false,
-    canAskAgain: false,
-  }),
-}));
-
 jest.mock("../../lib/supabase", () => ({
   getSupabaseClient: () => ({
     auth: {
@@ -202,12 +195,7 @@ jest.mock("../../features/notifications/hooks", () => ({
 jest.mock("../../services/notifications", () => ({
   initializeNotifications: jest.fn().mockResolvedValue(true),
   registerPushToken: jest.fn().mockResolvedValue({ ok: true }),
-  sendTempleArrivalReminder: jest.fn().mockResolvedValue(true),
-}));
-
-jest.mock("../../services/templeLocation", () => ({
-  getCurrentTempleProximity: jest.fn(),
-  startTempleGeofencingIfAllowed: jest.fn(),
+  scheduleDailyTempleCheckInReminder: jest.fn().mockResolvedValue(true),
 }));
 
 import { getChicagoDateKey } from "../../lib/chicagoDate";

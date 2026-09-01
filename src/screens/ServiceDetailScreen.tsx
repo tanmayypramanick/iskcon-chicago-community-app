@@ -61,7 +61,6 @@ function initials(name: string) {
 
 export function ServiceDetailScreen({ navigation, route }: Props) {
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
-  const previewRole = usePrototypeSession((state) => state.previewRole);
   const profile = useCurrentAccessProfile(activeUserId);
   const dashboard = useServiceDashboard(activeUserId);
   const [devoteeSearch, setDevoteeSearch] = useState("");
@@ -82,8 +81,7 @@ export function ServiceDetailScreen({ navigation, route }: Props) {
   const service = dashboard.data?.services.find(
     (item) => item.id === route.params.serviceId,
   );
-  const actualRole = profile.data?.role ?? "devotee";
-  const effectiveRole = __DEV__ && previewRole ? previewRole : actualRole;
+  const effectiveRole = profile.data?.role ?? "devotee";
   const canOffer = hasAccessPermission(
     effectiveRole,
     "services.offer_assignment",

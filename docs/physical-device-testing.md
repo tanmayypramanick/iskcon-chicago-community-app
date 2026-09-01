@@ -36,7 +36,7 @@ using EAS cloud builds.
 4. In Terminal, run `adb devices`; the phone must show as `device`, not
    `unauthorized`.
 5. Run `npx expo run:android --device` and select the physical phone.
-6. Allow the notification, camera, photo and location permissions requested by
+6. Allow the notification, camera and photo permissions requested by
    the app.
 7. For later JavaScript-only changes, run `npx expo start` instead of rebuilding.
 
@@ -53,7 +53,7 @@ If Metro cannot connect over Wi-Fi, keep USB attached and run
 5. If Xcode asks for signing, choose the personal development team for bundle
    identifier `org.iskconchicago.community`.
 6. On the phone, trust the developer profile if iOS requests it.
-7. Allow the app's notification, camera, photo and location permissions.
+7. Allow the app's notification, camera and photo permissions.
 
 A free Apple development team can install a tethered local test build, usually
 with short-lived provisioning, but it cannot provide production APNs push
@@ -86,7 +86,7 @@ Run each row in both directions where applicable.
 | Notifications | App backgrounded | System notification arrives and opens correct screen |
 | Notifications | App terminated | System notification cold-opens correct screen |
 | Notifications | Wrong recipient check | Other account receives nothing |
-| Location | Enter temple radius | Reminder asks for confirmation; no automatic check-in |
+| Daily reminder | Wait until 4:00 pm local time | One banner asks you to check in if you are at the temple; no automatic check-in |
 | Donations | General and campaign forms | Correct Zeffy hosted page opens |
 | Media | Camera, photos and files | Real-device picker/upload works |
 

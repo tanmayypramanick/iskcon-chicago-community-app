@@ -19,15 +19,16 @@ import {
   useAccessAppointments,
   useAppointAccess,
   useMayAppointAccess,
+  useMayAppointAnyAccess,
   useRevokeAccess,
 } from "../features/access/hooks";
 import type { AccessAppointment } from "../features/access/api";
 import {
   accessRoleLabels,
-  grantableAccessRoles,
-  grantableRoleSummaries,
+  appointableAccessRolesFor,
+  appointableRoleSummaries,
   isAccessRole,
-  type GrantableAccessRole,
+  type AppointableAccessRole,
 } from "../features/access/model";
 import { FormError } from "../features/services/components";
 import { errorMessage } from "../features/services/format";
@@ -58,6 +59,9 @@ function roleLabel(roleName: string) {
 function whyNotRevocable(grant: AccessAppointment, viewerId: string | null) {
   if (grant.devotee_id === viewerId) {
     return "This is your own access. Somebody else changes it.";
+  }
+  if (grant.role_name === "president" || grant.role_name === "tech") {
+    return "Only a Tech Admin can take back the President or Tech Admin access levels.";
   }
   const appointer = grant.appointed_by_name?.trim();
   return appointer
@@ -165,6 +169,9 @@ export function ManageAccessScreen() {
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
   const reachable = useServerReachable();
   const mayAppoint = useMayAppointAccess(activeUserId);
+  // The two offices are the Tech Admin's to give. The server answers this, and
+  // then refuses anything it did not agree to, so the screen never guesses.
+  const mayAppointAny = useMayAppointAnyAccess(activeUserId);
   const appointments = useAccessAppointments(mayAppoint.data === true);
   const dashboard = useServiceDashboard(activeUserId);
   const appoint = useAppointAccess();
@@ -173,7 +180,8 @@ export function ManageAccessScreen() {
   const [adding, setAdding] = useState(false);
   const [search, setSearch] = useState("");
   const [candidate, setCandidate] = useState<ServiceDevotee | null>(null);
-  const [chosenRole, setChosenRole] = useState<GrantableAccessRole>("volunteer");
+  const [chosenRole, setChosenRole] =
+    useState<AppointableAccessRole>("volunteer");
   const [note, setNote] = useState("");
   const [actionError, setActionError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -183,6 +191,10 @@ export function ManageAccessScreen() {
     [appointments.data],
   );
 
+  const appointableRoles = appointableAccessRolesFor(
+    mayAppointAny.data === true,
+  );
+
   const candidates = useMemo(() => {
     if (!adding) return [];
     const term = search.trim().toLocaleLowerCase();
@@ -190,14 +202,22 @@ export function ManageAccessScreen() {
       .filter(
         (devotee) =>
           devotee.id !== activeUserId &&
-          // The two offices are set in the database, outside the app, and the
-          // server refuses to touch them either way.
-          devotee.role_name !== "president" &&
-          devotee.role_name !== "tech" &&
+          // Somebody already holding one of the two offices can only be moved
+          // by a Tech Admin, so to everyone else they are not on this list at
+          // all — a name that can only refuse is worse than a name that is not
+          // offered.
+          (mayAppointAny.data === true ||
+            (devotee.role_name !== "president" && devotee.role_name !== "tech")) &&
           (!term || devotee.name.toLocaleLowerCase().includes(term)),
       )
       .slice(0, MAX_CANDIDATES);
-  }, [activeUserId, adding, dashboard.data?.devotees, search]);
+  }, [
+    activeUserId,
+    adding,
+    dashboard.data?.devotees,
+    mayAppointAny.data,
+    search,
+  ]);
 
   const closeAppointForm = () => {
     setCandidate(null);
@@ -506,7 +526,7 @@ export function ManageAccessScreen() {
             </View>
 
             <SectionHeader title="Which level?" />
-            {grantableAccessRoles.map((role) => {
+            {appointableRoles.map((role) => {
               const selected = role === chosenRole;
               return (
                 <Pressable
@@ -525,7 +545,7 @@ export function ManageAccessScreen() {
                         {accessRoleLabels[role]}
                       </Text>
                       <Text className="mt-1 font-sans text-sm leading-5 text-stoneMuted">
-                        {grantableRoleSummaries[role]}
+                        {appointableRoleSummaries[role]}
                       </Text>
                     </View>
                     <Ionicons

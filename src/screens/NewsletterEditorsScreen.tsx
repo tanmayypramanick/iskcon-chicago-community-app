@@ -98,10 +98,9 @@ function EditorRow({
  */
 export function NewsletterEditorsScreen() {
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
-  const previewRole = usePrototypeSession((state) => state.previewRole);
   const profile = useCurrentAccessProfile(activeUserId);
   const role =
-    __DEV__ && previewRole ? previewRole : (profile.data?.role ?? "devotee");
+    (profile.data?.role ?? "devotee");
   // Appointing, unlike everything else on the newsletter, genuinely is a rank:
   // the migration gates it on `app.view_all` and never on the appointment, so
   // an editor may not appoint another. This ladder is only the fallback for the

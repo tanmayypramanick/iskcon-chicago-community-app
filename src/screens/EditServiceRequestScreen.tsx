@@ -46,14 +46,13 @@ type Props = NativeStackScreenProps<
 export function EditServiceRequestScreen({ navigation, route }: Props) {
   const { serviceId } = route.params;
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
-  const previewRole = usePrototypeSession((state) => state.previewRole);
   const profile = useCurrentAccessProfile(activeUserId);
   const dashboard = useServiceDashboard(activeUserId);
   const update = useUpdateServiceRequirement();
   const remove = useDeleteServiceRequirement();
 
   const role =
-    __DEV__ && previewRole ? previewRole : (profile.data?.role ?? "devotee");
+    (profile.data?.role ?? "devotee");
   const canOverrideAnything = hasAccessPermission(role, "app.view_all");
 
   const service = dashboard.data?.services.find((row) => row.id === serviceId);

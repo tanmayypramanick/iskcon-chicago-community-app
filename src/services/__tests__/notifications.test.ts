@@ -26,7 +26,7 @@ describe("temple arrival notifications", () => {
 
     expect(notifications).toHaveLength(1);
     expect(notifications[0]).toMatchObject({
-      title: "Are you at the temple?",
+      title: "If you are at the temple",
       kind: "temple-reminder",
       isRead: false,
     });

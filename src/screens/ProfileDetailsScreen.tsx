@@ -29,10 +29,7 @@ import {
   useRemoveDevoteePhoto,
   useUpdateDevoteePhoto,
 } from "../features/profile/hooks";
-import {
-  addressFromCurrentPosition,
-  suggestPlaces,
-} from "../features/profile/places";
+import { suggestPlaces } from "../features/profile/places";
 import { DateField, FormError } from "../features/services/components";
 import { dateToKey, errorMessage } from "../features/services/format";
 import { getChicagoWallClock } from "../lib/chicagoDate";
@@ -336,14 +333,12 @@ function PlaceField({
   onChangeText,
   placeholder,
   multiline = false,
-  children,
 }: {
   label: string;
   value: string;
   onChangeText: (value: string) => void;
   placeholder: string;
   multiline?: boolean;
-  children?: React.ReactNode;
 }) {
   // Suggestions belong to typing, not to what was loaded from the profile, so
   // the list stays shut until the devotee actually edits the field.
@@ -386,7 +381,6 @@ function PlaceField({
           ))}
         </View>
       ) : null}
-      {children}
     </View>
   );
 }
@@ -921,8 +915,6 @@ export function ProfileDetailsScreen({ navigation }: Props) {
   const [templeSinceAmount, setTempleSinceAmount] = useState("");
   const [templeSinceUnit, setTempleSinceUnit] =
     useState<TempleSinceUnit | null>(null);
-  const [locating, setLocating] = useState(false);
-  const [locationNote, setLocationNote] = useState<string | null>(null);
   const [emailOpen, setEmailOpen] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
@@ -1006,27 +998,6 @@ export function ProfileDetailsScreen({ navigation }: Props) {
   const completion = Math.max(0, Math.min(100, profile?.completion ?? 0));
   const photoUrl = profile?.photo_url ?? null;
   const displayName = profile?.name ?? "Your account";
-
-  // The geocoder can refuse, time out, or simply not know where this is. None
-  // of those are worth an error screen: the field is left as it was to type.
-  const fillInMyLocation = async () => {
-    setLocationNote(null);
-    setLocating(true);
-    try {
-      const found = await addressFromCurrentPosition();
-      if (found) setAddress(found);
-      else
-        setLocationNote(
-          "Your location could not be read. Please type your address instead.",
-        );
-    } catch {
-      setLocationNote(
-        "Your location could not be read. Please type your address instead.",
-      );
-    } finally {
-      setLocating(false);
-    }
-  };
 
   const submit = async () => {
     setFormError(null);
@@ -1249,31 +1220,7 @@ export function ProfileDetailsScreen({ navigation }: Props) {
           onChangeText={setAddress}
           placeholder="Where post can reach you"
           multiline
-        >
-          <View>
-            <Pressable
-              className="mt-1.5 min-h-10 flex-row items-center"
-              accessibilityRole="button"
-              accessibilityLabel="Use my current location as my address"
-              disabled={locating}
-              onPress={() => void fillInMyLocation()}
-            >
-              <Ionicons
-                name="locate-outline"
-                size={18}
-                color={tokens.colors.indigo}
-              />
-              <Text className="ml-2 font-sans-bold text-sm text-indigo">
-                {locating ? "Finding you…" : "Use my location"}
-              </Text>
-            </Pressable>
-            {locationNote ? (
-              <Text className="font-sans text-sm leading-5 text-stoneMuted">
-                {locationNote}
-              </Text>
-            ) : null}
-          </View>
-        </PlaceField>
+        />
         <TextField
           label="Phone number"
           value={phone}

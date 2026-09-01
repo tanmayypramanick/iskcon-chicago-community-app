@@ -210,7 +210,7 @@ beforeEach(() => {
   mockDashboard.sevaNeedingAnswer = [];
   mockDashboard.services = [];
   mockDashboard.devotees = [];
-  usePrototypeSession.setState({ activeUserId: ACTIVE_USER, previewRole: null });
+  usePrototypeSession.setState({ activeUserId: ACTIVE_USER });
 });
 
 afterEach(() => {

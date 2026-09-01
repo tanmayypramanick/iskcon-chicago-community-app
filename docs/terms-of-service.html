@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Terms of Service — ISKCON Chicago</title>
+<meta name="description" content="The terms on which ISKCON Chicago offers its community app: who may use it, how to behave in it, and what the temple does and does not promise.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,500&family=Source+Sans+3:wght@400;600;700&display=swap">
+
+<style>
+  :root {
+    --ground: #FBF7EF;
+    --surface: #FFFFFF;
+    --surface-sunk: #F5EFE3;
+    --border: #DED2BF;
+    --border-soft: #EADFCC;
+    --ink: #3A342B;
+    --ink-muted: #766D61;
+
+    --posted: #2B3A67;
+    --posted-wash: #E7EAF3;
+    --registration: #1F6F67;
+    --registration-wash: #DCECE8;
+    --weekly: #B0700D;
+    --weekly-wash: #F8E7C4;
+
+    --open: #C1440E;
+    --open-wash: #FAE7DF;
+
+    --shadow: 0 1px 2px rgba(58, 52, 43, .06), 0 8px 24px -16px rgba(58, 52, 43, .28);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #211D18;
+      --surface: #2A251E;
+      --surface-sunk: #322C24;
+      --border: #453D32;
+      --border-soft: #3A332B;
+      --ink: #F1E8D9;
+      --ink-muted: #B3A794;
+
+      --posted: #9BADE0;
+      --posted-wash: #2A3149;
+      --registration: #63C4B3;
+      --registration-wash: #1E3B37;
+      --weekly: #F0B455;
+      --weekly-wash: #40331C;
+
+      --open: #F08A5F;
+      --open-wash: #40261D;
+
+      --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px -16px rgba(0, 0, 0, .6);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #211D18;
+    --surface: #2A251E;
+    --surface-sunk: #322C24;
+    --border: #453D32;
+    --border-soft: #3A332B;
+    --ink: #F1E8D9;
+    --ink-muted: #B3A794;
+
+    --posted: #9BADE0;
+    --posted-wash: #2A3149;
+    --registration: #63C4B3;
+    --registration-wash: #1E3B37;
+    --weekly: #F0B455;
+    --weekly-wash: #40331C;
+
+    --open: #F08A5F;
+    --open-wash: #40261D;
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px -16px rgba(0, 0, 0, .6);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 44px;
+  }
+
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--registration);
+    margin: 0 0 6px;
+  }
+
+  h1 {
+    font-family: "EB Garamond", Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(34px, 5vw, 48px);
+    line-height: 1.1;
+    margin: 0 0 14px;
+    text-wrap: balance;
+  }
+
+  h2 {
+    font-family: "EB Garamond", Georgia, serif;
+    font-weight: 600;
+    font-size: 27px;
+    line-height: 1.2;
+    margin: 0 0 10px;
+    text-wrap: balance;
+  }
+
+  h3 { font-size: 15px; font-weight: 700; margin: 0 0 6px; }
+
+  p { margin: 0 0 14px; max-width: 68ch; }
+  p:last-child { margin-bottom: 0; }
+  .lede { font-size: 18px; color: var(--ink-muted); max-width: 66ch; }
+
+  section { display: flex; flex-direction: column; }
+
+  .stamp {
+    display: inline-flex;
+    align-self: flex-start;
+    margin-top: 6px;
+    padding: 4px 11px;
+    border-radius: 999px;
+    background: var(--registration-wash);
+    color: var(--registration);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 20px 22px;
+    box-shadow: var(--shadow);
+  }
+  .panel[data-tone="open"] { border-color: color-mix(in srgb, var(--open) 34%, var(--border)); }
+
+  ul.ticks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+  ul.ticks li { position: relative; padding-left: 22px; font-size: 15px; line-height: 1.5; }
+  ul.ticks li::before {
+    content: "";
+    position: absolute;
+    left: 0; top: .55em;
+    width: 9px; height: 9px;
+    border-radius: 999px;
+    background: var(--registration);
+  }
+  .panel[data-tone="open"] ul.ticks li::before { background: var(--open); }
+
+  ul.plain { margin: 0 0 14px; padding-left: 20px; }
+  ul.plain li { margin-bottom: 6px; max-width: 66ch; }
+
+  .fill {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 6px;
+    border: 1px dashed var(--open);
+    background: var(--open-wash);
+    color: var(--open);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .rule { height: 1px; background: var(--border); border: none; margin: 0; }
+
+  footer { color: var(--ink-muted); font-size: 14px; }
+  footer strong { color: var(--ink); font-weight: 600; }
+
+  a { color: var(--posted); }
+  a:focus-visible { outline: 2px solid var(--posted); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">ISKCON Chicago</p>
+    <h1>Terms of Service</h1>
+    <p class="lede">
+      These are the terms on which ISKCON Chicago offers its community app —
+      <em>Act of Service</em> — to devotees and well-wishers. They are short on
+      purpose. Read them alongside the
+      <a href="privacy-policy.html">Privacy Policy</a>, which says what the app
+      holds about you and who can see it.
+    </p>
+    <span class="stamp">Last updated 1 September 2026</span>
+  </header>
+
+  <section id="agreement">
+    <h2>Who runs this, and what you are agreeing to</h2>
+    <p>
+      The app is run by ISKCON Chicago (the International Society for Krishna
+      Consciousness of Chicago), a religious congregation in Illinois, USA. It
+      is offered free of charge for the temple's community, not as a commercial
+      product.
+    </p>
+    <p>
+      By creating an account or using the app, you agree to these terms. If you
+      do not agree with them, please do not use the app, and speak to the
+      President or an authorised temple administrator.
+    </p>
+  </section>
+
+  <section id="account">
+    <h2>Your account</h2>
+    <p>
+      The app is meant for devotees and well-wishers taking part in the ISKCON
+      Chicago community, and for adults — accounts are not for children under
+      13. Use your own account, with your own name, and give us information that
+      is true, including a current phone number.
+    </p>
+    <p>
+      Keep your password to yourself. What is done through your signed-in
+      account may be treated as done by you. If you think somebody else has got
+      into your account, tell an authorised temple administrator promptly.
+    </p>
+    <p>
+      Access levels — Devotee, Volunteer, Community Head, Tech Admin and
+      President — are granted according to temple responsibilities, by the
+      President or a Tech Admin.
+    </p>
+  </section>
+
+  <section id="use">
+    <h2>How to behave in it</h2>
+    <p>
+      This is a temple's community space. Speak to devotees the way you would in
+      the temple room.
+    </p>
+
+    <div class="panel" data-tone="open">
+      <h3>Please do not</h3>
+      <ul class="ticks">
+        <li>Harass, threaten or abuse anybody, or post unlawful, hateful or obscene content.</li>
+        <li>Impersonate another devotee, or use somebody else's account.</li>
+        <li>Advertise, solicit, sell or raise funds for anything of your own.</li>
+        <li>Pass on another devotee's private information, or photograph or name a child without their parent's agreement.</li>
+        <li>Register for seva you do not intend to perform, or record seva time, attendance or verification dishonestly.</li>
+        <li>Try to break, overload or get around the app's security, or reach records you have not been given access to.</li>
+        <li>Copy the Directory or any part of the temple's records for use outside the community.</li>
+      </ul>
+    </div>
+
+    <p style="margin-top: 16px;">
+      If your availability for a seva changes, update the app or tell the
+      coordinator as early as you can, so somebody else can cover it.
+    </p>
+  </section>
+
+  <section id="content">
+    <h2>What you share</h2>
+    <p>
+      What you write and the photos you post stay yours. By posting them you
+      give ISKCON Chicago permission to store, display and keep them within the
+      app as part of running the community and its records.
+    </p>
+    <p>
+      Share only what you are entitled to share. Messages, sanga chats and
+      photos are kept as temple records, and specifically authorised leadership
+      can read them; deleting a message removes it from the conversation but
+      does not destroy the record. The
+      <a href="privacy-policy.html">Privacy Policy</a> explains this in full,
+      and it is worth reading before you write something you would not want kept.
+    </p>
+  </section>
+
+  <section id="donations">
+    <h2>Donations</h2>
+    <p>
+      Donations and sponsorships are completed on Zeffy, a separate payment
+      service, in your phone's browser. Zeffy's own terms and privacy practices
+      apply to what you enter there. The app never sees or stores card details.
+      Donations to the temple are not refundable except where the law requires
+      it.
+    </p>
+  </section>
+
+  <section id="availability">
+    <h2>The app as it is</h2>
+    <p>
+      The app is provided as it is, without warranty of any kind, express or
+      implied — including any implied warranty of merchantability, fitness for a
+      particular purpose or non-infringement. It may be unavailable, delayed or
+      wrong, and features may change or be withdrawn.
+    </p>
+    <div class="panel" data-tone="open">
+      <p>
+        <strong>It is not an emergency service.</strong> For anything urgent,
+        contact the temple directly rather than relying on a message or a
+        notification in the app.
+      </p>
+    </div>
+    <p style="margin-top: 16px;">
+      To the fullest extent the law allows, ISKCON Chicago and the devotees
+      running the app are not liable for indirect or consequential loss arising
+      from your use of it, including a notification that did not arrive, a seva
+      that was not covered, or content another devotee posted. Nothing in these
+      terms limits liability that cannot lawfully be limited.
+    </p>
+  </section>
+
+  <section id="ending">
+    <h2>Ending it</h2>
+    <p>
+      You may stop using the app at any time. <em>Leaving</em> steps you away
+      and keeps your record as it stands; asking to be <em>forgotten</em> erases
+      your personal details and closes your sign-in for good. Both are described
+      in the <a href="privacy-policy.html">Privacy Policy</a>.
+    </p>
+    <p>
+      ISKCON Chicago may restrict features, suspend access, remove content or
+      close an account where these terms are broken, or where it is reasonably
+      necessary for the safety of devotees or the running of the temple. Where
+      it is practical to say why, we will.
+    </p>
+  </section>
+
+  <section id="changes">
+    <h2>Changes</h2>
+    <p>
+      These terms will be updated as the app and the temple's services change,
+      and the date at the top will change with them. Carrying on using the app
+      after an update means you accept the revised terms.
+    </p>
+  </section>
+
+  <hr class="rule">
+
+  <section id="law">
+    <h2>Governing law</h2>
+    <p>
+      These terms are governed by the laws of the State of Illinois, USA,
+      without regard to its conflict-of-law rules. Any dispute that cannot be
+      settled between us belongs to the state or federal courts sitting in
+      <span class="fill">[COUNTY — to be confirmed by the temple]</span>
+      County, Illinois, and both of us agree to those courts.
+    </p>
+    <p style="color: var(--ink-muted);">
+      Before that, please simply talk to us. Almost everything is settled by a
+      conversation with the President or a community head.
+    </p>
+  </section>
+
+  <section id="contact">
+    <h2>How to reach us</h2>
+    <div class="panel">
+      <p>
+        <strong>Email</strong><br>
+        <span class="fill">[TEMPLE CONTACT EMAIL — to be filled in]</span>
+      </p>
+      <p>
+        <strong>Post</strong><br>
+        <span class="fill">[TEMPLE POSTAL ADDRESS — to be filled in]</span>
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    <strong>One more thing.</strong> These terms describe the app, not the
+    temple. Your standing in the community, your seva and your relationship with
+    the devotees here do not depend on an app or on anything written on this
+    page. The companion document is the
+    <a href="privacy-policy.html">Privacy Policy</a>.
+  </footer>
+
+</div>
+</body>
+</html>

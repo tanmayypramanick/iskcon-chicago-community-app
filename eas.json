@@ -1,0 +1,63 @@
+{
+  "cli": {
+    "version": ">= 12.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "environment": "development",
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "development-simulator": {
+      "extends": "development",
+      "ios": {
+        "simulator": true
+      }
+    },
+    "preview": {
+      "environment": "preview",
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "environment": "production",
+      "distribution": "store",
+      "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle"
+      }
+    }
+  },
+  "submit": {
+    "preview": {
+      "android": {
+        "serviceAccountKeyPath": "./credentials/REPLACE-ME-google-play-service-account.json",
+        "track": "internal",
+        "releaseStatus": "draft"
+      },
+      "ios": {
+        "appleId": "REPLACE-ME-apple-id-email",
+        "ascAppId": "REPLACE-ME-app-store-connect-app-id",
+        "appleTeamId": "REPLACE-ME-apple-team-id"
+      }
+    },
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./credentials/REPLACE-ME-google-play-service-account.json",
+        "track": "internal",
+        "releaseStatus": "draft"
+      },
+      "ios": {
+        "appleId": "REPLACE-ME-apple-id-email",
+        "ascAppId": "REPLACE-ME-app-store-connect-app-id",
+        "appleTeamId": "REPLACE-ME-apple-team-id"
+      }
+    }
+  }
+}

@@ -342,9 +342,10 @@ begin
     raise exception 'Refusing self-appointment said "%".', v_message;
   end if;
 
-  -- Nobody appoints to president or tech, and revocation is the only road to
-  -- Devotee.
-  foreach v_bad in array array['president', 'tech', 'devotee'] loop
+  -- The two offices are the Tech Admin's to give (202609010103), and this is
+  -- the President acting: they are refused, as is everybody else who does not
+  -- hold access.manage_any. Revocation is still the only road to Devotee.
+  foreach v_bad in array array['president', 'tech'] loop
     v_message := null;
     begin
       perform public.appoint_access('a7000000-0000-0000-0000-000000000007', v_bad);
@@ -354,10 +355,23 @@ begin
     if v_message is null then
       raise exception 'The President appointed somebody to %.', v_bad;
     end if;
-    if v_message not like '%Volunteer or Community Head%' then
+    if v_message not like '%Only the Tech Admin%' then
       raise exception 'Refusing an appointment to % said "%".', v_bad, v_message;
     end if;
   end loop;
+
+  v_message := null;
+  begin
+    perform public.appoint_access('a7000000-0000-0000-0000-000000000007', 'devotee');
+  exception when others then
+    v_message := sqlerrm;
+  end;
+  if v_message is null then
+    raise exception 'Somebody was appointed to Devotee instead of being revoked.';
+  end if;
+  if v_message not like '%not an access level%' then
+    raise exception 'Refusing an appointment to devotee said "%".', v_message;
+  end if;
 
   -- An office holder cannot be moved through this door at all.
   v_message := null;

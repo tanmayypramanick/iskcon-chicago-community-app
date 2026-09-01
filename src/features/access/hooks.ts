@@ -9,6 +9,7 @@ import {
   fetchDevoteeAccessGrants,
   fetchDevoteeProfiles,
   fetchMayAppointAccess,
+  fetchMayAppointAnyAccess,
   fetchMyAccessRequests,
   fetchPendingAccessRequests,
   missingRequiredProfileFields,
@@ -23,13 +24,15 @@ import {
   type ProfileExtrasInput,
   type RequiredProfileField,
 } from "./api";
-import type { AccessRole } from "./model";
+import type { AccessRole, AppointableAccessRole } from "./model";
 
 const accessKeys = {
   profile: (userId: string | null) => ["access", "profile", userId] as const,
   requests: (userId: string | null) => ["access", "requests", userId] as const,
   mayAppoint: (userId: string | null) =>
     ["access", "may-appoint", userId] as const,
+  mayAppointAny: (userId: string | null) =>
+    ["access", "may-appoint-any", userId] as const,
   appointments: (devoteeId: string | null) =>
     ["access", "appointments", devoteeId] as const,
   grants: (devoteeId: string | null) =>
@@ -194,6 +197,15 @@ export function useMayAppointAccess(userId: string | null) {
   });
 }
 
+/** Whether the President and Tech Admin rungs are theirs to give too. */
+export function useMayAppointAnyAccess(userId: string | null) {
+  return useQuery({
+    queryKey: accessKeys.mayAppointAny(userId),
+    queryFn: fetchMayAppointAnyAccess,
+    enabled: Boolean(userId),
+  });
+}
+
 /** Every grant the temple has made, or one devotee's when an id is given. */
 export function useAccessAppointments(
   enabled: boolean,
@@ -246,7 +258,7 @@ export function useAppointAccess() {
       note,
     }: {
       devoteeId: string;
-      roleName: "volunteer" | "core";
+      roleName: AppointableAccessRole;
       note: string | null;
     }) => appointAccess(devoteeId, roleName, note),
     onSuccess: () => refresh(),

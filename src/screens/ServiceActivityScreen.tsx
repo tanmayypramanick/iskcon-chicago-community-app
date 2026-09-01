@@ -64,7 +64,6 @@ function FilterDate({ label, value, onChange, minimumDate }: { label: string; va
  */
 export function ServiceActivityScreen(_: Props) {
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
-  const previewRole = usePrototypeSession((state) => state.previewRole);
   const profile = useCurrentAccessProfile(activeUserId);
   const dashboard = useServiceDashboard(activeUserId);
   const deleteSession = useDeleteServiceActivity();
@@ -77,7 +76,7 @@ export function ServiceActivityScreen(_: Props) {
   const [exportError, setExportError] = useState<string | null>(null);
   // A seva finishing is what admits it to this list, so the clock has to tick.
   const now = useNow();
-  const role = __DEV__ && previewRole ? previewRole : (profile.data?.role ?? "devotee");
+  const role = (profile.data?.role ?? "devotee");
   const canDeleteAny = hasAccessPermission(role, "services.delete_any");
   const canExport = hasAccessPermission(role, "services.export_reports");
   const canOversee = hasAccessPermission(role, "services.oversee_activity");

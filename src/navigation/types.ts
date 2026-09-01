@@ -172,6 +172,8 @@ export type ProfileStackParamList = {
   RecurringInterest: undefined;
   RecurringInterestInbox: undefined;
   ProfileDetails: undefined;
+  /** Stepping away from the app, or asking the temple to forget you. */
+  LeaveOrForget: undefined;
   MyServiceHistory: undefined;
   // "My seva and history" lives in this stack deliberately — jumping to the
   // Seva tab left a devotee stranded in a tab they did not open. That only

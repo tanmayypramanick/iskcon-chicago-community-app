@@ -119,7 +119,7 @@ function completedSeva() {
 
 async function renderActivity(role: AccessRole = "president") {
   mockRole = role;
-  usePrototypeSession.setState({ activeUserId: ACTIVE_USER, previewRole: null });
+  usePrototypeSession.setState({ activeUserId: ACTIVE_USER });
   return render(
     <ServiceActivityScreen
       navigation={{ navigate: jest.fn() } as never}

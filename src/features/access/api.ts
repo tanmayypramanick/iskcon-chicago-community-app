@@ -1,5 +1,9 @@
 import { getSupabaseClient } from "../../lib/supabase";
-import { isAccessRole, type AccessRole } from "./model";
+import {
+  isAccessRole,
+  type AccessRole,
+  type AppointableAccessRole,
+} from "./model";
 
 // `children` is jsonb: the read gives back whatever was stored, so the row
 // holds it untyped and it is checked before it reaches the rest of the app.
@@ -675,6 +679,22 @@ export async function fetchMayAppointAccess(): Promise<boolean> {
   return data === true;
 }
 
+/**
+ * Whether the whole ladder is theirs to move people up and down — President and
+ * Tech Admin included. Arrives with 202609010103; a database without it answers
+ * "no", which is what every database meant before that migration existed.
+ */
+export async function fetchMayAppointAnyAccess(): Promise<boolean> {
+  const { data, error } = await getSupabaseClient().rpc(
+    "may_appoint_any_access",
+  );
+  if (error) {
+    if (isAccessRecordPending(error)) return false;
+    throw error;
+  }
+  return data === true;
+}
+
 export async function fetchAccessAppointments(
   devoteeId: string | null = null,
 ): Promise<AccessAppointment[]> {
@@ -705,7 +725,7 @@ export async function fetchDevoteeAccessGrants(
 
 export async function appointAccess(
   devoteeId: string,
-  roleName: "volunteer" | "core",
+  roleName: AppointableAccessRole,
   note: string | null,
 ) {
   const { error } = await getSupabaseClient().rpc("appoint_access", {

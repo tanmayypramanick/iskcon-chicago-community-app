@@ -502,10 +502,9 @@ function DetailRow({ label, value }: { label: string; value: string | null }) {
 
 export function DevoteeDirectoryScreen({ navigation }: Props) {
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
-  const previewRole = usePrototypeSession((state) => state.previewRole);
   const profile = useCurrentAccessProfile(activeUserId);
   const role =
-    __DEV__ && previewRole ? previewRole : (profile.data?.role ?? "devotee");
+    (profile.data?.role ?? "devotee");
   const canViewAll = hasAccessPermission(role, "app.view_all");
   const devotees = useDevoteeProfiles(canViewAll);
 

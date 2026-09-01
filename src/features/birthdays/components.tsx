@@ -108,10 +108,9 @@ export function BirthdayPrompt({
   onWish: (prefill: SuggestedAnnouncement) => void;
 }) {
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
-  const previewRole = usePrototypeSession((state) => state.previewRole);
   const profile = useCurrentAccessProfile(activeUserId);
   const role =
-    __DEV__ && previewRole ? previewRole : (profile.data?.role ?? "devotee");
+    (profile.data?.role ?? "devotee");
   const permitted = canSeeBirthdays(role);
 
   const reachable = useServerReachable();
@@ -210,10 +209,9 @@ export function BirthdaysSummaryButton({
   days?: number;
 }) {
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
-  const previewRole = usePrototypeSession((state) => state.previewRole);
   const profile = useCurrentAccessProfile(activeUserId);
   const role =
-    __DEV__ && previewRole ? previewRole : (profile.data?.role ?? "devotee");
+    (profile.data?.role ?? "devotee");
   const permitted = canSeeBirthdays(role);
 
   const birthdays = useUpcomingBirthdays(days, permitted);

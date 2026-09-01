@@ -146,7 +146,6 @@ function dayForDate(dateKey: string) {
 
 export function SevaListScreen({ navigation, route }: Props) {
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
-  const previewRole = usePrototypeSession((state) => state.previewRole);
   const profile = useCurrentAccessProfile(activeUserId);
   const dashboard = useServiceDashboard(activeUserId);
   const mode = route.params.kind;
@@ -155,7 +154,7 @@ export function SevaListScreen({ navigation, route }: Props) {
     mode === "completed" || mode === "my_seva" || mode === "awaiting_close";
   const now = useNow();
   const role =
-    __DEV__ && previewRole ? previewRole : (profile.data?.role ?? "devotee");
+    (profile.data?.role ?? "devotee");
   const canViewCommunity = hasAccessPermission(role, "services.view_all");
   const [search, setSearch] = useState("");
   const [weekday, setWeekday] = useState<number | null>(null);

@@ -72,18 +72,6 @@ module.exports = {
           defaultChannel: "temple-reminders",
         },
       ],
-      [
-        "expo-location",
-        {
-          locationWhenInUsePermission:
-            "Allow ISKCON Chicago to use your location while the app is open to detect when you are at the temple.",
-          locationAlwaysAndWhenInUsePermission:
-            "Allow ISKCON Chicago to detect temple arrival and departure for your At Temple status.",
-          isIosBackgroundLocationEnabled: true,
-          isAndroidBackgroundLocationEnabled: true,
-          isAndroidForegroundServiceEnabled: false,
-        },
-      ],
     ],
   },
 };

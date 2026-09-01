@@ -1380,14 +1380,12 @@ export function useSangaViewer(
 ) {
   const withRoll = options.withRoll ?? true;
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
-  const previewRole = usePrototypeSession((state) => state.previewRole);
   const profile = useCurrentAccessProfile(activeUserId);
   // The same key the browse list uses, so arriving from it costs nothing.
   const sangas = useSangas();
   const members = useSangaMembers(withRoll ? sangaId : null);
 
-  const actualRole = profile.data?.role ?? "devotee";
-  const role = __DEV__ && previewRole ? previewRole : actualRole;
+  const role = profile.data?.role ?? "devotee";
 
   const roll = members.data;
   const self = roll?.find((member) => member.id === activeUserId) ?? null;
