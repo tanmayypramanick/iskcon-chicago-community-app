@@ -1009,7 +1009,7 @@ export function ProfileDetailsScreen({ navigation }: Props) {
 
   // The geocoder can refuse, time out, or simply not know where this is. None
   // of those are worth an error screen: the field is left as it was to type.
-  const useMyLocation = async () => {
+  const fillInMyLocation = async () => {
     setLocationNote(null);
     setLocating(true);
     try {
@@ -1256,7 +1256,7 @@ export function ProfileDetailsScreen({ navigation }: Props) {
               accessibilityRole="button"
               accessibilityLabel="Use my current location as my address"
               disabled={locating}
-              onPress={() => void useMyLocation()}
+              onPress={() => void fillInMyLocation()}
             >
               <Ionicons
                 name="locate-outline"
