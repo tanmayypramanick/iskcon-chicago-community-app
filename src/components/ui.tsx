@@ -10,6 +10,7 @@ import {
   ScrollView,
   Text,
   View,
+  type ImageProps,
   type PressableProps,
 } from "react-native";
 import {
@@ -18,6 +19,7 @@ import {
 } from "react-native-safe-area-context";
 
 import tokens from "../../design-tokens.json";
+import { useSignedUrl } from "../lib/storageUrl";
 import { BotanicalBackdrop, GarlandRule } from "./botanical";
 
 type ScreenProps = PropsWithChildren<{
@@ -156,7 +158,7 @@ export function ConnectionBar({ reachable }: { reachable: boolean }) {
         <Text className="ml-2 font-sans-bold text-xs text-white">
           {reachable
             ? "Back online"
-            : "No connection — showing your last saved seva"}
+            : "No connection — this may be out of date"}
         </Text>
       </View>
     </View>
@@ -533,6 +535,52 @@ export type AvatarSize = keyof typeof avatarPixels;
  * A devotee's face where they have added one, their initials otherwise. Pass
  * `onPress` to make it open the full-size portrait.
  */
+/**
+ * An <Image> whose source lives in a private Storage bucket.
+ *
+ * The three buckets are private, so a stored value names an object rather than
+ * pointing at one and has to be signed before it will load. A component rather
+ * than a hook at each call site because most of these render inside a list
+ * callback, where a hook cannot go.
+ *
+ * Passing an already-signed URL, a local file:// from an image picker, or any
+ * other absolute URL is safe: useSignedUrl only rewrites what it recognises as
+ * a Storage reference and hands everything else back untouched.
+ *
+ * While the signature is in flight — and if it fails — a plain block is drawn
+ * in the image's place, so layout never jumps and a broken-image glyph is
+ * never shown.
+ */
+export function RemoteImage({
+  uri,
+  style,
+  className,
+  ...rest
+}: { uri?: string | null } & Omit<ImageProps, "source">) {
+  const signed = useSignedUrl(uri);
+
+  if (!signed) {
+    return (
+      <View
+        className={`bg-sandalwood ${className ?? ""}`}
+        style={style as never}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      />
+    );
+  }
+
+  return (
+    <Image
+      source={{ uri: signed }}
+      style={style}
+      className={className}
+      accessibilityIgnoresInvertColors
+      {...rest}
+    />
+  );
+}
+
 export function Avatar({
   name,
   photoUrl,
@@ -558,9 +606,14 @@ export function Avatar({
     peacock: tokens.colors.peacock,
   }[tone];
 
-  const face = photoUrl ? (
+  // Signed, not rendered raw: the devotee-photos bucket is private, so the
+  // stored value names the object rather than pointing at it. Null while the
+  // signature is in flight, which falls through to the initials below.
+  const signedFace = useSignedUrl(photoUrl);
+
+  const face = signedFace ? (
     <Image
-      source={{ uri: photoUrl }}
+      source={{ uri: signedFace }}
       style={{ width: pixels, height: pixels, borderRadius: pixels / 2 }}
       accessibilityIgnoresInvertColors
     />
@@ -682,6 +735,9 @@ export function AvatarViewer({
   person: { name: string; photo_url?: string | null; subtitle?: string } | null;
   onClose: () => void;
 }) {
+  // Same private bucket as the Avatar this opens from.
+  const signedPhoto = useSignedUrl(person?.photo_url);
+
   return (
     <Modal
       visible={Boolean(person)}
@@ -697,9 +753,9 @@ export function AvatarViewer({
       >
         {person ? (
           <View className="w-full items-center">
-            {person.photo_url ? (
+            {signedPhoto ? (
               <Image
-                source={{ uri: person.photo_url }}
+                source={{ uri: signedPhoto }}
                 style={{ width: "100%", aspectRatio: 1, borderRadius: 24 }}
                 resizeMode="cover"
                 accessibilityIgnoresInvertColors

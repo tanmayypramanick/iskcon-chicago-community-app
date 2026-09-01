@@ -374,7 +374,7 @@ export function PostDarshanScreen({ navigation }: Props) {
             </Text>
             <TextInput
               className="ml-2 min-h-11 flex-1 font-sans-bold text-base text-stone"
-              placeholder="a devotee's name"
+              placeholder="a devotee’s name"
               placeholderTextColor={tokens.colors.stoneMuted}
               value={selected.dressedBy}
               onChangeText={(text) => patch(selected.id, { dressedBy: text })}
@@ -404,7 +404,7 @@ export function PostDarshanScreen({ navigation }: Props) {
         <Pressable
           className="mt-4 items-center rounded-card border border-dashed border-border bg-white px-card py-12"
           accessibilityRole="button"
-          accessibilityLabel="Choose the day's pictures"
+          accessibilityLabel="Choose the day’s pictures"
           onPress={choosePictures}
         >
           <View className="h-14 w-14 items-center justify-center rounded-pill bg-marigoldSoft">
@@ -427,7 +427,7 @@ export function PostDarshanScreen({ navigation }: Props) {
       <View className="mt-section">
         <TextInput
           className="min-h-11 rounded-button border border-border bg-white px-4 py-3 font-sans text-base leading-6 text-stone"
-          placeholder="A word about today's darshan (optional)"
+          placeholder="A word about today’s darshan (optional)"
           placeholderTextColor={tokens.colors.stoneMuted}
           value={note}
           onChangeText={setNote}
@@ -435,7 +435,7 @@ export function PostDarshanScreen({ navigation }: Props) {
           textAlignVertical="top"
           maxLength={600}
           autoCapitalize="sentences"
-          accessibilityLabel="A word about today's darshan, optional"
+          accessibilityLabel="A word about today’s darshan, optional"
         />
       </View>
 
@@ -494,7 +494,7 @@ export function PostDarshanScreen({ navigation }: Props) {
           {publish.isPending
             ? `Sending ${Math.min(sent + 1, drafts.length)} of ${drafts.length}…`
             : replacing
-              ? "Replace this day's darshan"
+              ? "Replace this day’s darshan"
               : "Post darshan"}
         </Button>
         {publish.isPending ? (

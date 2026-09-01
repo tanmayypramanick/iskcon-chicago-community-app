@@ -483,7 +483,7 @@ export function AllDonationsScreen() {
   const confirmAttach = (donationId: string, bookingId: string) => {
     Alert.alert(
       "Attach this payment?",
-      "The sponsorship is confirmed and the date becomes the donor's. This cannot be undone from the app.",
+      "The sponsorship is confirmed and the date becomes the donor’s. This cannot be undone from the app.",
       [
         { text: "Not yet", style: "cancel" },
         {
@@ -517,7 +517,7 @@ export function AllDonationsScreen() {
       keyExtractor={(item) => item.key}
       header={
         <>
-          <ScreenTitle eyebrow="The temple's giving">All donations</ScreenTitle>
+          <ScreenTitle eyebrow="The temple’s giving">All donations</ScreenTitle>
 
           {!mayViewAll ? (
             <View className="mb-section rounded-card border border-border bg-white px-card py-6">
@@ -650,7 +650,7 @@ export function AllDonationsScreen() {
           <EmptyOrOffline
             reachable={reachable}
             loading={query.isLoading}
-            loadingLabel="Reading the temple's giving…"
+            loadingLabel="Reading the temple’s giving…"
             empty={
               <View className="items-center rounded-card border border-border bg-white px-card py-10">
                 <View className="h-14 w-14 items-center justify-center rounded-pill bg-peacockSoft">

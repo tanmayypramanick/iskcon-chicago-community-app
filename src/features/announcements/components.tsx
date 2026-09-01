@@ -2,7 +2,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image, Pressable, Text, View } from "react-native";
 
 import tokens from "../../../design-tokens.json";
-import { Avatar } from "../../components/ui";
+import {
+  Avatar,
+  RemoteImage,
+} from "../../components/ui";
 import {
   addChicagoDays,
   chicagoWallClockToInstant,
@@ -253,6 +256,7 @@ export function AnnouncementCard({
   const schedule = formatAnnouncementWindow(announcement);
   const poster = announcement.posted_by_name?.trim() || "The temple";
   const image = announcement.image_url;
+  const isBirthday = announcement.kind === "birthday";
 
   return (
     <View className="mb-3 rounded-card border border-border bg-white p-card">
@@ -303,8 +307,14 @@ export function AnnouncementCard({
             accessibilityHint="Opens it full size, where it can be saved"
             onPress={() => onOpenImage(image)}
           >
-            <AnnouncementImage url={image} />
+            {isBirthday ? (
+              <BirthdayFrame url={image} />
+            ) : (
+              <AnnouncementImage url={image} />
+            )}
           </Pressable>
+        ) : isBirthday ? (
+          <BirthdayFrame url={image} />
         ) : (
           <AnnouncementImage url={image} />
         )
@@ -337,8 +347,8 @@ export function AnnouncementCard({
  * iPhone alike. */
 function AnnouncementImage({ url }: { url: string }) {
   return (
-    <Image
-      source={{ uri: url }}
+    <RemoteImage
+      uri={url}
       style={{
         width: "100%",
         aspectRatio: 4 / 3,
@@ -348,5 +358,49 @@ function AnnouncementImage({ url }: { url: string }) {
       resizeMode="cover"
       accessibilityIgnoresInvertColors
     />
+  );
+}
+
+/**
+ * The birthday frame.
+ *
+ * A greeting to the whole congregation should not look like a notice about the
+ * boiler, and the devotee it is about should be able to see at a glance that
+ * the temple made something for them.
+ *
+ * Drawn rather than baked into the file, deliberately. The picture is the
+ * devotee's own profile photograph, shared with every other place it appears;
+ * compositing a frame into the bytes would mean a second copy in storage for
+ * every birthday, and a frame the temple could never restyle without
+ * reprocessing every image it had ever made.
+ *
+ * The garland band sits over the foot of the picture rather than beside it, so
+ * the frame reads as one object at any width.
+ */
+function BirthdayFrame({ url }: { url: string }) {
+  return (
+    <View
+      className="mt-3 rounded-card border-2 border-marigold bg-marigoldSoft p-1.5"
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel="A birthday greeting from the temple"
+    >
+      <View className="overflow-hidden rounded-[14px]">
+        <RemoteImage
+          uri={url}
+          style={{ width: "100%", aspectRatio: 4 / 3 }}
+          resizeMode="cover"
+          accessibilityIgnoresInvertColors
+        />
+
+        <View className="absolute inset-x-0 bottom-0 flex-row items-center justify-center bg-marigold/95 px-3 py-2">
+          <Ionicons name="flower" size={16} color={tokens.colors.stone} />
+          <Text className="mx-2 font-display text-lg leading-6 text-stone">
+            Happy Birthday
+          </Text>
+          <Ionicons name="flower" size={16} color={tokens.colors.stone} />
+        </View>
+      </View>
+    </View>
   );
 }

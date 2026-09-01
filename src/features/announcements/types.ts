@@ -37,6 +37,12 @@ export type Announcement = {
    * thread shows. */
   comment_count: number;
   liked_by_me: boolean;
+  /**
+   * What sort of notice this is, so the card can dress it. "birthday" draws
+   * the greeting frame. Decided when it is posted and never inferred from the
+   * wording, which whoever posts it is free to rewrite.
+   */
+  kind: "general" | "birthday";
 };
 
 /** One row of `list_announcement_likes()`, newest first. */
@@ -110,7 +116,12 @@ export type AnnouncementRow = {
 export type CreateAnnouncementInput = {
   title: string;
   body: string;
-  /** Must already be in the message-images bucket; the server checks. */
+  /**
+   * Must already be in one of the app's own buckets — message-images for a
+   * photo picked in the composer, devotee-photos for a birthday greeting's
+   * picture. The server checks, and refuses anything else so that this column
+   * cannot become a tracking pixel.
+   */
   imageUrl?: string | null;
   /** "YYYY-MM-DD" */
   startsOn?: string | null;
@@ -118,4 +129,6 @@ export type CreateAnnouncementInput = {
   /** "HH:MM:SS" */
   startsAt?: string | null;
   endsAt?: string | null;
+  /** "birthday" makes the card draw the greeting frame. */
+  kind?: "general" | "birthday";
 };

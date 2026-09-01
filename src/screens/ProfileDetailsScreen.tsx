@@ -226,6 +226,9 @@ export function TextField({
         multiline={multiline}
         textAlignVertical={multiline ? "top" : "center"}
         accessibilityLabel={spokenAs ?? label}
+        // A name, an address or a guru's name has a natural length; nothing
+        // here is prose. The longer bound covers the multiline fields.
+        maxLength={multiline ? 1000 : 200}
       />
     </View>
   );
@@ -1397,7 +1400,7 @@ export function ProfileDetailsScreen({ navigation }: Props) {
           />
           {maritalStatus === "married" ? (
             <TextField
-              label="Spouse's name"
+              label="Spouse’s name"
               value={spouseName}
               onChangeText={setSpouseName}
               placeholder="The devotee you are married to"

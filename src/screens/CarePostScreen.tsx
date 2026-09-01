@@ -19,6 +19,7 @@ import {
   EmptyOrOffline,
   ListScreen,
   LoadFailure,
+  RemoteImage,
 } from "../components/ui";
 import {
   useCareReplies,
@@ -264,8 +265,8 @@ export function CarePostScreen({
                   </Text>
 
                   {post.image_url ? (
-                    <Image
-                      source={{ uri: post.image_url }}
+                    <RemoteImage
+                      uri={post.image_url}
                       className="mt-3 w-full rounded-button"
                       style={{ aspectRatio: 4 / 3 }}
                       resizeMode="cover"

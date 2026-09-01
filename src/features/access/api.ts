@@ -112,6 +112,7 @@ type RoleRow = {
 type AccessRequestRow = {
   id: string;
   requester_id: string;
+  approver_id: string | null;
   requested_role_id: string;
   status: "pending" | "approved" | "denied";
   created_at: string;
@@ -187,6 +188,8 @@ export function missingRequiredProfileFields(
 export type AccessRequestItem = {
   id: string;
   requesterId: string;
+  /** The devotee this request named, who may answer it whatever their role. */
+  approverId: string | null;
   requesterName: string;
   currentRole: AccessRole;
   requestedRole: AccessRole;
@@ -520,7 +523,7 @@ export async function fetchPendingAccessRequests(): Promise<
   const { data, error } = await supabase
     .from("access_requests")
     .select(
-      "id,requester_id,requested_role_id,status,created_at,reviewed_at,reviewed_by",
+      "id,requester_id,approver_id,requested_role_id,status,created_at,reviewed_at,reviewed_by",
     )
     .eq("status", "pending")
     .order("created_at", { ascending: true })
@@ -570,6 +573,7 @@ export async function fetchPendingAccessRequests(): Promise<
     return {
       id: request.id,
       requesterId: request.requester_id,
+      approverId: request.approver_id ?? null,
       requesterName: requester.name,
       currentRole: requireAccessRole(roleById.get(requester.role_id)),
       requestedRole: requireAccessRole(roleById.get(request.requested_role_id)),

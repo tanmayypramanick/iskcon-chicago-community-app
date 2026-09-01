@@ -167,7 +167,7 @@ describe("the darshan week", () => {
 
     const view = await renderScreen();
 
-    expect(view.queryByLabelText("Post today's darshan")).toBeNull();
+    expect(view.queryByLabelText("Post today’s darshan")).toBeNull();
     expect(navigate).not.toHaveBeenCalled();
   });
 
@@ -175,7 +175,7 @@ describe("the darshan week", () => {
     mockRole = "core";
     const view = await renderScreen();
 
-    fireEvent.press(view.getByLabelText("Post today's darshan"));
+    fireEvent.press(view.getByLabelText("Post today’s darshan"));
     expect(navigate).toHaveBeenCalledWith("PostDarshan");
   });
 
@@ -185,7 +185,7 @@ describe("the darshan week", () => {
     // A devotee is not told to go and post it themselves.
     expect(
       view.getByText(
-        /The day's pictures of the Deities, and who dressed Them, will appear here\./,
+        /The day’s pictures of the Deities, and who dressed Them, will appear here\./,
       ),
     ).toBeTruthy();
   });

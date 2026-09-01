@@ -151,6 +151,7 @@ export function EmailCodeScreen({
   requestedAt,
   onVerified,
   onCancel,
+  cancelLabel = "Back to sign in",
 }: {
   purpose: EmailCodePurpose;
   /** The address the code was sent to, when the previous screen knows it. */
@@ -159,6 +160,14 @@ export function EmailCodeScreen({
   requestedAt?: number | null;
   onVerified: (outcome: EmailCodeOutcome) => void;
   onCancel: () => void;
+  /**
+   * Where cancelling actually lands, in the caller's own words. Cancelling
+   * returns to whichever screen opened this one, and that is not always the
+   * sign-in form: from the failed-link screen it goes back to the failed-link
+   * screen. Naming the destination wrongly is worse than not naming it, so
+   * each caller states its own.
+   */
+  cancelLabel?: string;
 }) {
   const carried = (knownEmail ?? "").trim();
   const [address, setAddress] = useState(carried);
@@ -413,12 +422,12 @@ export function EmailCodeScreen({
               <Pressable
                 className="mt-1 h-9 items-center justify-center"
                 accessibilityRole="button"
-                accessibilityLabel="Back to sign in"
+                accessibilityLabel={cancelLabel}
                 hitSlop={10}
                 onPress={onCancel}
               >
                 <Text className="font-sans text-sm text-stoneMuted">
-                  Back to sign in
+                  {cancelLabel}
                 </Text>
               </Pressable>
             </View>

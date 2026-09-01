@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 import { getChicagoDateKey } from "../../lib/chicagoDate";
+import { useChannelSuffix } from "../../lib/channelSuffix";
 import { getSupabaseClient } from "../../lib/supabase";
 import { fetchTemplePresence, setMyTemplePresence } from "./api";
 import type { TemplePresenceDashboard, TemplePresenceSource } from "./types";
@@ -142,10 +143,11 @@ export function useSetTemplePresence(userId: string | null) {
 
 export function useTemplePresenceRealtime() {
   const queryClient = useQueryClient();
+  const suffix = useChannelSuffix();
 
   useEffect(() => {
     const channel = getSupabaseClient()
-      .channel("temple-presence-live")
+      .channel(`temple-presence-live-${suffix}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "temple_presence" },

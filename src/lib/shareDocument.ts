@@ -1,5 +1,6 @@
 import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
+import { getSignedUrl } from "./storageUrl";
 
 /**
  * Hands a document — a newsletter PDF, a story attachment — to the phone's
@@ -56,6 +57,15 @@ export async function shareDocument(
     Paths.cache,
     extension ? `${fileStem}.${extension}` : fileStem,
   );
-  const saved = await File.downloadFileAsync(url, target, { idempotent: true });
+
+  // Signed just before the download. newsletter-files is a private bucket, so
+  // the stored value names the object rather than pointing at one; the
+  // extension above is deliberately read from the STORED value, because a
+  // signed URL carries a query string that would swallow it.
+  const downloadFrom = (await getSignedUrl(url)) ?? url;
+
+  const saved = await File.downloadFileAsync(downloadFrom, target, {
+    idempotent: true,
+  });
   await Sharing.shareAsync(saved.uri, { mimeType, dialogTitle, UTI: uti });
 }

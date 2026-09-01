@@ -19,6 +19,7 @@ import {
   EmptyOrOffline,
   ListScreen,
   LoadFailure,
+  RemoteImage,
   ScreenTitle,
   SectionHeader,
   SkeletonCard,
@@ -142,8 +143,8 @@ function IssueCard({
         // Contained rather than cropped: a newsletter cover is usually a tall
         // page and a centre crop cuts the masthead off the top of it.
         <View className="bg-sandalwood">
-          <Image
-            source={{ uri: issue.cover_image_url }}
+          <RemoteImage
+            uri={issue.cover_image_url}
             style={{ width: "100%", aspectRatio: 4 / 3 }}
             resizeMode="contain"
             accessibilityIgnoresInvertColors
@@ -541,9 +542,9 @@ function MySubmissionCard({
       {row.image_urls.length ? (
         <View className="mt-3 flex-row flex-wrap gap-2">
           {row.image_urls.map((url) => (
-            <Image
+            <RemoteImage
               key={url}
-              source={{ uri: url }}
+              uri={url}
               style={{ width: 72, height: 72, borderRadius: 12 }}
               resizeMode="cover"
               accessibilityIgnoresInvertColors
@@ -732,7 +733,7 @@ function StoryRequestModal({
   const confirmRemoveStory = (row: MyNewsletterSubmission) => {
     Alert.alert(
       "Remove this request?",
-      "It comes back off the newsletter team's list. This cannot be undone.",
+      "It comes back off the newsletter team’s list. This cannot be undone.",
       [
         { text: "Keep", style: "cancel" },
         {

@@ -35,7 +35,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import tokens from "../../design-tokens.json";
 import { ActionSheet, type ActionSheetAction } from "../components/ActionSheet";
-import { Avatar } from "../components/ui";
+import {
+  Avatar,
+  RemoteImage,
+} from "../components/ui";
 import { getSupabaseClient } from "../lib/supabase";
 import {
   pickMessageImage,
@@ -406,8 +409,8 @@ const MessageBubble = memo(function MessageBubble({
                   overflow: "hidden",
                 }}
               >
-                <Image
-                  source={{ uri: message.image_url }}
+                <RemoteImage
+                  uri={message.image_url}
                   style={{ width: "100%", height: "100%" }}
                   resizeMode="cover"
                   accessibilityIgnoresInvertColors
@@ -1273,8 +1276,8 @@ export function ChatScreen({ route, navigation }: Props) {
           onPress={() => setViewingImage(null)}
         >
           {viewingImage ? (
-            <Image
-              source={{ uri: viewingImage }}
+            <RemoteImage
+              uri={viewingImage}
               style={{ width: "100%", height: "80%" }}
               resizeMode="contain"
               accessibilityIgnoresInvertColors

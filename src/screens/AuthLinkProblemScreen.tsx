@@ -110,6 +110,7 @@ export function AuthLinkProblemScreen({
         email={email.trim() || null}
         requestedAt={sentAt}
         onCancel={() => setEnteringCode(false)}
+        cancelLabel="Back"
         onVerified={onVerified}
       />
     );

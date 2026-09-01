@@ -4,11 +4,13 @@ import { hasAccessPermission, type AccessRole } from "../access/model";
 import {
   fetchSuggestedBirthdayAnnouncement,
   fetchTodaysBirthdays,
+  fetchUpcomingBirthdays,
 } from "./api";
 
 export const birthdayKeys = {
   all: ["birthdays"] as const,
   today: () => ["birthdays", "today"] as const,
+  upcoming: (days: number) => ["birthdays", "upcoming", days] as const,
 };
 
 /**
@@ -48,5 +50,23 @@ export function useBirthdayAnnouncementDraft() {
   return useMutation({
     mutationFn: (devoteeId: string) =>
       fetchSuggestedBirthdayAnnouncement(devoteeId),
+  });
+}
+
+/**
+ * The birthdays coming up, for the summary on the noticeboard and the list
+ * behind it.
+ *
+ * A birthday cannot change while the app is open, so this is deliberately
+ * unhurried: it is refetched when a screen mounts and otherwise left alone.
+ * The one thing that must be current is the crossing of midnight, which a
+ * mount after midnight already covers.
+ */
+export function useUpcomingBirthdays(days = 60, enabled = true) {
+  return useQuery({
+    queryKey: birthdayKeys.upcoming(days),
+    queryFn: () => fetchUpcomingBirthdays(days),
+    enabled,
+    staleTime: 5 * 60_000,
   });
 }

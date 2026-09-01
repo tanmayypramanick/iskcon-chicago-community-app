@@ -13,6 +13,9 @@ let listeners = new Set<(reachable: boolean) => void>();
 let reachable = true;
 let checking = false;
 
+/** How long the probe waits before calling the server unreachable. */
+const PROBE_TIMEOUT_MS = 5_000;
+
 function announce(next: boolean) {
   if (next === reachable) return;
   reachable = next;
@@ -32,13 +35,31 @@ async function probe() {
     // screens under test, and creating the Supabase client touches native
     // storage that a test environment does not have.
     const { getSupabaseClient } = await import("./supabase");
+    const { isConnectionProblem } = await import("../features/services/format");
     // The lightest authenticated read there is; RLS keeps it to one row.
-    const { error } = await getSupabaseClient()
-      .from("roles")
-      .select("id")
-      .limit(1);
-    announce(!error);
+    //
+    // A Postgres error means the server ANSWERED, so the connection is fine —
+    // the same distinction every api.ts module draws. Without it an expired or
+    // revoked refresh token returns a JWT error, the probe calls that "offline",
+    // and the 15-second retry below re-confirms it forever: a permanent false
+    // offline banner on a device with a perfect connection.
+    const query = getSupabaseClient().from("roles").select("id").limit(1);
+    // A captive portal accepts the socket and never replies. Without a bound
+    // `checking` stays true for the OS timeout and every later probe returns
+    // early, so the banner can never clear itself.
+    const timeout = new Promise<"timeout">((resolve) =>
+      setTimeout(() => resolve("timeout"), PROBE_TIMEOUT_MS),
+    );
+    const outcome = await Promise.race([query, timeout]);
+    if (outcome === "timeout") announce(false);
+    else {
+      const { error } = outcome;
+      announce(!error || !isConnectionProblem(error));
+    }
   } catch {
+    // Reaching here means the request could not be made at all — the client
+    // failed to construct, or the fetch itself threw. Both are genuine
+    // unreachability, unlike a Postgres error handled above.
     announce(false);
   } finally {
     checking = false;

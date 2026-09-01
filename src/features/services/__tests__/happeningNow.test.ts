@@ -229,3 +229,64 @@ describe("no double display", () => {
     ).toHaveLength(0);
   });
 });
+
+/**
+ * Seva that crosses midnight.
+ *
+ * One wrapping window test cannot tell "started last night, still going" from
+ * "starts tonight" — the clock times are identical. Paired with a
+ * `date === today` filter it answered yes to the second, so a 23:00-01:00 seva
+ * was announced as in progress at 00:30, twenty-two and a half hours early,
+ * and then hidden after midnight on the night it really ran.
+ */
+describe("a seva that runs past midnight", () => {
+  const SCOPE = { userId: TANMAY.id, ...COORDINATOR };
+  const lateNight = (date: string) =>
+    service({
+      id: "svc-late",
+      date,
+      start_time: "23:00:00",
+      duration_minutes: 120, // 23:00 -> 01:00
+    });
+
+  /** 00:30 Chicago on Tuesday 4 August 2026 (CDT = UTC-5). */
+  const HALF_PAST_MIDNIGHT = new Date("2026-08-04T05:30:00.000Z");
+  /** 23:30 Chicago on Monday 3 August 2026. */
+  const HALF_PAST_ELEVEN = new Date("2026-08-04T04:30:00.000Z");
+
+  it("is not announced on the morning of the day it has yet to start", () => {
+    const live = sevaHappeningNow(
+      dashboard({ services: [lateNight("2026-08-04")] as never }),
+      SCOPE,
+      HALF_PAST_MIDNIGHT,
+    );
+    expect(live).toEqual([]);
+  });
+
+  it("is announced while it is actually running, before midnight", () => {
+    const live = sevaHappeningNow(
+      dashboard({ services: [lateNight("2026-08-03")] as never }),
+      SCOPE,
+      HALF_PAST_ELEVEN,
+    );
+    expect(live.map((entry) => entry.id)).toEqual(["svc-late"]);
+  });
+
+  it("is still announced after midnight, on the day it began", () => {
+    const live = sevaHappeningNow(
+      dashboard({ services: [lateNight("2026-08-03")] as never }),
+      SCOPE,
+      HALF_PAST_MIDNIGHT,
+    );
+    expect(live.map((entry) => entry.id)).toEqual(["svc-late"]);
+  });
+
+  it("a seva inside one day is untouched by any of this", () => {
+    const live = sevaHappeningNow(
+      dashboard({ services: [service()] as never }),
+      SCOPE,
+      NOW,
+    );
+    expect(live.map((entry) => entry.id)).toEqual(["svc-1"]);
+  });
+});

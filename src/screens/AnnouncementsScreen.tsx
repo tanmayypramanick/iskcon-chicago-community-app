@@ -17,6 +17,7 @@ import {
   EmptyOrOffline,
   ListScreen,
   LoadFailure,
+  RemoteImage,
   ScreenTitle,
   SkeletonCard,
 } from "../components/ui";
@@ -38,10 +39,9 @@ import { sharePicture } from "../lib/sharePicture";
 import { useServerReachable } from "../lib/connectivity";
 import type { HomeStackParamList } from "../navigation/types";
 import { usePrototypeSession } from "../store/usePrototypeSession";
-import { BirthdayPrompt } from "../features/birthdays/components";
+import { BirthdaysSummaryButton } from "../features/birthdays/components";
 import {
   CreateAnnouncementModal,
-  type AnnouncementPrefill,
 } from "./CreateAnnouncementScreen";
 
 type Props = NativeStackScreenProps<HomeStackParamList, "Announcements">;
@@ -67,7 +67,6 @@ export function AnnouncementsScreen({ navigation }: Props) {
   const [composerOpen, setComposerOpen] = useState(false);
   // A birthday prompt opens the same composer, already worded. The wording is
   // the server's so the temple's voice is not frozen in an app release.
-  const [prefill, setPrefill] = useState<AnnouncementPrefill | null>(null);
   const [removeError, setRemoveError] = useState<string | null>(null);
   const [viewingImage, setViewingImage] = useState<string | null>(null);
   const [savingImage, setSavingImage] = useState(false);
@@ -156,11 +155,14 @@ export function AnnouncementsScreen({ navigation }: Props) {
             >
               Announcements
             </ScreenTitle>
-            <BirthdayPrompt
-              onWish={(words) => {
-                setPrefill(words);
-                setComposerOpen(true);
-              }}
+            {/*
+              One compact row, not a card per celebrant: this is the
+              noticeboard, and the announcements are what belong at the top of
+              it. Everything the temple can do about a birthday lives one tap
+              away on the Birthdays screen.
+            */}
+            <BirthdaysSummaryButton
+              onOpen={() => navigation.navigate("Birthdays")}
             />
             {removeError ? <FormError message={removeError} /> : null}
           </>
@@ -239,11 +241,7 @@ export function AnnouncementsScreen({ navigation }: Props) {
       {canPost ? (
         <CreateAnnouncementModal
           visible={composerOpen}
-          prefill={prefill}
-          onClose={() => {
-            setComposerOpen(false);
-            setPrefill(null);
-          }}
+          onClose={() => setComposerOpen(false)}
         />
       ) : null}
 
@@ -262,8 +260,8 @@ export function AnnouncementsScreen({ navigation }: Props) {
           onPress={() => setViewingImage(null)}
         >
           {viewingImage ? (
-            <Image
-              source={{ uri: viewingImage }}
+            <RemoteImage
+              uri={viewingImage}
               style={{ width: "100%", height: "78%" }}
               resizeMode="contain"
               accessibilityIgnoresInvertColors

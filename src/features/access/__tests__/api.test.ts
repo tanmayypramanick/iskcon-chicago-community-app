@@ -106,6 +106,9 @@ describe("access API", () => {
           {
             id: "request-1",
             requester_id: "user-2",
+            // The devotee this request names, who may answer it whatever
+            // their role — carried through so the review screen can tell.
+            approver_id: "approver-1",
             requested_role_id: "role-core",
             status: "pending",
             created_at: "2026-08-02T12:00:00.000Z",
@@ -168,6 +171,7 @@ describe("access API", () => {
       {
         id: "request-1",
         requesterId: "user-2",
+        approverId: "approver-1",
         requesterName: "Mohit Sharma",
         currentRole: "volunteer",
         requestedRole: "core",

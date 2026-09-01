@@ -143,8 +143,8 @@ export function SangaDetailScreen({ navigation, route }: Props) {
         <View className="mt-section rounded-card border border-border bg-white px-card py-6">
           <Text className="text-center font-sans text-sm leading-5 text-stoneMuted">
             {affordance === "requested"
-              ? "Once the sanga's admin says yes, the group chat opens here and you will see who else is in it."
-              : "Ask to join, and the group chat opens here once the sanga's admin says yes."}
+              ? "Once the sanga’s admin says yes, the group chat opens here and you will see who else is in it."
+              : "Ask to join, and the group chat opens here once the sanga’s admin says yes."}
           </Text>
         </View>
       )}

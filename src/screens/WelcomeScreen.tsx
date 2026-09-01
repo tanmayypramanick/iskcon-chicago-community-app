@@ -20,6 +20,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import tokens from "../../design-tokens.json";
 import { COMMUNITY_EMAIL } from "../config/contact";
 import {
+  describeSignInFailure,
   getAuthProviderAvailability,
   PASSWORD_MIN_LENGTH,
   requestPasswordReset,
@@ -427,10 +428,7 @@ export function WelcomeScreen({
     return true;
   };
 
-  const getErrorMessage = (error: unknown) =>
-    error instanceof Error
-      ? error.message
-      : "Something went wrong. Please try again.";
+  const getErrorMessage = (error: unknown) => describeSignInFailure(error);
 
   const submitSignIn = async () => {
     setMessage("");

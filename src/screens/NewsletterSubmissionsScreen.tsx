@@ -19,6 +19,7 @@ import {
   EmptyOrOffline,
   ListScreen,
   LoadFailure,
+  RemoteImage,
   ScreenTitle,
 } from "../components/ui";
 import {
@@ -284,8 +285,8 @@ export function NewsletterSubmissionsScreen() {
                 accessibilityHint="Opens it full size, where it can be saved"
                 onPress={() => setViewingImage(url)}
               >
-                <Image
-                  source={{ uri: url }}
+                <RemoteImage
+                  uri={url}
                   style={{ width: 88, height: 88, borderRadius: 12 }}
                   resizeMode="cover"
                   accessibilityIgnoresInvertColors
@@ -551,8 +552,8 @@ export function NewsletterSubmissionsScreen() {
           onPress={() => setViewingImage(null)}
         >
           {viewingImage ? (
-            <Image
-              source={{ uri: viewingImage }}
+            <RemoteImage
+              uri={viewingImage}
               style={{ width: "100%", height: "78%" }}
               resizeMode="contain"
               accessibilityIgnoresInvertColors

@@ -38,6 +38,7 @@ import {
   proposeServiceOfferAlternative,
   proposeWeeklyOfferAlternative,
   recordSevaAttendance,
+  recordUnansweredSevaAttendance,
   respondToServiceOfferCounter,
   updateServiceRequirement,
   requestSevaVerification,
@@ -557,10 +558,17 @@ function useOptimisticServiceMutation<TVariables>(
         queryClient.setQueryData(key, data);
       }
     },
+    // "all", not "active", and deliberately unlike the non-optimistic
+    // mutations above. Those only ever patch after the server agreed; these
+    // write to the cache FIRST and put the old snapshot back on failure. If
+    // the devotee navigates away before the request settles, an "active"
+    // refetch has nothing mounted to refetch, so the rolled-back snapshot is
+    // what the next mount is served — showing a seva as unanswered while the
+    // server holds the answer, until something else happens to invalidate it.
     onSettled: () =>
       queryClient.invalidateQueries({
         queryKey: serviceKeys.all,
-        refetchType: "active",
+        refetchType: "all",
       }),
   });
 }
@@ -673,9 +681,11 @@ export function markServedInDashboard(
 export function useMarkSevaServed() {
   return useOptimisticServiceMutation<ServiceListItem>(
     async (service) => {
-      for (const assignmentId of unconfirmedAssignmentIds(service)) {
-        await recordSevaAttendance(assignmentId, "served");
-      }
+      // Which places are unanswered is decided by the server against the live
+      // rows, not by the snapshot this mutation was handed: that snapshot can
+      // be half a minute old, and acting on it overwrote absences another
+      // coordinator had just recorded.
+      await recordUnansweredSevaAttendance(service.id, "served");
       if (service.status !== "completed") await completeService(service.id);
     },
     (dashboard, service) => markServedInDashboard(dashboard, service.id),

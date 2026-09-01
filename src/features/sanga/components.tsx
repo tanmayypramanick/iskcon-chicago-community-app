@@ -78,7 +78,7 @@ export function SangaActionButton({
       }
       accessibilityHint={
         affordance === "requested"
-          ? "The sanga's admin has not answered yet."
+          ? "The sanga’s admin has not answered yet."
           : undefined
       }
       disabled={disabled}

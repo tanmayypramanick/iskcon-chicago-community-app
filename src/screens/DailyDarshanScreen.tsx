@@ -105,7 +105,7 @@ export function DailyDarshanScreen({ navigation }: Props) {
               <Pressable
                 className="min-h-touch flex-row items-center justify-center rounded-pill bg-marigold px-4"
                 accessibilityRole="button"
-                accessibilityLabel="Post today's darshan"
+                accessibilityLabel="Post today’s darshan"
                 onPress={() => navigation.navigate("PostDarshan")}
               >
                 <Ionicons name="add" size={18} color={tokens.colors.stone} />
@@ -173,8 +173,8 @@ export function DailyDarshanScreen({ navigation }: Props) {
                 </Text>
                 <Text className="mt-2 max-w-80 text-center font-sans text-sm leading-6 text-stoneMuted">
                   {canPost
-                    ? "The day's pictures of the Deities, and who dressed Them, will appear here once you post them."
-                    : "The day's pictures of the Deities, and who dressed Them, will appear here."}
+                    ? "The day’s pictures of the Deities, and who dressed Them, will appear here once you post them."
+                    : "The day’s pictures of the Deities, and who dressed Them, will appear here."}
                 </Text>
               </View>
             }

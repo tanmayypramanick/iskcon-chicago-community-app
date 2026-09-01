@@ -8,6 +8,7 @@ import { Swipeable } from "react-native-gesture-handler";
 import tokens from "../../design-tokens.json";
 import { ListScreen } from "../components/ui";
 import { BirthdayPrompt } from "../features/birthdays/components";
+import { birthdayAnnouncementPrefill } from "../features/birthdays/types";
 import {
   useAppNotifications,
   useClearAppNotifications,
@@ -159,7 +160,15 @@ export function NotificationsScreen({ navigation }: Props) {
             {/* Above the inbox rather than in it: the prompt is a thing to do
                 today, and a birthday that has already been read still wants
                 doing until somebody posts. It draws nothing for a devotee. */}
-            <BirthdayPrompt onWish={setBirthdayWish} />
+            <BirthdayPrompt
+              // Mapped rather than passed straight through: the server speaks
+              // snake_case and the composer camelCase, and an unmapped
+              // image_url would compile happily and silently drop the
+              // devotee's photograph from their own birthday notice.
+              onWish={(words) =>
+                setBirthdayWish(birthdayAnnouncementPrefill(words))
+              }
+            />
             {notifications.length ? (
               <View className="mb-3 flex-row items-center justify-between">
                 <Text className="font-sans text-sm text-stoneMuted">

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
+import { useChannelSuffix } from "../../lib/channelSuffix";
 import { getSupabaseClient } from "../../lib/supabase";
 import {
   clearAppNotifications,
@@ -55,10 +56,11 @@ export function useClearAppNotifications(userId: string | null) {
 
 export function useAppNotificationsRealtime() {
   const queryClient = useQueryClient();
+  const suffix = useChannelSuffix();
 
   useEffect(() => {
     const channel = getSupabaseClient()
-      .channel("app-notifications-live")
+      .channel(`app-notifications-live-${suffix}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "app_notifications" },

@@ -427,9 +427,24 @@ export function getAuthLinkKind(url: string): AuthLinkKind {
       return "emailChange";
     case "magiclink":
       return "magicLink";
-    default:
-      return "unknown";
   }
+
+  // No `type` at all is the NORMAL shape of the most likely failure: when a
+  // reset link has expired or been spent, Supabase redirects with only
+  // `error`, `error_code` and `error_description` — the type is gone.
+  //
+  // The path still knows. `auth/recover` is built for password recovery and
+  // nothing else (docs/auth-link.js:103), so reading it back is not a guess.
+  // Without this the screen treats an expired reset as "unknown", and an
+  // unknown link is offered no six-digit code — withholding the fallback in
+  // exactly the case it was written for.
+  if (url.includes("auth/recover")) return "recovery";
+
+  // `auth/callback` deliberately stays "unknown": it carries signup,
+  // magic-link, email-change AND Google sign-in, so the path proves nothing
+  // and a wrong guess would check the devotee's digits as the wrong type and
+  // call a perfectly good code invalid.
+  return "unknown";
 }
 
 /** True when opening this link proved the devotee owns the address. */
@@ -773,4 +788,61 @@ export async function getCurrentAuthEmail() {
 export async function signOutFromSupabase() {
   const { error } = await getSupabaseClient().auth.signOut();
   if (error) throw error;
+}
+
+/**
+ * Why a sign-in did not happen, in words a devotee can act on.
+ *
+ * The same reasoning as describeAuthLinkProblem and PasswordChangeFailure:
+ * GoTrue's strings are written for developers, and the only way to be sure
+ * none of them is ever drawn on a screen is for the screen never to render
+ * one. The sign-in form was the last place still passing error.message
+ * straight through, so devotees were being shown "Invalid login credentials"
+ * and "For security purposes, you can only request this after 21 seconds".
+ */
+export function describeSignInFailure(error: unknown): string {
+  const text = (
+    error instanceof Error
+      ? error.message
+      : typeof error === "string"
+        ? error
+        : ""
+  )
+    .trim()
+    .toLowerCase();
+
+  if (!text) return "Something went wrong. Please try again.";
+
+  if (
+    text.includes("invalid login credentials") ||
+    text.includes("invalid email or password")
+  ) {
+    return "That email and password do not match. Check both, or use “Forgot password”.";
+  }
+  if (text.includes("email not confirmed")) {
+    return "This address has not been confirmed yet. Open the email we sent, or ask for a new one below.";
+  }
+  if (text.includes("user already registered") || text.includes("already been registered")) {
+    return "There is already an account for this address. Sign in instead, or use “Forgot password”.";
+  }
+  if (text.includes("email rate limit") || text.includes("you can only request")) {
+    return "That was just tried. Please wait a moment and try again.";
+  }
+  if (text.includes("over_request_rate_limit") || text.includes("too many requests")) {
+    return "Too many attempts just now. Please wait a minute and try again.";
+  }
+  if (text.includes("password should be at least") || text.includes("weak password")) {
+    return `Please choose a password of at least ${PASSWORD_MIN_LENGTH} characters.`;
+  }
+  if (text.includes("cancel")) {
+    return "Sign-in was cancelled.";
+  }
+  if (
+    text.includes("network request failed") ||
+    text.includes("connection appears to be offline") ||
+    text.includes("failed to fetch")
+  ) {
+    return "Could not reach the temple server. Check your connection and try again.";
+  }
+  return "Something went wrong. Please try again.";
 }

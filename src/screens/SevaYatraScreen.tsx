@@ -1172,7 +1172,7 @@ export function SevaYatraScreen() {
               subtitle={
                 visible
                   ? "What other devotees see on your profile."
-                  : "This period's, shown only to you while you are off the board."
+                  : "This period’s, shown only to you while you are off the board."
               }
             />
             {badges.isLoading ? (

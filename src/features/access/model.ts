@@ -95,7 +95,7 @@ export const accessPermissionSummaries: Record<AccessPermission, string> = {
     "Approve or decline access requests from other devotees",
   "app.view_all": "Reach every part of the app",
   "services.view_all":
-    "See the whole temple's seva schedule, not only your own",
+    "See the whole temple’s seva schedule, not only your own",
   "services.participate": "Join open seva requests",
   "services.track_live": "Follow a seva while it is happening",
   "services.report_unavailable":
@@ -107,7 +107,7 @@ export const accessPermissionSummaries: Record<AccessPermission, string> = {
   "services.resolve_coverage":
     "Arrange cover when someone cannot make their seva",
   "services.manage_recurring": "Create and manage weekly seva",
-  "services.oversee_activity": "See the whole temple's seva activity",
+  "services.oversee_activity": "See the whole temple’s seva activity",
   "services.complete_requirement": "Close a seva once it has been done",
   "services.delete_any": "Remove any seva request from the schedule",
   "services.export_reports": "Export seva records for the temple",
@@ -125,7 +125,7 @@ export const grantableAccessRoles: GrantableAccessRole[] = [
 export const grantableRoleSummaries: Record<GrantableAccessRole, string> = {
   volunteer:
     "A devotee who posts what the temple needs and asks others to help with it.",
-  core: "A coordinator who keeps the temple's weekly seva running, arranges cover when a devotee cannot make theirs, and closes seva once it is done.",
+  core: "A coordinator who keeps the temple’s weekly seva running, arranges cover when a devotee cannot make theirs, and closes seva once it is done.",
 };
 
 /** What moving up to `to` would add to somebody who holds `from` today. */

@@ -47,14 +47,27 @@ export function AccessRequestReviewScreen({ navigation, route }: Props) {
   const activeUserId = usePrototypeSession((state) => state.activeUserId);
   const profile = useCurrentAccessProfile(activeUserId);
   const role = profile.data?.role ?? "devotee";
-  const mayReview = hasAccessPermission(role, "access.review_requests");
+  const hasReviewPermission = hasAccessPermission(
+    role,
+    "access.review_requests",
+  );
 
   const pendingRequests = usePendingAccessRequests(activeUserId);
   // `list_my_access_requests` returns every row to a reviewer, and it is the
   // only source that carries the devotee's message.
   const requestRows = useMyAccessRequests(activeUserId);
-  const devotees = useDevoteeProfiles(mayReview);
+  const devotees = useDevoteeProfiles(hasReviewPermission);
   const review = useReviewAccessRequest(activeUserId);
+
+  // The devotee this request NAMED may answer it, whatever their role.
+  // answer_access_request has always accepted `approver_id = auth.uid()`, and
+  // create_access_request notifies exactly that devotee — so a Community Head
+  // was being sent a notification that opened a screen telling them they were
+  // not allowed. The permission is the other way in, not the only way in.
+  const wasAskedPersonally = (pendingRequests.data ?? []).some(
+    (item) => item.id === requestId && item.approverId === activeUserId,
+  );
+  const mayReview = hasReviewPermission || wasAskedPersonally;
 
   const [note, setNote] = useState("");
 
@@ -74,7 +87,7 @@ export function AccessRequestReviewScreen({ navigation, route }: Props) {
           <Text className="mt-3 text-center font-sans-bold text-base text-stone">
             {profile.isLoading
               ? "Loading your access…"
-              : "Only the President or a Tech Admin can review access requests."}
+              : "Only the devotee this request was sent to, a Tech Admin, or the President can answer it."}
           </Text>
         </View>
       </Screen>

@@ -82,28 +82,28 @@ export function PrivacyVisibilityScreen(_: Props) {
       <RuleCard
         icon="time-outline"
         title="Your seva"
-        body="Most devotees see only their own seva and the open needs anyone can join. The whole schedule and every devotee's completed seva are kept as part of the temple's records, which a community head or the President works from, because arranging seva depends on it. Seva you register yourself stays between you and the devotee you asked to confirm it until it is verified."
+        body="Most devotees see only their own seva and the open needs anyone can join. The whole schedule and every devotee’s completed seva are kept as part of the temple’s records, which a community head or the President works from, because arranging seva depends on it. Seva you register yourself stays between you and the devotee you asked to confirm it until it is verified."
       />
       <RuleCard
         icon="checkmark-done-outline"
         title="Whether you turned up"
-        body="Once a seva has started, the devotee who posted it can record you as having served, been absent, or been excused. That stays in the temple's records with the seva. If you are marked as not attending, the app tells you, so you can say if it is wrong."
+        body="Once a seva has started, the devotee who posted it can record you as having served, been absent, or been excused. That stays in the temple’s records with the seva. If you are marked as not attending, the app tells you, so you can say if it is wrong."
       />
       <RuleCard
         icon="location-outline"
         title="Your presence at the temple"
-        body="The At the temple switch is yours. While it is on, every signed-in devotee sees you on today's list; switching it off takes you off that list at once. The times you checked in and out stay in the temple's records. The app never checks you in by itself — if you allow location, your phone works out on its own whether you are near the temple and reminds you here. Where you are is never sent to the temple."
+        body="The At the temple switch is yours. While it is on, every signed-in devotee sees you on today’s list; switching it off takes you off that list at once. The times you checked in and out stay in the temple’s records. The app never checks you in by itself — if you allow location, your phone works out on its own whether you are near the temple and reminds you here. Where you are is never sent to the temple."
       />
 
       <View className="mt-section">
-        <SectionHeader title="What the temple's records hold" />
+        <SectionHeader title="What the temple’s records hold" />
       </View>
 
       <RuleCard
         icon="lock-closed-outline"
         tone="marigold"
         title="Your personal details"
-        body="Your address, phone number, birth place, marital status, and details of your spouse and children are kept as part of the temple's records — the same details a temple has always kept about its congregation. They are not shown to the community and never appear in the Directory."
+        body="Your address, phone number, birth place, marital status, and details of your spouse and children are kept as part of the temple’s records — the same details a temple has always kept about its congregation. They are not shown to the community and never appear in the Directory."
       />
       <RuleCard
         icon="flower-outline"
@@ -118,7 +118,7 @@ export function PrivacyVisibilityScreen(_: Props) {
         icon="chatbubble-ellipses-outline"
         tone="marigold"
         title="Your messages"
-        body="Messages and photos are retained as part of the temple's records. Deleting a message removes it from the devotees' thread but retains its original content for authorised oversight. Removing a complete conversation clears the existing thread from your own Messages view only; it does not erase the temple record, and a new message will bring the conversation back."
+        body="Messages and photos are retained as part of the temple’s records. Deleting a message removes it from the devotees' thread but retains its original content for authorised oversight. Removing a complete conversation clears the existing thread from your own Messages view only; it does not erase the temple record, and a new message will bring the conversation back."
       />
       <RuleCard
         icon="key-outline"

@@ -372,7 +372,7 @@ export function DevoteeProfileScreen({ navigation, route }: Props) {
           </Text>
           <Text className="mt-1 font-sans text-sm text-stoneMuted">
             {isSelf
-              ? "These are kept as part of the temple's records and are not shown to the community."
+              ? "These are kept as part of the temple’s records and are not shown to the community."
               : "Visible to you because of your access level."}
           </Text>
           <DetailRow label="Birth place" value={devotee.birth_place} />

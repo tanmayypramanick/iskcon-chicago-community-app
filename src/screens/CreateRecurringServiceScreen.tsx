@@ -249,9 +249,9 @@ export function CreateRecurringServiceScreen({ navigation, route }: Props) {
       <View className="mt-section">
         <SectionHeader title="People needed each time" />
         <View className="flex-row items-center justify-between rounded-card border border-border bg-white p-3">
-          <Pressable className="h-12 w-12 items-center justify-center rounded-pill bg-indigoSoft" disabled={slotsNeeded === 1} onPress={() => setSlotsNeeded((value) => { const next = Math.max(1, value - 1); setInviteeIds((ids) => ids.slice(0, next)); return next; })}><Ionicons name="remove" size={24} color={tokens.colors.indigo} /></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="One fewer devotee needed" accessibilityHint={`Currently ${slotsNeeded}`} className="h-12 w-12 items-center justify-center rounded-pill bg-indigoSoft" disabled={slotsNeeded === 1} onPress={() => setSlotsNeeded((value) => { const next = Math.max(1, value - 1); setInviteeIds((ids) => ids.slice(0, next)); return next; })}><Ionicons name="remove" size={24} color={tokens.colors.indigo} /></Pressable>
           <Text className="font-display text-3xl text-stone">{slotsNeeded}</Text>
-          <Pressable className="h-12 w-12 items-center justify-center rounded-pill bg-indigo" onPress={() => setSlotsNeeded((value) => Math.min(100, value + 1))}><Ionicons name="add" size={24} color={tokens.colors.white} /></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="One more devotee needed" accessibilityHint={`Currently ${slotsNeeded}`} className="h-12 w-12 items-center justify-center rounded-pill bg-indigo" onPress={() => setSlotsNeeded((value) => Math.min(100, value + 1))}><Ionicons name="add" size={24} color={tokens.colors.white} /></Pressable>
         </View>
       </View>
 

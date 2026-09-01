@@ -97,6 +97,7 @@ export async function createAnnouncement(
     p_ends_on: input.endsOn ?? null,
     p_starts_at: input.startsAt ?? null,
     p_ends_at: input.endsAt ?? null,
+    p_kind: input.kind ?? "general",
   });
   return data as AnnouncementRow;
 }

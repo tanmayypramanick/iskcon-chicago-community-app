@@ -5,6 +5,7 @@ import { AllDonationsScreen } from "../screens/AllDonationsScreen";
 import { AnnouncementCommentsScreen } from "../screens/AnnouncementCommentsScreen";
 import { AnnouncementLikesScreen } from "../screens/AnnouncementLikesScreen";
 import { AnnouncementsScreen } from "../screens/AnnouncementsScreen";
+import { BirthdaysScreen } from "../screens/BirthdaysScreen";
 import { DailyDarshanScreen } from "../screens/DailyDarshanScreen";
 import { DarshanDayScreen } from "../screens/DarshanDayScreen";
 import { DevoteeCareScreen } from "../screens/DevoteeCareScreen";
@@ -61,6 +62,11 @@ export function HomeStack() {
         name="Announcements"
         component={AnnouncementsScreen}
         options={{ title: "Announcements" }}
+      />
+      <Stack.Screen
+        name="Birthdays"
+        component={BirthdaysScreen}
+        options={{ title: "Birthdays" }}
       />
       <Stack.Screen
         name="AnnouncementComments"

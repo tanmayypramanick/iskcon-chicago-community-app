@@ -225,8 +225,30 @@ function LiveSubscriptions() {
   return null;
 }
 
+/**
+ * A tap that arrived before the navigator existed.
+ *
+ * On a cold start the notification service reads the launching tap once, the
+ * instant the session appears, and never offers it again. At that moment the
+ * profile gate is still checking, so NavigationContainer is not mounted and
+ * `isReady()` is false — which used to mean every push tapped from a killed
+ * app silently landed on Home. Holding it here and replaying it from the
+ * container's onReady is what makes those taps arrive.
+ */
+let pendingNotificationData: Record<string, unknown> | null = null;
+
+function flushPendingNotificationDestination() {
+  const pending = pendingNotificationData;
+  if (!pending) return;
+  pendingNotificationData = null;
+  openNotificationDestination(pending);
+}
+
 function openNotificationDestination(data: Record<string, unknown>) {
-  if (!navigationRef.isReady()) return;
+  if (!navigationRef.isReady()) {
+    pendingNotificationData = data;
+    return;
+  }
   const rawTarget = getNotificationTarget({
     kind: typeof data.kind === "string" ? data.kind : null,
     data,
@@ -251,6 +273,8 @@ export default function App() {
   // state; the ref is what tells it whether the devotee was already inside the
   // app before the link created a session.
   const hasSessionRef = useRef(false);
+  /** Who the cache currently belongs to, so it can be dropped when that changes. */
+  const lastUserIdRef = useRef<string | null>(null);
   const [fontsLoaded] = useFonts({
     SourceSans3_400Regular,
     SourceSans3_700Bold,
@@ -266,6 +290,7 @@ export default function App() {
       .then(({ data }) => {
         hasSessionRef.current = Boolean(data.session);
         setHasSession(Boolean(data.session));
+        lastUserIdRef.current = data.session?.user.id ?? null;
         setActiveUserId(data.session?.user.id ?? null);
       })
       .finally(() => {
@@ -277,8 +302,23 @@ export default function App() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       hasSessionRef.current = Boolean(session);
       setHasSession(Boolean(session));
-      setActiveUserId(session?.user.id ?? null);
-      if (!session) queryClient.clear();
+      const nextUserId = session?.user.id ?? null;
+      // Clear on ANY change of who is signed in, not only on sign-out. Query
+      // keys are not scoped by devotee, so a sign-out that failed to emit a
+      // null session followed by a different sign-in would otherwise serve the
+      // previous devotee's cached rows — including the directory, which holds
+      // every devotee's email, phone and address.
+      if (nextUserId !== lastUserIdRef.current) queryClient.clear();
+      lastUserIdRef.current = nextUserId;
+      setActiveUserId(nextUserId);
+      // Losing a session while inside the app must return the devotee to the
+      // sign-in screen. `initialRouteName` is only consulted on the
+      // navigator's first mount, so without this a revoked or expired session
+      // leaves them staring at MainTabs with an emptied cache and every query
+      // refusing, and the only way out is Profile → Sign out.
+      if (!session && navigationRef.isReady()) {
+        navigationRef.resetRoot({ index: 0, routes: [{ name: "Welcome" }] });
+      }
       setAuthReady(true);
     });
 
@@ -332,7 +372,11 @@ export default function App() {
   const leaveTheApp = () => {
     void signOutFromSupabase()
       .catch(() => undefined)
-      .finally(() => signOut());
+      .finally(() => {
+        queryClient.clear();
+        lastUserIdRef.current = null;
+        signOut();
+      });
   };
 
   if (!fontsLoaded || !authReady) {
@@ -405,7 +449,11 @@ export default function App() {
         <QueryClientProvider client={queryClient}>
           {hasSession ? <LiveSubscriptions /> : null}
           <RequiredProfileGate onSignOut={leaveTheApp}>
-            <NavigationContainer ref={navigationRef} theme={navigationTheme}>
+            <NavigationContainer
+              ref={navigationRef}
+              theme={navigationTheme}
+              onReady={flushPendingNotificationDestination}
+            >
               <StatusBar style="dark" />
               <Stack.Navigator
                 initialRouteName={hasSession ? "MainTabs" : "Welcome"}
@@ -444,6 +492,13 @@ export default function App() {
                         void signOutFromSupabase()
                           .catch(() => undefined)
                           .finally(() => {
+                            // Cleared here rather than only on the auth event:
+                            // when the sign-out request itself fails no event
+                            // fires at all, and the screen still says they
+                            // signed out. Leaving the cache would then hand the
+                            // next devotee the previous one's rows.
+                            queryClient.clear();
+                            lastUserIdRef.current = null;
                             signOut();
                             navigation.replace("Welcome");
                           });

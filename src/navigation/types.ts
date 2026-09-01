@@ -40,6 +40,8 @@ export type HomeStackParamList = {
   Notifications: undefined;
   TempleToday: undefined;
   Announcements: undefined;
+  /** The birthdays coming up. President and Tech Admin only. */
+  Birthdays: undefined;
   /** The title travels with the id so the thread names its notice without
    * waiting for the board to load again. */
   AnnouncementComments: { announcementId: string; title: string };

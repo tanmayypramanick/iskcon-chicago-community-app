@@ -463,6 +463,10 @@ export function FeedbackScreen() {
         multiline
         textAlignVertical="top"
         accessibilityLabel="Your feedback"
+        // Matches the cap the newsletter screen already puts on its long
+        // fields. Without one, a large paste is accepted, stored, and then
+        // rendered in full in the President's review list.
+        maxLength={4000}
       />
 
       <View className="mt-3">

@@ -134,7 +134,7 @@ type CommunityFeature = {
 const communityFeatures: CommunityFeature[] = [
   {
     title: "Daily Darshan",
-    detail: "Today's Deities",
+    detail: "Today’s Deities",
     icon: "flower-outline",
     iconClass: "bg-marigoldSoft",
     iconColor: tokens.colors.stone,

@@ -23,6 +23,7 @@ import { validateSevaEntryWindow } from "../features/services/sevaEntry";
 import type { SevaVerifier } from "../features/services/types";
 import {
   chicagoWallClockToInstant,
+  getChicagoWallClock,
   getChicagoZoneAbbreviation,
   toDatabaseTime,
 } from "../lib/chicagoDate";
@@ -54,7 +55,27 @@ export function FindSevaScreen({ navigation, route }: Props) {
   const planSeva = useRequestSevaVerification();
   const logSeva = useLogCompletedSeva();
 
-  const initialNow = useMemo(() => new Date(), []);
+  // Seeded from the TEMPLE's wall clock, not the device's.
+  //
+  // Everything below reads the local calendar and clock fields of these Date
+  // objects (dateToKey, toDatabaseTime) and submit then reinterprets those
+  // fields as Chicago. Seeding from `new Date()` therefore only agreed with
+  // itself while the phone was in Chicago: a devotee opening "Log your seva"
+  // at 09:00 in India was really being offered 22:30 the previous day Chicago,
+  // and the entry-window check refused it until they corrected both fields by
+  // hand. Building a Date whose LOCAL fields hold Chicago's wall clock makes
+  // the round trip honest wherever the devotee is standing.
+  const initialNow = useMemo(() => {
+    const chicago = getChicagoWallClock();
+    return new Date(
+      chicago.year,
+      chicago.month - 1,
+      chicago.day,
+      chicago.hour,
+      chicago.minute,
+      chicago.second,
+    );
+  }, []);
   const initialStart = useMemo(() => {
     const value = new Date(initialNow);
     if (completedMode) value.setHours(value.getHours() - 1);

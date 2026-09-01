@@ -241,7 +241,7 @@ export function careEmptyState(input: {
   if (input.gathering) {
     return {
       title: "Not enough to compare yet",
-      body: "Too few devotees have served this quarter for the congregation's own spread to mean anything, so this list is not drawn at all.",
+      body: "Too few devotees have served this quarter for the congregation’s own spread to mean anything, so this list is not drawn at all.",
       hint: "It will start to fill in on its own as more seva is recorded.",
     };
   }

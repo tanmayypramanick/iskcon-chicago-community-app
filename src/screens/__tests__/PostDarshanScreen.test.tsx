@@ -103,7 +103,7 @@ describe("composing a day of darshan", () => {
     expect(
       view.getByText("Posting darshan is for temple leaders"),
     ).toBeTruthy();
-    expect(view.queryByLabelText("Choose the day's pictures")).toBeNull();
+    expect(view.queryByLabelText("Choose the day’s pictures")).toBeNull();
     expect(view.queryByText("Post darshan")).toBeNull();
   });
 
@@ -115,7 +115,7 @@ describe("composing a day of darshan", () => {
     // The picker is asynchronous and its result lands in state, so the press
     // and the promise it starts have to settle inside the same act.
     await act(async () => {
-      fireEvent.press(view.getByLabelText("Choose the day's pictures"));
+      fireEvent.press(view.getByLabelText("Choose the day’s pictures"));
     });
 
     // Two pictures chosen, so two frames in the strip and one of them open.
@@ -176,7 +176,7 @@ describe("composing a day of darshan", () => {
     // The picker is asynchronous and its result lands in state, so the press
     // and the promise it starts have to settle inside the same act.
     await act(async () => {
-      fireEvent.press(view.getByLabelText("Choose the day's pictures"));
+      fireEvent.press(view.getByLabelText("Choose the day’s pictures"));
     });
 
     expect(mockPick).toHaveBeenLastCalledWith("library", 5);
@@ -196,7 +196,7 @@ describe("composing a day of darshan", () => {
     // The picker is asynchronous and its result lands in state, so the press
     // and the promise it starts have to settle inside the same act.
     await act(async () => {
-      fireEvent.press(view.getByLabelText("Choose the day's pictures"));
+      fireEvent.press(view.getByLabelText("Choose the day’s pictures"));
     });
 
     await act(async () => {
@@ -229,7 +229,7 @@ describe("choosing which Deities", () => {
 
     const view = await renderScreen();
     await act(async () => {
-      fireEvent.press(view.getByLabelText("Choose the day's pictures"));
+      fireEvent.press(view.getByLabelText("Choose the day’s pictures"));
     });
 
     // A picker with nothing in it would stop the day being posted at all.
@@ -252,7 +252,7 @@ describe("choosing which Deities", () => {
 
     const view = await renderScreen();
     await act(async () => {
-      fireEvent.press(view.getByLabelText("Choose the day's pictures"));
+      fireEvent.press(view.getByLabelText("Choose the day’s pictures"));
     });
     await act(async () => {
       fireEvent.press(view.getByLabelText("Gaura Nitai"));
@@ -272,7 +272,7 @@ describe("choosing which Deities", () => {
 
     const view = await renderScreen();
     await act(async () => {
-      fireEvent.press(view.getByLabelText("Choose the day's pictures"));
+      fireEvent.press(view.getByLabelText("Choose the day’s pictures"));
     });
 
     // A visiting or festival Deity must never stop a day being posted.

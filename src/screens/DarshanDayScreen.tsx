@@ -6,7 +6,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import tokens from "../../design-tokens.json";
 import { ModalScreen } from "../components/ModalScreen";
-import { Screen, ScreenTitle, Skeleton } from "../components/ui";
+import {
+  RemoteImage,
+  Screen,
+  ScreenTitle,
+  Skeleton,
+} from "../components/ui";
 import {
   DarshanPhoto,
   darshanPictureCount,
@@ -202,8 +207,8 @@ export function DarshanDayScreen({ navigation, route }: Props) {
           onPress={() => setViewingImage(null)}
         >
           {viewingImage ? (
-            <Image
-              source={{ uri: viewingImage }}
+            <RemoteImage
+              uri={viewingImage}
               style={{ width: "100%", height: "82%" }}
               resizeMode="contain"
               accessibilityIgnoresInvertColors

@@ -1,4 +1,5 @@
 import {
+  addChicagoDays,
   getChicagoDateKey,
   getChicagoMinutesOfDay,
   getChicagoWeekday,
@@ -581,13 +582,36 @@ function minutesFromTime(time: string) {
   return hour * 60 + minute;
 }
 
-function isInWindow(startTime: string, durationMinutes: number, nowMinutes: number) {
+/**
+ * Whether a seva scheduled for TODAY is running right now.
+ *
+ * Deliberately split from the past-midnight case below. A single wrapping test
+ * — `now >= start || now < end - 1440` — cannot tell "the 23:00 seva that
+ * started last night and is still going" from "the 23:00 seva that starts
+ * tonight", because both are the same clock times. Paired with a `date ===
+ * today` filter it answered yes to the second: a 23:00-01:00 seva was
+ * announced as in progress at 00:30, twenty-two hours early, and then hidden
+ * after midnight on the night it actually ran.
+ */
+function isRunningOnItsOwnDay(
+  startTime: string,
+  durationMinutes: number,
+  nowMinutes: number,
+) {
   const start = minutesFromTime(startTime);
-  const end = start + durationMinutes;
-  // A seva that runs past midnight wraps into the next day's clock.
-  return end <= 24 * 60
-    ? nowMinutes >= start && nowMinutes < end
-    : nowMinutes >= start || nowMinutes < end - 24 * 60;
+  const end = Math.min(start + durationMinutes, 24 * 60);
+  return nowMinutes >= start && nowMinutes < end;
+}
+
+/** Whether a seva that began YESTERDAY is still running after midnight. */
+function isRunningFromPreviousDay(
+  startTime: string,
+  durationMinutes: number,
+  nowMinutes: number,
+) {
+  const end = minutesFromTime(startTime) + durationMinutes;
+  if (end <= 24 * 60) return false;
+  return nowMinutes < end - 24 * 60;
 }
 
 export type HappeningNowEntry =
@@ -674,13 +698,28 @@ export function sevaHappeningNow(
   const nowMinutes = getChicagoMinutesOfDay(now);
   const weekday = getChicagoWeekday(now);
   const todayKey = getChicagoDateKey(now);
+  // Just after midnight, the seva actually in progress belongs to yesterday.
+  // The weekday is stepped rather than re-derived, so it cannot disagree with
+  // `weekday` across a DST boundary.
+  const yesterdayKey = addChicagoDays(-1, now);
+  const yesterdayWeekday = (weekday + 6) % 7;
 
   const oneTime: HappeningNowEntry[] = dashboard.services.flatMap((service) => {
-    if (service.date !== todayKey) return [];
     if (["cancelled", "completed"].includes(service.status)) return [];
-    if (!isInWindow(service.start_time, service.duration_minutes, nowMinutes)) {
-      return [];
-    }
+    const running =
+      service.date === todayKey
+        ? isRunningOnItsOwnDay(
+            service.start_time,
+            service.duration_minutes,
+            nowMinutes,
+          )
+        : service.date === yesterdayKey &&
+          isRunningFromPreviousDay(
+            service.start_time,
+            service.duration_minutes,
+            nowMinutes,
+          );
+    if (!running) return [];
     // Attendance can be marked while a seva runs — whoever is running it marks
     // people in as they arrive — so a devotee already recorded absent is not
     // one of the people serving it now. A seva everybody was marked absent for
@@ -703,12 +742,24 @@ export function sevaHappeningNow(
   const weekly: HappeningNowEntry[] = dashboard.recurringTemplates.flatMap(
     (template) => {
       if (!template.active || coveredTemplateIds.has(template.id)) return [];
-      if (!template.days_of_week.includes(weekday)) return [];
-      if (
-        !isInWindow(template.start_time, template.duration_minutes, nowMinutes)
-      ) {
-        return [];
-      }
+      // Same two cases as the one-time branch: a template running on its own
+      // weekday, or one that started on yesterday's weekday and crossed
+      // midnight. Testing only today's weekday made a Sunday 23:00 template
+      // read as live at 00:30 on Sunday morning.
+      const running =
+        (template.days_of_week.includes(weekday) &&
+          isRunningOnItsOwnDay(
+            template.start_time,
+            template.duration_minutes,
+            nowMinutes,
+          )) ||
+        (template.days_of_week.includes(yesterdayWeekday) &&
+          isRunningFromPreviousDay(
+            template.start_time,
+            template.duration_minutes,
+            nowMinutes,
+          ));
+      if (!running) return [];
       const people = weeklyServingOn(dashboard, template, todayKey, weekday);
       if (!people.length) return [];
       return [

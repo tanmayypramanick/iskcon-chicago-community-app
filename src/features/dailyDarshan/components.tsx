@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { RemoteImage } from "../../components/ui";
 import { useState } from "react";
 import { Image, Pressable, Text, TextInput, View } from "react-native";
 
@@ -113,8 +114,8 @@ export function DarshanPhoto({
       </Text>
     </View>
   ) : (
-    <Image
-      source={{ uri: image.imageUrl }}
+    <RemoteImage
+      uri={image.imageUrl}
       style={{ width: "100%", aspectRatio: 4 / 5, borderRadius: 20 }}
       resizeMode="cover"
       onError={() => setFailed(true)}
@@ -230,8 +231,8 @@ function DarshanCover({
   }
 
   return (
-    <Image
-      source={{ uri: cover.imageUrl }}
+    <RemoteImage
+      uri={cover.imageUrl}
       style={{ width: "100%", aspectRatio, borderRadius: radius }}
       resizeMode="cover"
       onError={() => setFailed(true)}
@@ -384,11 +385,11 @@ export function DarshanHomeHero({
       className="overflow-hidden rounded-card border border-border bg-stone"
       accessibilityRole="button"
       accessibilityLabel={`Daily Darshan, ${dayLabel}. ${headline}`}
-      accessibilityHint="Opens the day's pictures"
+      accessibilityHint="Opens the day’s pictures"
       onPress={onPress}
     >
-      <Image
-        source={{ uri: cover.imageUrl }}
+      <RemoteImage
+        uri={cover.imageUrl}
         style={{ width: "100%", aspectRatio: 16 / 10 }}
         resizeMode="cover"
         onError={() => setFailed(true)}

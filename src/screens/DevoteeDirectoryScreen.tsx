@@ -764,7 +764,7 @@ export function DevoteeDirectoryScreen({ navigation }: Props) {
               value={range}
               onChange={(next) => setRange(next as SevaPeriodKind)}
               options={congregationSevaRanges}
-              subject="everybody's seva"
+              subject="everybody’s seva"
             />
             <Text className="mt-2 font-sans text-xs leading-4 text-stoneMuted">
               Hours served, {sevaRangeCaptions[range].toLowerCase()}. A calendar

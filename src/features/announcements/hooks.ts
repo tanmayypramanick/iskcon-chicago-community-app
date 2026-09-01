@@ -60,6 +60,14 @@ export type CreateAnnouncementVariables = Omit<
 > & {
   /** Still on the phone; uploaded by the mutation, not by the caller. */
   image?: PickedMessageImage | null;
+  /**
+   * A photograph ALREADY in storage — the birthday devotee's own, carried in
+   * by a prefill. Used only when nothing was picked from the library, and
+   * never re-uploaded: it is the same object the devotee's profile points at.
+   */
+  imageUrl?: string | null;
+  /** "birthday" makes the card draw the greeting frame. */
+  kind?: "general" | "birthday";
 };
 
 /**
@@ -70,8 +78,16 @@ export function useCreateAnnouncement(userId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ image, ...input }: CreateAnnouncementVariables) => {
-      let imageUrl: string | null = null;
+    mutationFn: async ({
+      image,
+      imageUrl: alreadyStored,
+      ...input
+    }: CreateAnnouncementVariables) => {
+      // A picked photo wins: it is what the poster just chose. Otherwise an
+      // already-stored reference passes straight through, with no upload —
+      // re-uploading a devotee's profile photograph would put a second copy in
+      // the bucket for every birthday.
+      let imageUrl: string | null = alreadyStored ?? null;
       if (image) {
         if (!userId) throw new Error("Sign in to add a photo.");
         imageUrl = await uploadMessageImage(userId, image);

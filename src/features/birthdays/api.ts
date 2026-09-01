@@ -1,7 +1,11 @@
 import { reportReachability } from "../../lib/connectivity";
 import { getSupabaseClient } from "../../lib/supabase";
 import { isConnectionProblem } from "../services/format";
-import type { SuggestedAnnouncement, TodaysBirthday } from "./types";
+import type {
+  SuggestedAnnouncement,
+  TodaysBirthday,
+  UpcomingBirthday,
+} from "./types";
 
 /**
  * Birthday prompts arrive with their own migration, which a temple's database
@@ -31,6 +35,25 @@ export async function fetchTodaysBirthdays(): Promise<TodaysBirthday[]> {
     throw error;
   }
   return (data ?? []) as unknown as TodaysBirthday[];
+}
+
+/**
+ * The birthdays coming up, nearest first. Same audience and same silence as
+ * the list above: the server returns an empty set rather than an error to
+ * anybody without `app.view_all`, so there is nothing to decide here.
+ */
+export async function fetchUpcomingBirthdays(
+  days = 60,
+): Promise<UpcomingBirthday[]> {
+  const { data, error } = await getSupabaseClient().rpc("upcoming_birthdays", {
+    p_days: days,
+  });
+  reportReachability(!error || !isConnectionProblem(error));
+  if (error) {
+    if (isMigrationPending(error)) return [];
+    throw error;
+  }
+  return (data ?? []) as unknown as UpcomingBirthday[];
 }
 
 /**

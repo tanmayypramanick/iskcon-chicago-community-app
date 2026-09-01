@@ -901,6 +901,26 @@ export function recordSevaAttendance(
   });
 }
 
+/**
+ * Answers every place on a seva that nobody has answered for, in one
+ * statement, deciding server-side which those are.
+ *
+ * Replaces a client-side loop over ids read from the dashboard snapshot. That
+ * loop overwrote attendance unconditionally, so a devotee another coordinator
+ * had just marked absent was flipped back to served by a screen up to thirty
+ * seconds out of date — and it was not atomic, so a failure part-way left some
+ * places written while the cache rolled all of them back.
+ */
+export function recordUnansweredSevaAttendance(
+  instanceId: string,
+  attendance: "served" | "absent" | "excused" = "served",
+) {
+  return runRpc("record_unanswered_seva_attendance", {
+    p_instance_id: instanceId,
+    p_attendance: attendance,
+  });
+}
+
 export function updateServiceRequirement(input: {
   instanceId: string;
   participationMode: "open" | "invite_only";

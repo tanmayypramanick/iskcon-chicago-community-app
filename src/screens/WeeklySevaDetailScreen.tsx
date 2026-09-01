@@ -24,6 +24,7 @@ import {
   formatServiceDate,
   formatServiceTime,
   formatWeekdayList,
+  hasServiceFinished,
   isUpcomingService,
 } from "../features/services/format";
 import {
@@ -129,6 +130,11 @@ export function WeeklySevaDetailScreen({ navigation, route }: Props) {
     .filter(
       (service) =>
         isUpcomingService(service.date) &&
+        // isUpcomingService compares DATES only, so this morning's 6-7am
+        // occurrence stayed under "upcoming dates" for the rest of the day.
+        // The seva board's own upcoming list already applies this second
+        // test; this one had been left without it.
+        !hasServiceFinished(service) &&
         !["completed", "cancelled"].includes(service.status),
     )
     .sort((left, right) => left.date.localeCompare(right.date));

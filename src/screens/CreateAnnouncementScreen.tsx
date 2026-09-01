@@ -4,7 +4,11 @@ import { Alert, Image, Pressable, Text, TextInput, View } from "react-native";
 
 import tokens from "../../design-tokens.json";
 import { ModalScreen } from "../components/ModalScreen";
-import { Button, SectionHeader } from "../components/ui";
+import {
+  Button,
+  RemoteImage,
+  SectionHeader,
+} from "../components/ui";
 import {
   pickMessageImage,
   useCreateAnnouncement,
@@ -74,6 +78,19 @@ function OptionalToggle({
 export type AnnouncementPrefill = {
   title: string;
   body: string;
+  /**
+   * A photograph the composer should open with that is ALREADY in storage —
+   * the birthday devotee's own, say. Distinct from the picked-from-library
+   * path, which uploads: this one is already uploaded, so it is carried
+   * straight through to create_announcement and never re-sent.
+   */
+  imageUrl?: string | null;
+  /**
+   * What sort of notice this is. A birthday greeting is dressed differently on
+   * the board, and the card is told rather than guessing from the title —
+   * which whoever posts it is free to rewrite.
+   */
+  kind?: "general" | "birthday";
 };
 
 /**
@@ -96,6 +113,10 @@ export function CreateAnnouncementModal({
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [image, setImage] = useState<PickedMessageImage | null>(null);
+  // A photograph already in storage, carried in by a prefill. Kept apart from
+  // `image` because that one still has to be uploaded and this one must not be.
+  const [prefilledImageUrl, setPrefilledImageUrl] = useState<string | null>(null);
+  const [kind, setKind] = useState<"general" | "birthday">("general");
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [startTime, setStartTime] = useState<Date | null>(null);
@@ -115,12 +136,17 @@ export function CreateAnnouncementModal({
     if (!opening || !prefill) return;
     setTitle(prefill.title);
     setBody(prefill.body);
+    setPrefilledImageUrl(prefill.imageUrl ?? null);
+    setKind(prefill.kind ?? "general");
+    setImage(null);
   }, [prefill, visible]);
 
   const dismiss = () => {
     setTitle("");
     setBody("");
     setImage(null);
+    setPrefilledImageUrl(null);
+    setKind("general");
     setStartDate(null);
     setEndDate(null);
     setStartTime(null);
@@ -134,7 +160,12 @@ export function CreateAnnouncementModal({
     void (async () => {
       try {
         const picked = await pickMessageImage(source);
-        if (picked) setImage(picked);
+        if (picked) {
+          setImage(picked);
+          // One photograph on a notice: choosing another replaces the one the
+          // prefill brought rather than posting both.
+          setPrefilledImageUrl(null);
+        }
       } catch (caught) {
         Alert.alert(
           "No photo added",
@@ -187,6 +218,8 @@ export function CreateAnnouncementModal({
         title: cleanTitle,
         body: cleanBody,
         image,
+        imageUrl: prefilledImageUrl,
+        kind,
         startsOn,
         endsOn,
         startsAt,
@@ -259,6 +292,37 @@ export function CreateAnnouncementModal({
                   variant="secondary"
                   icon="trash-outline"
                   onPress={() => setImage(null)}
+                >
+                  Remove
+                </Button>
+              </View>
+            </View>
+          </View>
+        ) : prefilledImageUrl ? (
+          // A photograph already in storage — the birthday devotee's own. Shown
+          // exactly as it will appear on the noticeboard, and removable, so
+          // nothing is posted that the President has not looked at.
+          <View>
+            <RemoteImage
+              uri={prefilledImageUrl}
+              style={{ width: "100%", aspectRatio: 4 / 3, borderRadius: 16 }}
+              resizeMode="cover"
+            />
+            <View className="mt-3 flex-row gap-3">
+              <View className="flex-1">
+                <Button
+                  variant="secondary"
+                  icon="swap-horizontal-outline"
+                  onPress={attachPhoto}
+                >
+                  Replace
+                </Button>
+              </View>
+              <View className="flex-1">
+                <Button
+                  variant="secondary"
+                  icon="trash-outline"
+                  onPress={() => setPrefilledImageUrl(null)}
                 >
                   Remove
                 </Button>

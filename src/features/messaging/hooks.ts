@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { QueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { useChannelSuffix } from "../../lib/channelSuffix";
 import { getSupabaseClient } from "../../lib/supabase";
 import {
   deleteMessage,
@@ -334,6 +335,7 @@ export function useDeleteMessage() {
  */
 export function useMessagesRealtime(conversationId: string | null) {
   const queryClient = useQueryClient();
+  const suffix = useChannelSuffix();
 
   useEffect(() => {
     if (!conversationId) return;
@@ -346,7 +348,7 @@ export function useMessagesRealtime(conversationId: string | null) {
     };
 
     const channel = getSupabaseClient()
-      .channel(`messages-live-${conversationId}`)
+      .channel(`messages-live-${conversationId}-${suffix}`)
       .on<MessageRow>(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages", filter },
@@ -392,6 +394,10 @@ export function useTypingIndicator(
     if (!conversationId || !selfId) return;
 
     const channel = getSupabaseClient()
+      // Deliberately NOT suffixed, unlike the postgres_changes channels above.
+      // This one is a broadcast between the two devotees in the thread, so the
+      // topic name is the rendezvous: give each device its own and neither
+      // ever hears the other type. Same reason sanga-typing is unsuffixed.
       .channel(`typing-${conversationId}`, {
         config: { broadcast: { self: false } },
       })

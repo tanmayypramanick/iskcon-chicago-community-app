@@ -83,7 +83,7 @@ export function AboutThisAppScreen(_: Props) {
         icon="heart-outline"
         tone="marigold"
         title="Seva"
-        body="The temple's schedule and every open request. Find a way to help, record completed seva for a community leader to verify, arrange coverage when you cannot attend, and follow your seva history."
+        body="The temple’s schedule and every open request. Find a way to help, record completed seva for a community leader to verify, arrange coverage when you cannot attend, and follow your seva history."
       />
       <AreaCard
         icon="people-outline"

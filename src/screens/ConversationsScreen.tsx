@@ -204,7 +204,7 @@ export function ConversationsScreen() {
           onRemove={() =>
             Alert.alert(
               `Remove conversation with ${row.other_name}?`,
-              "It will disappear from your Messages. The temple's retained record is not erased, and a new message will bring the conversation back.",
+              "It will disappear from your Messages. The temple’s retained record is not erased, and a new message will bring the conversation back.",
               [
                 { text: "Cancel", style: "cancel" },
                 {

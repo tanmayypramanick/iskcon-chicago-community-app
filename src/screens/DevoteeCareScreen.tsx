@@ -10,6 +10,7 @@ import {
   EmptyOrOffline,
   ListScreen,
   LoadFailure,
+  RemoteImage,
   ScreenTitle,
 } from "../components/ui";
 import {
@@ -63,8 +64,8 @@ function CarePostCard({
             </Text>
           </View>
           {post.image_url ? (
-            <Image
-              source={{ uri: post.image_url }}
+            <RemoteImage
+              uri={post.image_url}
               style={{ width: 48, height: 48, borderRadius: 12 }}
               resizeMode="cover"
               accessibilityIgnoresInvertColors

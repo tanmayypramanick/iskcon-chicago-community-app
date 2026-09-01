@@ -19,6 +19,7 @@ import {
   BotanicalBackdrop,
   ListScreen,
   LoadFailure,
+  RemoteImage,
   Screen,
   Skeleton,
   SkeletonCard,
@@ -478,8 +479,8 @@ function MessageBubble({
         }`}
       >
         {hasImage && message.imageUrl ? (
-          <Image
-            source={{ uri: message.imageUrl }}
+          <RemoteImage
+            uri={message.imageUrl}
             style={{ width: imageWidth, height: imageWidth, borderRadius: 16 }}
             resizeMode="cover"
             accessibilityIgnoresInvertColors
@@ -841,7 +842,7 @@ export function DevoteeConversationsScreen({ navigation }: ListProps) {
             accessibilityLabel="Search conversations by devotee name"
             value={search}
             onChangeText={setSearch}
-            placeholder="Search by either devotee's name"
+            placeholder="Search by either devotee’s name"
             placeholderTextColor={tokens.colors.stoneMuted}
             autoCapitalize="words"
             autoCorrect={false}

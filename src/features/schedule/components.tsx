@@ -557,7 +557,7 @@ export function MonthDensityGrid({
                     ? "no seva"
                     : `${count} seva${open > 0 ? `, ${open} place${open === 1 ? "" : "s"} still open` : ""}`
                 }`}
-                accessibilityHint="Opens this day's timetable"
+                accessibilityHint="Opens this day’s timetable"
                 onPress={() => onSelectDay(dateKey)}
               >
                 <Text

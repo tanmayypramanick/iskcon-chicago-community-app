@@ -12,7 +12,9 @@ import {
   canSeeBirthdays,
   useBirthdayAnnouncementDraft,
   useTodaysBirthdays,
+  useUpcomingBirthdays,
 } from "./hooks";
+import { birthdaySummary } from "./summary";
 import type { SuggestedAnnouncement, TodaysBirthday } from "./types";
 
 /**
@@ -186,5 +188,99 @@ export function BirthdayPrompt({
 
       {draftError ? <FormError message={draftError} /> : null}
     </View>
+  );
+}
+
+/**
+ * The birthday button on the noticeboard.
+ *
+ * One compact row rather than the full prompt, because the noticeboard is
+ * about announcements and a card per celebrant pushed them all down the page.
+ * It says how many are celebrating today and asks the question; the list
+ * behind it is where the temple acts.
+ *
+ * Draws nothing at all for anybody without `app.view_all`, and nothing on a
+ * day with no birthday inside the window — which is most days.
+ */
+export function BirthdaysSummaryButton({
+  onOpen,
+  days = 60,
+}: {
+  onOpen: () => void;
+  days?: number;
+}) {
+  const activeUserId = usePrototypeSession((state) => state.activeUserId);
+  const previewRole = usePrototypeSession((state) => state.previewRole);
+  const profile = useCurrentAccessProfile(activeUserId);
+  const role =
+    __DEV__ && previewRole ? previewRole : (profile.data?.role ?? "devotee");
+  const permitted = canSeeBirthdays(role);
+
+  const birthdays = useUpcomingBirthdays(days, permitted);
+
+  if (!permitted) return null;
+
+  if (birthdays.isLoading) {
+    return (
+      <View className="mb-3 rounded-card border border-border bg-white p-card">
+        <Skeleton height={18} width="60%" />
+        <View className="mt-2">
+          <Skeleton height={14} width="35%" />
+        </View>
+      </View>
+    );
+  }
+
+  // A failure here is silent on purpose. This is a convenience on somebody
+  // else's screen, and a red box about birthdays sitting above the temple's
+  // announcements reads as the noticeboard being broken.
+  const summary = birthdaySummary(birthdays.data ?? []);
+  if (!summary) return null;
+
+  return (
+    <Pressable
+      className={`mb-3 min-h-touch flex-row items-center rounded-card border p-card ${
+        summary.today
+          ? "border-marigold bg-marigoldSoft"
+          : "border-border bg-white"
+      }`}
+      accessibilityRole="button"
+      accessibilityLabel={`${summary.title}. ${summary.detail}`}
+      accessibilityHint="Opens the list of upcoming birthdays"
+      onPress={onOpen}
+    >
+      <View
+        className={`h-10 w-10 items-center justify-center rounded-pill ${
+          summary.today ? "bg-white" : "bg-marigoldSoft"
+        }`}
+      >
+        <Ionicons
+          name="gift-outline"
+          size={20}
+          color={tokens.colors.marigold}
+        />
+      </View>
+      <View className="ml-3 min-w-0 flex-1">
+        <Text
+          className="font-sans-bold text-base leading-6 text-stone"
+          numberOfLines={1}
+        >
+          {summary.title}
+        </Text>
+        <Text
+          className={`mt-0.5 font-sans text-sm leading-5 ${
+            summary.today ? "text-stone" : "text-stoneMuted"
+          }`}
+          numberOfLines={1}
+        >
+          {summary.detail}
+        </Text>
+      </View>
+      <Ionicons
+        name="chevron-forward"
+        size={20}
+        color={tokens.colors.stoneMuted}
+      />
+    </Pressable>
   );
 }
