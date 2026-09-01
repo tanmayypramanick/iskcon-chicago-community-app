@@ -30,6 +30,8 @@ import type {
   ServiceTemplateRow,
   ServiceType,
   UpdateRecurringServiceInput,
+  WeeklySevaAnswer,
+  WeeklySevaToAnswer,
   WeeklyUnavailableInput,
 } from "./types";
 
@@ -1007,4 +1009,50 @@ export async function fetchClosedUnservedSeva(): Promise<ClosedUnservedRow[]> {
     throw error;
   }
   return (data ?? []) as unknown as ClosedUnservedRow[];
+}
+
+
+/**
+ * The devotee's own weekly seva that has finished and that they have not
+ * answered for. The server decides whose it is; there is nothing to scope here.
+ */
+export async function fetchMyWeeklySevaToAnswer(): Promise<WeeklySevaToAnswer[]> {
+  const { data, error } = await getSupabaseClient().rpc(
+    "list_my_weekly_seva_to_answer",
+    { p_days: 14 },
+  );
+  reportReachability(!error || !isConnectionProblem(error));
+  if (error) {
+    // The prompt arrives with its own migration; a temple that has not applied
+    // it yet simply has nothing to answer rather than a red box on the board.
+    if (["PGRST202", "42883", "42P01", "PGRST205"].includes(error.code ?? "")) {
+      return [];
+    }
+    throw error;
+  }
+  return (data ?? []) as unknown as WeeklySevaToAnswer[];
+}
+
+/** "I served it" or "I missed it", for one of the devotee's own weekly places. */
+export function answerMyWeeklySeva(assignmentId: string, served: boolean) {
+  return runRpc("answer_my_weekly_seva", {
+    p_assignment_id: assignmentId,
+    p_served: served,
+  });
+}
+
+/** What devotees answered, for whoever set the rota up, plus Tech and President. */
+export async function fetchWeeklySevaAnswers(): Promise<WeeklySevaAnswer[]> {
+  const { data, error } = await getSupabaseClient().rpc(
+    "list_weekly_seva_answers",
+    { p_days: 14 },
+  );
+  reportReachability(!error || !isConnectionProblem(error));
+  if (error) {
+    if (["PGRST202", "42883", "42P01", "PGRST205"].includes(error.code ?? "")) {
+      return [];
+    }
+    throw error;
+  }
+  return (data ?? []) as unknown as WeeklySevaAnswer[];
 }

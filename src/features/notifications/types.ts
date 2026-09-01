@@ -37,6 +37,7 @@ export const appNotificationKinds = [
   "sanga_deleted",
   "announcement_posted",
   "darshan_posted",
+  "weekly_seva_answer",
   "feedback_reviewed",
   "care_reply",
   "birthday_today",
@@ -93,6 +94,7 @@ export type AppNotificationRow = {
     | "sanga_deleted"
     | "announcement_posted"
     | "darshan_posted"
+    | "weekly_seva_answer"
     | "feedback_reviewed"
     | "care_reply"
     | "birthday_today"

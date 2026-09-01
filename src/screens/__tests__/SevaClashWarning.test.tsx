@@ -58,6 +58,14 @@ const mockDashboard: any = {
 };
 
 jest.mock("../../features/services/hooks", () => ({
+  useMyWeeklySevaToAnswer: () => ({ data: [], isLoading: false, error: null }),
+  useWeeklySevaAnswers: () => ({ data: [], isLoading: false, error: null }),
+  useAnswerMyWeeklySeva: () => ({
+    mutate: jest.fn(),
+    isPending: false,
+    error: null,
+    variables: undefined,
+  }),
   useServiceDashboard: () => ({
     data: mockDashboard,
     error: null,

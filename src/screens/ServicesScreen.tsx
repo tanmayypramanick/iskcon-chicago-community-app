@@ -19,12 +19,16 @@ import { TimetableLink } from "../features/schedule/components";
 import {
   ClashWarningSheet,
   ClosedUnservedNotice,
-  ServiceCard,
   FormError,
   RegisteredSevaCard,
+  ServiceCard,
   SevaCard,
   WeeklySevaCard,
 } from "../features/services/components";
+import {
+  WeeklySevaAnswerCard,
+  WeeklySevaAnswersCard,
+} from "../features/services/weeklyAnswer";
 import {
   clashWarningMessage,
   clashWarningTitle,
@@ -582,6 +586,15 @@ export function ServicesScreen({ navigation }: Props) {
   return (
     <Screen>
       <ScreenTitle eyebrow="Seva together">Seva</ScreenTitle>
+
+      {/*
+        The question first, because it is the only thing on this tab that is
+        addressed to the devotee personally and it expires: a rota answered a
+        fortnight late tells nobody anything useful. It draws nothing on a day
+        with nothing to answer, which is most days.
+      */}
+      <WeeklySevaAnswerCard />
+      <WeeklySevaAnswersCard />
 
       {__DEV__ && previewRole ? (
         <View className="mb-4 flex-row rounded-button bg-sandalwood px-4 py-3">

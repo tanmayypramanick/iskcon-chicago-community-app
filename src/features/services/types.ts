@@ -489,3 +489,34 @@ export type ClosedUnservedSeva = {
     assignmentStatus: string;
   }>;
 };
+
+/**
+ * One weekly occurrence a devotee has finished and not yet answered for.
+ *
+ * A rota counts on completion alone, so this is never a bill to be paid — it
+ * is an opportunity to say "I missed that one" and give the credit back.
+ * Ignoring it changes nothing.
+ */
+export type WeeklySevaToAnswer = {
+  assignment_id: string;
+  service_instance_id: string;
+  seva_name: string;
+  /** "YYYY-MM-DD" */
+  occurred_on: string;
+  /** "HH:MM:SS" */
+  started_at_local: string;
+  duration_minutes: number;
+};
+
+/** What a devotee answered, for whoever set the rota up. */
+export type WeeklySevaAnswer = {
+  assignment_id: string;
+  service_instance_id: string;
+  devotee_id: string;
+  devotee_name: string | null;
+  devotee_photo_url: string | null;
+  seva_name: string;
+  occurred_on: string;
+  started_at_local: string;
+  answer: "served" | "absent" | "excused";
+};

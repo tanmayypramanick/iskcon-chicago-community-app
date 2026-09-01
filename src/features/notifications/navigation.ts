@@ -52,6 +52,13 @@ export function getNotificationTarget({
     return { tab: "Home", params: { screen: "Announcements" } };
   }
 
+  // "Did you serve your weekly seva?" — the answer is given on the seva board,
+  // where the question is also waiting, so the tap goes there rather than to
+  // the occurrence's own page.
+  if (kind === "weekly_seva_answer") {
+    return { tab: "Services", params: { screen: "ServicesHome" } };
+  }
+
   // The congregation is told the Deities have been dressed; what they want is
   // the photographs, not the inbox row they tapped.
   if (kind === "darshan_posted" || text("darshanId")) {

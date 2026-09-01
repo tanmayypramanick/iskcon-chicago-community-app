@@ -37,6 +37,9 @@ import {
   setRecurringServiceActive,
   proposeServiceOfferAlternative,
   proposeWeeklyOfferAlternative,
+  answerMyWeeklySeva,
+  fetchMyWeeklySevaToAnswer,
+  fetchWeeklySevaAnswers,
   recordSevaAttendance,
   recordUnansweredSevaAttendance,
   respondToServiceOfferCounter,
@@ -719,4 +722,62 @@ export function useRespondToWeeklyOfferCounter() {
 
 export function useDeleteSevaRegistration() {
   return useServiceMutation<string>(deleteSevaRegistration);
+}
+
+
+export const weeklyAnswerKeys = {
+  mine: ["services", "weekly-answers", "mine"] as const,
+  rota: ["services", "weekly-answers", "rota"] as const,
+};
+
+/**
+ * The devotee's own weekly seva still waiting on an answer.
+ *
+ * Nothing here is owed. A rota counts on completion alone, so this list is an
+ * opportunity to hand credit back for a day they missed — never a bill.
+ */
+export function useMyWeeklySevaToAnswer(enabled = true) {
+  return useQuery({
+    queryKey: weeklyAnswerKeys.mine,
+    queryFn: fetchMyWeeklySevaToAnswer,
+    enabled,
+    staleTime: 60_000,
+  });
+}
+
+/** What devotees answered, for whoever set the rota up plus Tech and President. */
+export function useWeeklySevaAnswers(enabled = true) {
+  return useQuery({
+    queryKey: weeklyAnswerKeys.rota,
+    queryFn: fetchWeeklySevaAnswers,
+    enabled,
+    staleTime: 60_000,
+  });
+}
+
+/**
+ * "I served it" or "I missed it".
+ *
+ * Both lists are refreshed, and so is the seva dashboard: answering "missed"
+ * takes the hours back, and the board should not keep showing them.
+ */
+export function useAnswerMyWeeklySeva() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      assignmentId,
+      served,
+    }: {
+      assignmentId: string;
+      served: boolean;
+    }) => answerMyWeeklySeva(assignmentId, served),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: weeklyAnswerKeys.mine });
+      void queryClient.invalidateQueries({ queryKey: weeklyAnswerKeys.rota });
+      void queryClient.invalidateQueries({
+        queryKey: serviceKeys.all,
+        refetchType: "all",
+      });
+    },
+  });
 }

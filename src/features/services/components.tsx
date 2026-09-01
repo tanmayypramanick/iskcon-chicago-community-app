@@ -26,6 +26,7 @@ import {
 } from "../../lib/chicagoDate";
 import { unservedPlaceReason } from "./clashes";
 import {
+  errorMessage,
   formatDuration,
   formatServiceDate,
   formatServiceTime,
