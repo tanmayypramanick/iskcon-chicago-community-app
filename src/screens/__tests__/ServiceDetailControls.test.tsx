@@ -22,6 +22,7 @@ jest.mock("../../features/access/hooks", () => ({
 
 const mockJoin = jest.fn();
 const mockLeave = jest.fn();
+const mockStepBack = jest.fn();
 const mockOffer = jest.fn();
 const mockRespond = jest.fn();
 const mockComplete = jest.fn();
@@ -52,6 +53,11 @@ const idle = (mutate: jest.Mock) => () => ({
 });
 
 jest.mock("../../features/services/hooks", () => ({
+  useStepBackFromSeva: () => ({
+    mutate: mockStepBack,
+    isPending: false,
+    error: null,
+  }),
   useServiceDashboard: () => ({
     data: mockDashboard,
     error: null,
@@ -547,12 +553,46 @@ describe("leaving a seva", () => {
     ],
   };
 
-  it("lets a devotee stand down from a one-off seva", async () => {
+  it("steps a devotee back from a posted seva rather than leaving quietly", async () => {
+    // 202608310100: giving up a place on a posted seva that has not started
+    // tells whoever posted it, and on an invite-only seva opens a coverage
+    // request. A bare leave did neither, so the seva went short with nobody
+    // told.
     const screen = await renderDetail("devotee", mine);
 
-    await fireEvent.press(screen.getByText("Leave this service"));
+    await fireEvent.press(screen.getByText("I can’t make this seva"));
 
-    expect(mockLeave).toHaveBeenCalledWith("svc-kitchen");
+    expect(mockStepBack).toHaveBeenCalledWith({ instanceId: "svc-kitchen" });
+    expect(mockLeave).not.toHaveBeenCalled();
+
+    screen.unmount();
+  });
+
+  it("says the place simply reopens when anyone may take it", async () => {
+    const screen = await renderDetail("devotee", mine);
+
+    expect(
+      screen.getByText(
+        "The place opens for anyone again, and whoever posted this is told.",
+      ),
+    ).toBeTruthy();
+
+    screen.unmount();
+  });
+
+  it("says somebody will be asked when the seva was invite-only", async () => {
+    // Nobody else can simply take an invited place, so stepping back has to
+    // raise a coverage request rather than leave a silent gap.
+    const screen = await renderDetail("devotee", {
+      ...mine,
+      participation_mode: "invite_only",
+    });
+
+    expect(
+      screen.getByText(
+        "Whoever posted this is told, and can open it to everyone or ask somebody else.",
+      ),
+    ).toBeTruthy();
 
     screen.unmount();
   });

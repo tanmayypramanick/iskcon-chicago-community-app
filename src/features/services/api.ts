@@ -1056,3 +1056,19 @@ export async function fetchWeeklySevaAnswers(): Promise<WeeklySevaAnswer[]> {
   }
   return (data ?? []) as unknown as WeeklySevaAnswer[];
 }
+
+
+/**
+ * Gives up a place on a posted seva before it starts.
+ *
+ * An open seva simply frees the place. An invite-only one opens a coverage
+ * request for whoever posted it, who can open the day to everyone or ask
+ * somebody else. Returns the coverage request's id, or null when none was
+ * needed.
+ */
+export function stepBackFromSeva(instanceId: string, reason?: string | null) {
+  return runRpc("step_back_from_seva", {
+    p_instance_id: instanceId,
+    p_reason: reason ?? null,
+  });
+}

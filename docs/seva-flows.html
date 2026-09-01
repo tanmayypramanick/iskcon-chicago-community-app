@@ -323,6 +323,10 @@
               <dt>Who settles it</dt>
               <dd>Whoever posted it, or a Tech Admin or the President — they mark each place served, absent or excused, then complete the seva.</dd>
             </div>
+            <div>
+              <dt>If a devotee can’t make it</dt>
+              <dd>They step back before it starts. An open place simply reopens; an invited one raises a coverage request for whoever posted it.</dd>
+            </div>
           </dl>
           <p class="refused">
             <strong>Not verifiable.</strong> The person who would verify it is
@@ -376,6 +380,10 @@
             <div>
               <dt>When somebody can’t go</dt>
               <dd>They ask for coverage. That names a substitute, opens the day, or asks another devotee.</dd>
+            </div>
+            <div>
+              <dt>Afterwards</dt>
+              <dd>The devotee is asked whether they served it or missed it. Saying “missed” gives the credit back; ignoring it changes nothing.</dd>
             </div>
           </dl>
           <p class="refused">
@@ -435,6 +443,18 @@
             <td>Poster, Tech, President</td>
             <td>Settled by verifying</td>
             <td>Automatic, on the day</td>
+          </tr>
+          <tr>
+            <td class="who">Step back before it starts</td>
+            <td>The devotee holding the place</td>
+            <td class="refuse">Remove it instead — it is their own record</td>
+            <td class="refuse">Ask for coverage instead</td>
+          </tr>
+          <tr>
+            <td class="who">Say whether you served it</td>
+            <td class="refuse">The coordinator records it</td>
+            <td class="refuse">The named member verifies it</td>
+            <td>The devotee, after it ends</td>
           </tr>
           <tr>
             <td class="who">Arrange coverage</td>
@@ -501,6 +521,21 @@
             <td>Arrived by QR scan, then marked served</td>
             <td>The scan is kept — a stronger record is never overwritten</td>
             <td class="earns">Full hours</td>
+          </tr>
+          <tr>
+            <td>Devotee steps back from an <em>open</em> seva before it starts</td>
+            <td>The place reopens at once for anyone; whoever posted it is told</td>
+            <td class="nothing">Nothing for them</td>
+          </tr>
+          <tr>
+            <td>Devotee steps back from an <em>invited</em> seva before it starts</td>
+            <td>A coverage request opens for whoever posted it, who can open the day or ask somebody else</td>
+            <td class="nothing">Nothing for them</td>
+          </tr>
+          <tr>
+            <td>Devotee tries to step back once it has started</td>
+            <td>Refused — by then it is the coordinator’s to record</td>
+            <td class="nothing">Whatever the coordinator records</td>
           </tr>
           <tr>
             <td>Coordinator served a seva they posted themselves</td>
@@ -587,6 +622,21 @@
             <td class="earns">Still counts on completion</td>
           </tr>
           <tr>
+            <td>Devotee is asked afterwards and says “I served it”</td>
+            <td>Recorded served — the credit the rota would have given anyway</td>
+            <td class="earns">Full hours</td>
+          </tr>
+          <tr>
+            <td>Devotee is asked afterwards and says “I missed it”</td>
+            <td>Recorded absent, and whoever set the rota up is told the day went uncovered</td>
+            <td class="nothing">Nothing</td>
+          </tr>
+          <tr>
+            <td>Devotee ignores the question</td>
+            <td>Nothing changes — the prompt never costs anybody their hours</td>
+            <td class="earns">Full hours</td>
+          </tr>
+          <tr>
             <td>Devotee says they cannot make one day</td>
             <td>A coverage request opens for that date</td>
             <td class="nothing">Nothing for them that day</td>
@@ -641,6 +691,8 @@
           <tr><td class="who">Complete a seva</td><td>Once it has <strong>ended</strong></td></tr>
           <tr><td class="who">Verify a self‑added seva</td><td>Once it has <strong>ended</strong></td></tr>
           <tr><td class="who">Count towards hours and points</td><td>Once it has ended, or been marked completed — a seva that finished early is not withheld</td></tr>
+          <tr><td class="who">Step back from a posted seva</td><td>Any time <strong>before it starts</strong>, and not after</td></tr>
+          <tr><td class="who">Answer “did you serve your weekly seva?”</td><td>Once it has <strong>ended</strong>. Answering is optional and never costs hours</td></tr>
           <tr><td class="who">Correct attendance</td><td>Any time. It reopens and recounts the Seva Mala week even after it has been frozen</td></tr>
         </tbody>
       </table>
@@ -675,6 +727,8 @@
           <li>Clash warnings inform and never block a registration</li>
           <li>A seva nobody served reads as cancelled, never completed</li>
           <li>Partial absence still completes, crediting only those who served</li>
+          <li>A devotee can step back from a posted seva before it starts, and an invited place raises coverage rather than going quietly unfilled</li>
+          <li>Weekly devotees are asked afterwards whether they served, and silence still counts</li>
         </ul>
       </div>
 

@@ -43,6 +43,7 @@ import {
   recordSevaAttendance,
   recordUnansweredSevaAttendance,
   respondToServiceOfferCounter,
+  stepBackFromSeva,
   updateServiceRequirement,
   requestSevaVerification,
   logCompletedSeva,
@@ -125,6 +126,19 @@ export function useJoinWeeklyService() {
 
 export function useLeaveService() {
   return useServiceMutation<string>(leaveService);
+}
+
+/**
+ * "I cannot make this after all", on a posted seva that has not started.
+ *
+ * Distinct from leaving: leaving is for a seva a devotee simply changed their
+ * mind about, and this one tells whoever posted it — and, on an invite-only
+ * seva, opens a coverage request so the place does not quietly go unfilled.
+ */
+export function useStepBackFromSeva() {
+  return useServiceMutation<{ instanceId: string; reason?: string | null }>(
+    ({ instanceId, reason }) => stepBackFromSeva(instanceId, reason),
+  );
 }
 
 export function useOfferService() {

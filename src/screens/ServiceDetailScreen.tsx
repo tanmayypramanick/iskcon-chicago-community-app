@@ -32,17 +32,18 @@ import {
   formatServiceTime,
 } from "../features/services/format";
 import {
-  useCompleteService,
+  useClashGate,
   useCompleteMyServiceAssignment,
-  useRecordSevaAttendance,
+  useCompleteService,
   useDeleteServiceRequirement,
   useJoinService,
   useLeaveService,
   useOfferService,
+  useRecordSevaAttendance,
   useRespondToServiceOffer,
   useServiceDashboard,
-  useClashGate,
   useSevaClashes,
+  useStepBackFromSeva,
 } from "../features/services/hooks";
 import type { ServicesStackParamList } from "../navigation/types";
 import { useNow } from "../lib/useNow";
@@ -67,6 +68,7 @@ export function ServiceDetailScreen({ navigation, route }: Props) {
   const [showAllDevotees, setShowAllDevotees] = useState(false);
   const joinService = useJoinService();
   const leaveService = useLeaveService();
+  const stepBack = useStepBackFromSeva();
   const offerService = useOfferService();
   const respondToOffer = useRespondToServiceOffer();
   const completeService = useCompleteService();
@@ -237,6 +239,17 @@ export function ServiceDetailScreen({ navigation, route }: Props) {
   const endsAt = windowEnd(service.start_time, service.duration_minutes);
   const isRecurringAssignment = Boolean(
     service.template_id && service.currentUserAssignment,
+  );
+
+  /**
+   * Whether giving up this place should tell anybody.
+   *
+   * Only a posted seva that has not started: a self-added one is the devotee's
+   * own record, a weekly one has its own coverage, and once a seva has begun
+   * the question is who served rather than who can go instead.
+   */
+  const canStepBack = Boolean(
+    service && !isMyRegistration && !isRecurringAssignment && !hasStarted,
   );
   // Whoever is serving right now. A devotee who stood down is not on this list
   // and so may be asked again, which is the whole point of a swap.
@@ -435,11 +448,39 @@ export function ServiceDetailScreen({ navigation, route }: Props) {
           <Button
             variant="secondary"
             icon="exit-outline"
-            disabled={leaveService.isPending}
-            onPress={() => leaveService.mutate(service.id)}
+            disabled={leaveService.isPending || stepBack.isPending}
+            onPress={() => {
+              /*
+                Stepping back rather than simply leaving, while the seva is
+                still ahead of us and somebody else posted it. It gives up the
+                same place, and it also tells whoever posted it — and on an
+                invite-only seva opens a coverage request, because nobody else
+                can just take that place and a silent gap is how a seva ends up
+                short with no one noticing.
+
+                A seva the devotee added themselves is not stepped back from:
+                it is their own record, and "Remove" is what that means.
+              */
+              if (canStepBack) {
+                stepBack.mutate({ instanceId: service.id });
+              } else {
+                leaveService.mutate(service.id);
+              }
+            }}
           >
-            {leaveService.isPending ? "Updating…" : "Leave this service"}
+            {leaveService.isPending || stepBack.isPending
+              ? "Updating…"
+              : canStepBack
+                ? "I can’t make this seva"
+                : "Leave this service"}
           </Button>
+          {canStepBack ? (
+            <Text className="mt-2 font-sans text-sm leading-5 text-stoneMuted">
+              {service.participation_mode === "invite_only"
+                ? "Whoever posted this is told, and can open it to everyone or ask somebody else."
+                : "The place opens for anyone again, and whoever posted this is told."}
+            </Text>
+          ) : null}
         </View>
       ) : null}
 
