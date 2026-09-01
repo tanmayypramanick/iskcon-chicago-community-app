@@ -302,8 +302,10 @@ begin
     '50000000-0000-0000-0000-000000000005', 'Registering seva already over',
     format('select public.request_seva_verification(null, %L, now() - interval ''3 hours'', now() - interval ''2 hours'', %L, %L, null)',
       'Perm past seva', 'Temple room', '50000000-0000-0000-0000-000000000003'));
-  -- Overlapping their own registration.
-  perform pg_temp.expect_refused(
+  -- Overlapping their own registration is ALLOWED: the clash is reported to
+  -- the devotee and the choice is theirs ("only accept if you manage to
+  -- serve"). 202608310081 removed the constraint that used to refuse this.
+  perform pg_temp.expect_allowed(
     '50000000-0000-0000-0000-000000000005', 'Registering overlapping seva',
     format('select public.request_seva_verification(null, %L, now() + interval ''90 minutes'', now() + interval ''3 hours'', %L, %L, null)',
       'Perm overlap', 'Temple room', '50000000-0000-0000-0000-000000000003'));

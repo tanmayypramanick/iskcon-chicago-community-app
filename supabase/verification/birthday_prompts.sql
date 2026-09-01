@@ -894,7 +894,10 @@ begin
   join pg_namespace on pg_namespace.oid = pg_proc.pronamespace
   where pg_namespace.nspname = 'public'
     and pg_proc.proname = 'suggested_birthday_announcement';
-  if v_result <> 'TABLE(title text, body text)' then
+  -- image_url added by 202608310089: a greeting that goes to the whole
+  -- congregation shows whose birthday it is, so the composer opens with the
+  -- devotee's own photograph as well as the words.
+  if v_result <> 'TABLE(title text, body text, image_url text)' then
     raise exception 'suggested_birthday_announcement returns %', v_result;
   end if;
 

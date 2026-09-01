@@ -103,14 +103,17 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- 2. Overlapping registrations are refused in words a devotee can read.
+-- 2. Overlapping registrations are ACCEPTED. The clash is a warning, not a bar.
+--
+--    The temple's rule: "only accept if you manage to serve". The devotee is
+--    told about the overlap and decides. 202608310081 dropped the exclusion
+--    constraint that used to decide for them; this is the test that keeps it
+--    dropped.
 -- ---------------------------------------------------------------------------
 
 select set_config('request.jwt.claim.sub', '30000000-0000-0000-0000-000000000004', true);
 
 do $$
-declare
-  v_message text;
 begin
   perform public.request_seva_verification(
     null, 'Completeness kitchen help',
@@ -118,19 +121,27 @@ begin
     'Kitchen', '30000000-0000-0000-0000-000000000001', null
   );
 
+  -- The second one overlaps the first by an hour and must be allowed through.
   begin
     perform public.request_seva_verification(
       null, 'Completeness overlapping help',
       now() + interval '2 hours', now() + interval '4 hours',
       'Kitchen', '30000000-0000-0000-0000-000000000001', null
     );
-    raise exception 'An overlapping seva registration was accepted.';
   exception when others then
-    v_message := sqlerrm;
+    raise exception
+      'Overlapping seva was refused (%). Clashes must warn, never block.',
+      sqlerrm;
   end;
 
-  if v_message not like '%overlaps%' then
-    raise exception 'Overlap was refused with an unreadable message: %', v_message;
+  if (
+    select count(*) from public.service_verifications
+    where devotee_id = '30000000-0000-0000-0000-000000000004'
+      and custom_name in (
+        'Completeness kitchen help', 'Completeness overlapping help'
+      )
+  ) <> 2 then
+    raise exception 'Both overlapping registrations should have been stored.';
   end if;
 end;
 $$;

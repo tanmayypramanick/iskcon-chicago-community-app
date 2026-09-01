@@ -1132,7 +1132,9 @@ begin
       ('e0000000-0000-0000-0000-000000000002'::uuid, 'the Head who posted it', 'deleted'),
       ('e0000000-0000-0000-0000-000000000001'::uuid, 'the President', 'deleted'),
       ('e0000000-0000-0000-0000-000000000003'::uuid, 'the Tech Admin', 'deleted'),
-      ('e0000000-0000-0000-0000-000000000006'::uuid, 'another Community Head', 'deleted')
+      -- Narrowed by 202608310086: posting is a Community Head power, removing
+      -- somebody else's darshan is not. Only the poster, Tech Admin, President.
+      ('e0000000-0000-0000-0000-000000000006'::uuid, 'another Community Head', 'refused')
     ) as who(id, label, expected)
   loop
     -- A fresh darshan for a day nothing else in this script uses, posted by

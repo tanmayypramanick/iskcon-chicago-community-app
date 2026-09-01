@@ -1191,14 +1191,33 @@ begin
     raise exception 'The wordless review and its amendment produced % notifications.', v_rows;
   end if;
 
-  select app_notifications.body into v_body
+  -- Asserted as a SET rather than "the earliest one".
+  --
+  -- Both notifications are written inside one transaction, so created_at is
+  -- identical for the two and `order by created_at limit 1` picks whichever
+  -- row the plan happens to reach first — which shifts with the table's
+  -- physical layout, and did, the moment an unrelated migration inserted and
+  -- rolled back rows in app_notifications. The intent was never "the first
+  -- one"; it is that the wordless review produced its own notification and the
+  -- amendment produced a different one saying what was said.
+  select count(*)::integer into v_rows
   from public.app_notifications
   where app_notifications.kind = 'newsletter_reviewed'
     and app_notifications.data ->> 'submissionId' = v_two::text
-  order by app_notifications.created_at
-  limit 1;
-  if coalesce(v_body, '') not like '%has read your newsletter story%' then
-    raise exception 'A wordless review told the devotee: %.', v_body;
+    and app_notifications.body like '%has read your newsletter story%';
+  if v_rows <> 1 then
+    raise exception
+      'the wordless review produced % notifications saying it had been read', v_rows;
+  end if;
+
+  select count(*)::integer into v_rows
+  from public.app_notifications
+  where app_notifications.kind = 'newsletter_reviewed'
+    and app_notifications.data ->> 'submissionId' = v_two::text
+    and app_notifications.body like '%Lovely photographs, thank you.%';
+  if v_rows <> 1 then
+    raise exception
+      'the amended reply produced % notifications carrying its words', v_rows;
   end if;
 
   -- The unchanged re-review notified nobody a second time.
@@ -1440,8 +1459,24 @@ begin
   if v_bucket.id is null then
     raise exception 'The newsletter-files bucket is missing.';
   end if;
-  if not v_bucket.public then
-    raise exception 'The newsletter-files bucket is not readable.';
+  -- PRIVATE, since 202608310088. A public bucket is served at
+  -- /object/public/... with no authentication and bypasses row level security
+  -- on reads entirely, which put every newsletter PDF on the open internet and
+  -- made the `to authenticated` policy below decorative. Readability now comes
+  -- from that policy plus a signed URL, not from the bucket being open.
+  if v_bucket.public then
+    raise exception
+      'The newsletter-files bucket is public again; its PDFs are served without sign-in.';
+  end if;
+  if not exists (
+    select 1 from pg_policies
+    where schemaname = 'storage' and tablename = 'objects'
+      and policyname like '%newsletter files%'
+      and cmd = 'SELECT'
+      and 'authenticated' = any (roles)
+  ) then
+    raise exception
+      'Nothing lets a signed-in devotee read newsletter-files, so no newsletter can be opened.';
   end if;
   if not (v_bucket.allowed_mime_types @> array['application/pdf']) then
     raise exception 'The newsletter-files bucket refuses PDFs: %.',

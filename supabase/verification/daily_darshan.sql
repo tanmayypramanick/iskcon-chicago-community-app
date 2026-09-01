@@ -1078,7 +1078,12 @@ begin
 end;
 $$;
 
--- A Community Head takes down a darshan the President put up.
+-- A Community Head may NOT take down a darshan the President put up.
+--
+-- 202608310086 narrowed this to the temple's rule: whoever posted it, the
+-- Tech Admin, or the President. Posting is a Community Head power; removing
+-- another devotee's day is not, because the silent alternative was one Head
+-- wiping another Head's five photographs.
 reset role;
 select set_config('request.jwt.claim.sub', 'd0000000-0000-0000-0000-000000000002', true);
 set local role authenticated;
@@ -1086,11 +1091,20 @@ set local role authenticated;
 do $$
 declare
   v_target uuid;
+  v_refused boolean := false;
 begin
   select ids.id into v_target from public.darshan_test_ids ids where ids.key = 'yesterday';
-  perform public.delete_daily_darshan(v_target);
-  if exists (select 1 from public.list_daily_darshan() listed where listed.id = v_target) then
-    raise exception 'A Community Head could not remove another devotee''s darshan.';
+  begin
+    perform public.delete_daily_darshan(v_target);
+  exception when others then
+    v_refused := true;
+  end;
+
+  if not v_refused then
+    raise exception 'A Community Head removed a darshan somebody else posted.';
+  end if;
+  if not exists (select 1 from public.list_daily_darshan() listed where listed.id = v_target) then
+    raise exception 'The darshan was removed despite the refusal.';
   end if;
 end;
 $$;
