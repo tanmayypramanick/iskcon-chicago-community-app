@@ -1472,14 +1472,25 @@ begin
 
   perform public.complete_service_instance(v_instance);
 
-  -- One word from a coordinator, and one devotee's act is zeroed.
-  perform public.record_seva_attendance(
-    (select acts.assignment_id from public.seva_fv_acts acts where acts.key = 'wabs'),
-    'absent');
 end;
 $$;
 
 reset role;
+
+-- One word from a coordinator, and one devotee's act is zeroed.
+--
+-- Written directly rather than through record_seva_attendance, because
+-- 202608310098 closed that door for weekly seva: a rota runs by itself and a
+-- devotee who cannot make their day asks for coverage instead of being marked
+-- away. The RULE is untouched — seva_points_status still zeroes an act whose
+-- attendance reads 'absent', and rows written before that change still carry
+-- one — so this keeps proving the rule while no longer pretending the app can
+-- still make the mark. Outside the authenticated role, because a client has no
+-- write on this table and is not meant to.
+update public.service_assignments
+set attendance = 'absent'
+where id = (select acts.assignment_id from public.seva_fv_acts acts
+            where acts.key = 'wabs');
 select set_config('request.jwt.claim.sub', '', true);
 
 -- The other two terminal states, which have no RPC of their own.

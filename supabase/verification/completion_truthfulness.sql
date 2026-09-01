@@ -1580,9 +1580,13 @@ begin
 end;
 $$;
 
--- And now the mark, on a slot a clock closed. This is the case with nobody
--- watching: no coordinator pressed anything, and the seva must still leave the
--- completed list.
+-- And now the mark, on a slot a clock closed.
+--
+-- 202608310098 removed absence from weekly seva entirely: a rota runs by
+-- itself, counts on completion alone, and a devotee who cannot make their day
+-- asks for coverage rather than being marked away. So this is no longer a case
+-- about what an absence does to the completed list — it is the case that the
+-- mark cannot be made at all, and the occurrence stands.
 set local role authenticated;
 select set_config('request.jwt.claim.sub',
   (select ids.id::text from public.ct_ids ids where ids.key = 'president'), true);
@@ -1590,14 +1594,23 @@ select set_config('request.jwt.claim.sub',
 do $$
 declare
   v_one uuid := (select rows.instance_id from public.ct_rows rows where rows.key = 'sweepone');
+  v_refused boolean := false;
 begin
-  perform public.record_seva_attendance(
-    (select places.assignment_id from public.ct_places places where places.key = 'dsweep'), 'absent');
+  begin
+    perform public.record_seva_attendance(
+      (select places.assignment_id from public.ct_places places where places.key = 'dsweep'), 'absent');
+  exception when others then
+    v_refused := true;
+  end;
+
+  if not v_refused then
+    raise exception 'A devotee was marked absent on a weekly seva.';
+  end if;
   if not exists (
-    select 1 from public.service_instances where id = v_one and status = 'cancelled'
+    select 1 from public.service_instances where id = v_one and status = 'completed'
   ) then
     raise exception
-      'A recurring slot the clock closed, whose only devotee was then marked absent, is still in the completed list.';
+      'A recurring slot the clock closed did not stay completed once absence was refused.';
   end if;
 end;
 $$;
@@ -1609,23 +1622,27 @@ do $$
 declare
   v_one uuid := (select rows.instance_id from public.ct_rows rows where rows.key = 'sweepone');
 begin
-  -- The sweep must not put it back next hour, or ever.
+  -- The sweep leaves it alone. A completed occurrence is not due again, and a
+  -- rota that runs by itself must not be disturbed on the hour either.
   if exists (
     select 1 from public.due_recurring_service_instances where service_instance_id = v_one
   ) then
     raise exception
-      'A slot 0068 cancelled is due again; the sweep would resurrect every seva nobody served, on the hour.';
+      'A completed weekly slot is due again; the sweep would rework it on the hour.';
   end if;
   perform public.complete_due_recurring_service_instances();
   if not exists (
-    select 1 from public.service_instances where id = v_one and status = 'cancelled'
+    select 1 from public.service_instances where id = v_one and status = 'completed'
   ) then
-    raise exception 'The next sweep put a seva nobody served back into the completed list.';
+    raise exception 'The next sweep moved a completed weekly slot out of the completed list.';
   end if;
 end;
 $$;
 
--- Correcting the mark puts a swept slot back too, by the same one path.
+-- Neither mark reaches a weekly slot. 202608310098 removed both from a rota:
+-- it counts on completion alone, and a devotee who cannot make their day asks
+-- for coverage. So "served" is refused for the same reason "absent" was, and
+-- the occurrence stands either way.
 set local role authenticated;
 select set_config('request.jwt.claim.sub',
   (select ids.id::text from public.ct_ids ids where ids.key = 'president'), true);
@@ -1633,13 +1650,22 @@ select set_config('request.jwt.claim.sub',
 do $$
 declare
   v_one uuid := (select rows.instance_id from public.ct_rows rows where rows.key = 'sweepone');
+  v_refused boolean := false;
 begin
-  perform public.record_seva_attendance(
-    (select places.assignment_id from public.ct_places places where places.key = 'dsweep'), 'served');
+  begin
+    perform public.record_seva_attendance(
+      (select places.assignment_id from public.ct_places places where places.key = 'dsweep'), 'served');
+  exception when others then
+    v_refused := true;
+  end;
+
+  if not v_refused then
+    raise exception 'A devotee was marked served on a weekly seva.';
+  end if;
   if not exists (
     select 1 from public.service_instances where id = v_one and status = 'completed'
   ) then
-    raise exception 'Correcting the mark on a swept slot did not put it back.';
+    raise exception 'A weekly slot did not stay completed once marking was refused.';
   end if;
 end;
 $$;

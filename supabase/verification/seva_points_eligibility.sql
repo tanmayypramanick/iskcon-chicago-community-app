@@ -503,7 +503,9 @@ begin
 
   perform public.complete_service_instance(v_instance);
   perform public.verify_seva_assignment(v_assignment);
-  perform public.record_seva_attendance(v_assignment, 'served');
+  -- No attendance mark: 202608040059 counts a weekly act on completion alone,
+  -- and 202608310098 refuses the mark outright — a rota runs by itself, and a
+  -- devotee who cannot make their day asks for coverage.
 end;
 $$;
 

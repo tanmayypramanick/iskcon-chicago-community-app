@@ -579,22 +579,27 @@ begin
   perform pg_temp.sfm_expect(
     'weekly + completed', v_inst, 'weekly', 'counted', true);
 
-  -- And being marked absent still zeroes it, which is the one thing that
-  -- outranks the roster. This occurrence has one place, so marking it absent
-  -- also means nobody served it, and 202608040068's rule applies: the honest
-  -- terminal state is 'cancelled', and the act leaves the board with the seva.
+  -- And it cannot be marked at all. A rota runs by itself; a devotee who
+  -- cannot make their day asks for coverage, which names a substitute rather
+  -- than leaving the day empty (202608310098).
   perform set_config('request.jwt.claim.sub', v_head::text, true);
-  perform public.record_seva_attendance(v_assignment, 'absent');
+  declare
+    v_refused boolean := false;
+  begin
+    begin
+      perform public.record_seva_attendance(v_assignment, 'absent');
+    exception when others then
+      v_refused := true;
+    end;
+    if not v_refused then
+      raise exception 'a devotee was marked absent on a weekly seva';
+    end if;
+  end;
   perform set_config('request.jwt.claim.sub', '', true);
 
-  if (select instances.status from public.service_instances instances
-      where instances.id = v_inst) = 'completed'
-  then
-    raise exception 'a weekly seva nobody served still reads as completed';
-  end if;
-  if pg_temp.sfm_minutes(v_inst, 'weekly') <> 0 then
-    raise exception 'a weekly seva marked absent still credited minutes';
-  end if;
+  -- It still counts, on completion alone.
+  perform pg_temp.sfm_expect(
+    'weekly + completed, absence refused', v_inst, 'weekly', 'counted', true);
 end;
 $$;
 
