@@ -38,6 +38,7 @@ import {
   proposeServiceOfferAlternative,
   proposeWeeklyOfferAlternative,
   answerMyWeeklySeva,
+  dismissMyWeeklySevaAnswer,
   fetchMyWeeklySevaToAnswer,
   fetchWeeklySevaAnswers,
   recordSevaAttendance,
@@ -775,6 +776,18 @@ export function useWeeklySevaAnswers(enabled = true) {
  * Both lists are refreshed, and so is the seva dashboard: answering "missed"
  * takes the hours back, and the board should not keep showing them.
  */
+/** The cross. Records nothing about the seva; the day counts either way. */
+export function useDismissMyWeeklySevaAnswer() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (assignmentId: string) =>
+      dismissMyWeeklySevaAnswer(assignmentId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: weeklyAnswerKeys.mine });
+    },
+  });
+}
+
 export function useAnswerMyWeeklySeva() {
   const queryClient = useQueryClient();
   return useMutation({

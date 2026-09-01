@@ -26,8 +26,8 @@ import {
   WeeklySevaCard,
 } from "../features/services/components";
 import {
-  WeeklySevaAnswerCard,
-  WeeklySevaAnswersCard,
+  WeeklySevaAnswerSection,
+  WeeklySevaAnswersSection,
 } from "../features/services/weeklyAnswer";
 import {
   clashWarningMessage,
@@ -587,14 +587,6 @@ export function ServicesScreen({ navigation }: Props) {
     <Screen>
       <ScreenTitle eyebrow="Seva together">Seva</ScreenTitle>
 
-      {/*
-        The question first, because it is the only thing on this tab that is
-        addressed to the devotee personally and it expires: a rota answered a
-        fortnight late tells nobody anything useful. It draws nothing on a day
-        with nothing to answer, which is most days.
-      */}
-      <WeeklySevaAnswerCard />
-      <WeeklySevaAnswersCard />
 
       {__DEV__ && previewRole ? (
         <View className="mb-4 flex-row rounded-button bg-sandalwood px-4 py-3">
@@ -1156,6 +1148,19 @@ export function ServicesScreen({ navigation }: Props) {
           }
         />
       ) : null}
+
+      {/*
+        A section among the sections, not a card at the top. The board is
+        already a long scroll and this asks nothing of anybody: two rows, a way
+        to see the rest, and a cross for a devotee who would rather not be
+        asked.
+      */}
+      <WeeklySevaAnswerSection
+        onSeeAll={() => navigation.navigate("WeeklySevaAnswers")}
+      />
+      <WeeklySevaAnswersSection
+        onSeeAll={() => navigation.navigate("WeeklySevaAnswers")}
+      />
 
       {weeklyOpenings.length ? (
         <>

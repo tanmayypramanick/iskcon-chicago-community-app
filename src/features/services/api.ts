@@ -1072,3 +1072,11 @@ export function stepBackFromSeva(instanceId: string, reason?: string | null) {
     p_reason: reason ?? null,
   });
 }
+
+
+/** Puts the weekly "did you serve this?" question away without answering it. */
+export function dismissMyWeeklySevaAnswer(assignmentId: string) {
+  return runRpc("dismiss_my_weekly_seva_answer", {
+    p_assignment_id: assignmentId,
+  });
+}

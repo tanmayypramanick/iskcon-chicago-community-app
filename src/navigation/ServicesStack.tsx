@@ -20,6 +20,7 @@ import { ServiceDetailScreen } from "../screens/ServiceDetailScreen";
 import { ServiceActivityScreen } from "../screens/ServiceActivityScreen";
 import { ServicesScreen } from "../screens/ServicesScreen";
 import { SevaListScreen } from "../screens/SevaListScreen";
+import { WeeklySevaAnswersScreen } from "../screens/WeeklySevaAnswersScreen";
 import { WeeklySevaDetailScreen } from "../screens/WeeklySevaDetailScreen";
 import type { ServicesStackParamList } from "./types";
 
@@ -138,6 +139,11 @@ export function ServicesStack() {
         name="SevaList"
         component={SevaListScreen}
         options={{ title: "Seva" }}
+      />
+      <Stack.Screen
+        name="WeeklySevaAnswers"
+        component={WeeklySevaAnswersScreen}
+        options={{ title: "Did you serve?" }}
       />
       {/* The title is set by the screen: whose timetable it is decides it. */}
       <Stack.Screen

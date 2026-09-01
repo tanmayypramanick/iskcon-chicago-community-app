@@ -32,7 +32,8 @@ every permutation, who may do what, and what is still open, is written up in
 it at
 <https://tanmayypramanick.github.io/iskcon-chicago-community-app/seva-flows.html>.
 The same document as an editable Word file is
-[`docs/seva-flows.docx`](docs/seva-flows.docx). The rules both describe are
+[`docs/seva-flows.docx`](docs/seva-flows.docx), rebuilt by
+`python3 docs/build-seva-flows-docx.py`. The rules both describe are
 enforced in the database and exercised by
 `supabase/verification/seva_flow_matrix.sql`.
 

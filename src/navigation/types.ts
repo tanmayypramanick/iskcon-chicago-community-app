@@ -145,6 +145,8 @@ export type ServicesStackParamList = {
   ServiceActivity: undefined;
   WeeklySevaDetail: { templateId: string };
   SevaList: { kind: SevaListKind };
+  /** The weekly "did you serve?" question, in full. */
+  WeeklySevaAnswers: undefined;
 };
 
 /**
